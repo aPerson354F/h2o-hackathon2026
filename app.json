@@ -2,7 +2,7 @@
   "expo": {
     "owner": "aperson354f",
     "name": "h2o",
-    "slug": "h2o",
+    "slug": "h2ohack2026",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -26,6 +26,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3b8281a7-a192-4f0e-8791-48f9cbb42851"
+      }
     }
   }
 }
