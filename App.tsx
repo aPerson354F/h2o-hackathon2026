@@ -155,6 +155,14 @@ function GradientBg({
 }: { height?: number; fromColor?: string; toColor?: string; opacity?: number }) {
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height }} pointerEvents="none">
+
+
+
+
+
+
+
+      
       <Svg width="100%" height={height}>
         <Defs>
           <SvgGradient id="g1" x1="0" y1="0" x2="0" y2="1">
@@ -1335,7 +1343,7 @@ function ChatScreen() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   const QUICK = [
     'How do I save water in the shower?',

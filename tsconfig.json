@@ -1,6 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "customConditions": ["react-native-strict-api-UNSAFE-ALLOW-SUBPATHS"]
   }
 }
