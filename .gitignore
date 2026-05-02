@@ -42,3 +42,6 @@ yarn-error.*
 
 # Claude Code (local user settings)
 .claude/settings.local.json
+
+# Plan
+plan.md

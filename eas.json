@@ -17,5 +17,8 @@
   },
   "submit": {
     "production": {}
+  },
+  "scripts": {
+    "eas:build": "eas build"
   }
 }
