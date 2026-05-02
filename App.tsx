@@ -1,5 +1,9 @@
 import { StatusBar } from "expo-status-bar";
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
   View,
@@ -45,7 +49,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import {
+import React, {
   createContext,
   useContext,
   useState,
@@ -103,11 +107,32 @@ const CHART_CFG = {
 const SHADOW = Platform.select({
   ios: {
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
   },
-  android: { elevation: 6 },
+  android: { elevation: 8 },
+  // Web: layered box-shadow for depth + subtle glow that matches the accent.
+  web: {
+    boxShadow:
+      "0 8px 24px -8px rgba(0,0,0,0.55), 0 2px 6px -2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)",
+  } as any,
+  default: {},
+});
+
+// Stronger, accent-tinted elevation for hero/spotlight cards.
+const SHADOW_HERO = Platform.select({
+  ios: {
+    shadowColor: "#38bdf8",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.35,
+    shadowRadius: 28,
+  },
+  android: { elevation: 14 },
+  web: {
+    boxShadow:
+      "0 18px 48px -12px rgba(56,189,248,0.35), 0 4px 12px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
+  } as any,
   default: {},
 });
 
@@ -250,6 +275,58 @@ async function pickImage(
   return { uri: a.uri, base64: a.base64 ?? "" };
 }
 
+// Cross-platform share. RN's Share.share isn't implemented on react-native-web
+// — it throws and the empty catch in callers hides the failure. Routes through
+// navigator.share when available, falls back to clipboard, then Alert.
+async function shareText(message: string, title: string = "H2O to You") {
+  try {
+    if (Platform.OS === "web") {
+      const navAny: any = typeof navigator !== "undefined" ? navigator : null;
+      if (navAny?.share) {
+        await navAny.share({ title, text: message });
+      } else if (navAny?.clipboard?.writeText) {
+        await navAny.clipboard.writeText(message);
+        Alert.alert("Copied!", "Text copied to your clipboard.");
+      } else {
+        Alert.alert(title, message);
+      }
+    } else {
+      await Share.share({ message });
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Cross-platform confirm. RN's Alert.alert with multiple buttons silently
+// degrades to OK-only on web (window.alert), so destructive actions never
+// fire from a browser. This wraps window.confirm on web and Alert.alert on
+// native, calling onConfirm on a positive answer.
+function confirmAction(
+  title: string,
+  message: string,
+  onConfirm: () => void | Promise<void>,
+  confirmLabel: string = "Confirm",
+) {
+  if (Platform.OS === "web") {
+    const ok =
+      typeof window !== "undefined" && typeof window.confirm === "function"
+        ? window.confirm(`${title}\n\n${message}`)
+        : true;
+    if (ok) Promise.resolve(onConfirm()).catch(() => {});
+    return;
+  }
+  Alert.alert(title, message, [
+    { text: "Cancel", style: "cancel" },
+    {
+      text: confirmLabel,
+      style: "destructive",
+      onPress: () => Promise.resolve(onConfirm()).catch(() => {}),
+    },
+  ]);
+}
+
 function tryParseJson<T = any>(s: string): T | null {
   try {
     const m = s.match(/\{[\s\S]*\}/);
@@ -329,33 +406,158 @@ function GradientBg({
 }
 
 // ─── ANIMATED PRESSABLE ────────────────────────────────
-function Press({ children, onPress, style, disabled }: any) {
+// Module-level throttle so haptic can't fire faster than 100ms apart even
+// across rapid scroll/flick gestures over a list of Press tiles.
+let _lastVibeAt = 0;
+function Press({ children, onPress, style, disabled, haptic = true }: any) {
   const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+  const handlePress = useCallback(
+    (e: any) => {
+      if (haptic && Platform.OS !== "web") {
+        const now = Date.now();
+        if (now - _lastVibeAt > 100) {
+          _lastVibeAt = now;
+          try {
+            Vibration.vibrate(8);
+          } catch {}
+        }
+      }
+      onPress?.(e);
+    },
+    [onPress, haptic],
+  );
   return (
     <Pressable
-      onPress={onPress}
-      onPressIn={() =>
-        Animated.spring(scale, {
-          toValue: 0.96,
-          useNativeDriver: true,
-          speed: 40,
-          bounciness: 4,
-        }).start()
-      }
-      onPressOut={() =>
-        Animated.spring(scale, {
-          toValue: 1,
-          useNativeDriver: true,
-          speed: 40,
-          bounciness: 6,
-        }).start()
-      }
+      onPress={handlePress}
+      onPressIn={() => {
+        Animated.parallel([
+          Animated.spring(scale, {
+            toValue: 0.965,
+            useNativeDriver: true,
+            speed: 50,
+            bounciness: 0,
+          }),
+          Animated.timing(opacity, {
+            toValue: 0.85,
+            duration: 80,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }}
+      onPressOut={() => {
+        Animated.parallel([
+          Animated.spring(scale, {
+            toValue: 1,
+            useNativeDriver: true,
+            speed: 28,
+            bounciness: 8,
+          }),
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 180,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }}
       disabled={disabled}
     >
-      <Animated.View style={[{ transform: [{ scale }] }, style]}>
+      <Animated.View style={[{ transform: [{ scale }], opacity }, style]}>
         {children}
       </Animated.View>
     </Pressable>
+  );
+}
+
+// ─── FADE-IN-UP — staggered card entry, used to make screens feel "alive" ────
+function FadeInUp({
+  children,
+  delay = 0,
+  distance = 12,
+  duration = 480,
+  style,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  distance?: number;
+  duration?: number;
+  style?: any;
+}) {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const t = setTimeout(() => {
+      Animated.timing(v, {
+        toValue: 1,
+        duration,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    }, delay);
+    return () => clearTimeout(t);
+  }, []);
+  const translateY = v.interpolate({
+    inputRange: [0, 1],
+    outputRange: [distance, 0],
+  });
+  return (
+    <Animated.View style={[{ opacity: v, transform: [{ translateY }] }, style]}>
+      {children}
+    </Animated.View>
+  );
+}
+
+// ─── TYPING DOTS — chat "thinking" indicator with iOS-style bounce ────
+function TypingDots() {
+  const dots = useRef([0, 1, 2].map(() => new Animated.Value(0))).current;
+  useEffect(() => {
+    const loops = dots.map((d, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(i * 160),
+          Animated.timing(d, {
+            toValue: 1,
+            duration: 350,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(d, {
+            toValue: 0,
+            duration: 350,
+            easing: Easing.in(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]),
+      ),
+    );
+    loops.forEach((l) => l.start());
+    return () => loops.forEach((l) => l.stop());
+  }, []);
+  return (
+    <>
+      {dots.map((d, i) => (
+        <Animated.View
+          key={i}
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: 4,
+            backgroundColor: C.accent,
+            opacity: d.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.3, 1],
+            }),
+            transform: [
+              {
+                translateY: d.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, -4],
+                }),
+              },
+            ],
+          }}
+        />
+      ))}
+    </>
   );
 }
 
@@ -1476,6 +1678,10 @@ const LATEST = WATER_HISTORY[0];
 const LAST_APR1 =
   WATER_HISTORY.find((p) => p.date.startsWith("4/1/")) ?? WATER_HISTORY[0];
 
+// California per-capita residential daily water use (USGS / DWR baseline).
+// Used everywhere we say "saved vs CA average" or compute the daily target.
+const CA_DAILY_AVG = 196;
+
 // Long-run averages (used to baseline the persona narratives).
 const AVG_RES =
   WATER_HISTORY.reduce((s, p) => s + p.reservoir, 0) / WATER_HISTORY.length;
@@ -1795,7 +2001,8 @@ function findAnalog(latest: WaterPoint, history: WaterPoint[]): AnalogResult {
   // are the 6 entries immediately preceding it in the array.
   const next6: WaterPoint[] = [];
   if (bestIdx > 0) {
-    for (let k = Math.max(0, bestIdx - 6); k < bestIdx; k++) next6.push(history[k]);
+    for (let k = Math.max(0, bestIdx - 6); k < bestIdx; k++)
+      next6.push(history[k]);
   }
   const last = next6[next6.length - 1];
   const nextReservoirAt6mo = last ? last.reservoir : null;
@@ -1873,7 +2080,7 @@ const OUTLOOK_PERSONAS: PersonaContent[] = [
     kpiLabel: "Rainfall vs. normal",
     framing: (l) =>
       `Rainfall at ${l.precip}% of normal feels like a fine winter, but reservoirs depend on snowpack (${l.snowpack}%) to refill through summer. The risk this year is invisible until July.`,
-    actions: (l, a) => [
+    actions: (_l, a) => [
       "Cap showers at 5 minutes — typical California saves ~12 gal/day per person from this one habit.",
       "Check your utility's rebate page for low-flow toilets and turf-replacement programs (in-app: Home → Rebates).",
       a.reservoirDelta6mo != null && a.reservoirDelta6mo < -8
@@ -3310,10 +3517,8 @@ function HomeScreen() {
   const {
     profile,
     setProfile,
-    notifs,
     unreadCount,
     refreshNotifs,
-    loaded,
     badges,
     refreshBadges,
   } = useApp();
@@ -3334,8 +3539,7 @@ function HomeScreen() {
   const [journeyIsReplay, setJourneyIsReplay] = useState(false);
   const [showShower, setShowShower] = useState(false);
   const [showRebates, setShowRebates] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
+  const nav = useNavigation<any>();
 
   // Onboarding gate: water-journey simulation → pre-quiz → welcome onboarding
   useEffect(() => {
@@ -3396,7 +3600,7 @@ function HomeScreen() {
     const total = log.reduce((s: number, e: any) => s + e.gallons, 0);
     const xpVal = parseInt((await AsyncStorage.getItem("xp")) || "0");
     const streakVal = parseInt((await AsyncStorage.getItem("streak")) || "0");
-    const savingsVal = Math.max(0, 196 - total);
+    const savingsVal = Math.max(0, CA_DAILY_AVG - total);
     // Functional updates skip re-renders when nothing changed.
     setTodayGal((prev) => (prev === total ? prev : total));
     setXp((prev) => (prev === xpVal ? prev : xpVal));
@@ -3406,11 +3610,6 @@ function HomeScreen() {
   }, [refreshBadges]);
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 700,
-      useNativeDriver: true,
-    }).start();
     loadData();
   }, []);
 
@@ -3444,12 +3643,9 @@ function HomeScreen() {
   const ringColor = pct > 90 ? C.danger : pct > 70 ? C.gold : C.accent;
 
   const onShare = async () => {
-    try {
-      await Share.share({
-        message: `I'm using H2O to You to conserve water in California 💧 — saved ${savings.toFixed(0)} gallons today and counting! Join me.`,
-      });
-      await awardBadge("sharer");
-    } catch {}
+    const message = `I'm using H2O to You to conserve water in California 💧 — saved ${savings.toFixed(0)} gallons today and counting! Join me.`;
+    const ok = await shareText(message);
+    if (ok) await awardBadge("sharer");
   };
 
   return (
@@ -3477,314 +3673,371 @@ function HomeScreen() {
           />
         }
       >
-        <Animated.View style={{ opacity: fadeAnim }}>
+        <View>
           {/* HERO CARD */}
-          <View style={st.heroCard}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-around",
-              }}
-            >
-              <WaterRing
-                pct={pct}
-                size={IS_SMALL ? 120 : 140}
-                color={ringColor}
-              />
-              <View style={{ alignItems: "center" }}>
-                <Text style={st.heroLabel}>WATER SCORE</Text>
-                <Text style={[st.scoreLetter, { color: scoreColor }]}>
-                  {score}
-                </Text>
-                <Text style={st.heroValue}>
-                  {fmtVol(todayGal, profile.units, 1)} /{" "}
-                  {fmtVol(profile.goal, profile.units, 0)}
-                </Text>
-              </View>
-            </View>
-            <View style={st.xpBarWrap}>
-              <View style={st.xpHeader}>
-                <Text style={st.xpLevel}>LEVEL {level} GUARDIAN</Text>
-                <Text style={st.xpCount}>{progress}/100 XP</Text>
-              </View>
-              <View style={st.xpTrack}>
-                <View style={[st.xpFill, { width: `${progress}%` }]} />
-              </View>
-            </View>
-          </View>
-
-          {/* QUICK ACTIONS */}
-          <View style={st.quickRow}>
-            <Press onPress={() => setShowGoal(true)} style={st.quickAction}>
+          <FadeInUp delay={0}>
+            <View style={st.heroCard}>
               <View
-                style={[st.quickIcon, { backgroundColor: C.accent + "20" }]}
-              >
-                <Ionicons name="flag" size={20} color={C.accent} />
-              </View>
-              <Text style={st.quickLabel}>Goal</Text>
-              <Text style={st.quickValue}>
-                {fmtVol(profile.goal, profile.units, 0)}
-              </Text>
-            </Press>
-            <Press
-              onPress={() => {
-                setJourneyIsReplay(true);
-                setShowJourney(true);
-              }}
-              style={st.quickAction}
-            >
-              <View
-                style={[
-                  st.quickIcon,
-                  { backgroundColor: C.accentBright + "20" },
-                ]}
-              >
-                <Ionicons name="git-network" size={20} color={C.accentBright} />
-              </View>
-              <Text style={st.quickLabel}>Journey</Text>
-              <Text style={st.quickValue}>Sierra → tap</Text>
-            </Press>
-            <Press onPress={() => setShowTour(true)} style={st.quickAction}>
-              <View
-                style={[st.quickIcon, { backgroundColor: C.purple + "20" }]}
-              >
-                <Ionicons name="compass" size={20} color={C.purple} />
-              </View>
-              <Text style={st.quickLabel}>Tour</Text>
-              <Text style={st.quickValue}>Learn app</Text>
-            </Press>
-          </View>
-          <View style={[st.quickRow, { marginTop: 8 }]}>
-            <Press onPress={onShare} style={st.quickAction}>
-              <View style={[st.quickIcon, { backgroundColor: C.teal + "20" }]}>
-                <Ionicons name="share-social" size={20} color={C.teal} />
-              </View>
-              <Text style={st.quickLabel}>Share</Text>
-              <Text style={st.quickValue}>Spread word</Text>
-            </Press>
-            <Press onPress={() => setShowNotifs(true)} style={st.quickAction}>
-              <View style={[st.quickIcon, { backgroundColor: C.gold + "20" }]}>
-                <Ionicons name="notifications" size={20} color={C.gold} />
-              </View>
-              <Text style={st.quickLabel}>Alerts</Text>
-              <Text style={st.quickValue}>{unreadCount} new</Text>
-            </Press>
-            <Press onPress={() => setShowAch(true)} style={st.quickAction}>
-              <View style={[st.quickIcon, { backgroundColor: C.amber + "20" }]}>
-                <Ionicons name="trophy" size={20} color={C.amber} />
-              </View>
-              <Text style={st.quickLabel}>Trophies</Text>
-              <Text style={st.quickValue}>
-                {badges.length}/{BADGES.length}
-              </Text>
-            </Press>
-          </View>
-
-          {/* THIRD ROW — high-impact daily actions */}
-          <View style={[st.quickRow, { marginTop: 8 }]}>
-            <Press onPress={() => setShowShower(true)} style={st.quickAction}>
-              <View
-                style={[st.quickIcon, { backgroundColor: C.accent + "20" }]}
-              >
-                <Ionicons name="water-outline" size={20} color={C.accent} />
-              </View>
-              <Text style={st.quickLabel}>Shower</Text>
-              <Text style={st.quickValue}>Live coach</Text>
-            </Press>
-            <Press onPress={() => setShowRebates(true)} style={st.quickAction}>
-              <View style={[st.quickIcon, { backgroundColor: C.gold + "20" }]}>
-                <Ionicons name="cash" size={20} color={C.gold} />
-              </View>
-              <Text style={st.quickLabel}>Rebates</Text>
-              <Text style={st.quickValue}>Find $</Text>
-            </Press>
-          </View>
-
-          {/* STAT CARDS */}
-          <View style={st.statRow}>
-            {[
-              {
-                label: "Saved vs CA Avg",
-                value: fmtVol(savings, profile.units, 0),
-                icon: "🌿",
-                color: C.success,
-              },
-              {
-                label: "Day Streak",
-                value: `${streak}`,
-                sub: "days",
-                icon: "🔥",
-                color: C.gold,
-              },
-              {
-                label: "Level",
-                value: `${level}`,
-                sub: "guardian",
-                icon: "⚡",
-                color: C.accent,
-              },
-            ].map((c) => (
-              <View key={c.label} style={st.statCard}>
-                <Text style={{ fontSize: 22 }}>{c.icon}</Text>
-                <Text style={[st.statValue, { color: c.color }]}>
-                  {c.value}
-                </Text>
-                {c.sub ? <Text style={st.statSub}>{c.sub}</Text> : null}
-                <Text style={st.statLabel}>{c.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* DROUGHT ALERT — driven by latest WATER_HISTORY snapshot */}
-          {(() => {
-            const r = classifyReservoir(LATEST.reservoir);
-            const sn = classifySnowpack(LATEST.snowpack);
-            const p = classifyPrecip(LATEST.precip);
-            const headline =
-              LATEST.reservoir < 60 || LATEST.snowpack < 50
-                ? "Active Drought Alert"
-                : LATEST.reservoir < 75 || LATEST.snowpack < 75
-                  ? "Watch Conditions"
-                  : "Conditions Normal";
-            const headlineColor =
-              LATEST.reservoir < 60
-                ? C.danger
-                : LATEST.reservoir < 75
-                  ? C.warn
-                  : C.success;
-            return (
-              <View style={st.alertBanner}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <View style={st.alertIcon}>
-                    <Text style={{ fontSize: 18 }}>
-                      {LATEST.reservoir < 60 ? "⚠️" : "💧"}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        color: headlineColor,
-                        fontWeight: "700",
-                        fontSize: 13,
-                      }}
-                    >
-                      {headline} · {LATEST.date}
-                    </Text>
-                    <Text
-                      style={{ color: C.textSoft, fontSize: 12, marginTop: 2 }}
-                    >
-                      Reservoirs {LATEST.reservoir}% ({r.label}) · Snowpack{" "}
-                      {LATEST.snowpack}% ({sn.label}) · Precip {LATEST.precip}%
-                      ({p.label})
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            );
-          })()}
-
-          {/* DAILY CHALLENGES */}
-          <DailyChallengesCard />
-
-          {/* HYDRATION */}
-          <HydrationCard />
-
-          {/* RESERVOIRS */}
-          <ReservoirStrip />
-
-          {/* AI TIP */}
-          <AITipCard />
-
-          {/* LEADERBOARD */}
-          <LeaderboardCard />
-
-          {/* BADGES */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginHorizontal: 16,
-              marginTop: 18,
-              marginBottom: 10,
-            }}
-          >
-            <Text style={s.sectionInline}>
-              ACHIEVEMENTS · {badges.length}/{BADGES.length}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowAch(true)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text
-                style={{ color: C.accent, fontSize: 12, fontWeight: "700" }}
-              >
-                View all →
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
-          >
-            {BADGES.map((b) => {
-              const got = badges.includes(b.id);
-              return (
-                <Press
-                  key={b.id}
-                  onPress={() => setShowAch(true)}
-                  style={[st.badgeCard, !got && { opacity: 0.35 }]}
-                >
-                  <Text style={{ fontSize: 26 }}>{b.icon}</Text>
-                  <Text style={st.badgeName}>{b.name}</Text>
-                  <Text style={st.badgeDesc}>{b.desc}</Text>
-                  {got ? (
-                    <View style={st.badgeCheck}>
-                      <Ionicons name="checkmark" size={10} color={C.bg} />
-                    </View>
-                  ) : null}
-                </Press>
-              );
-            })}
-          </ScrollView>
-
-          {/* DAILY FACT */}
-          <View style={[st.glassCard, { margin: 16 }]}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
-                marginBottom: 8,
-              }}
-            >
-              <Ionicons name="bulb" size={16} color={C.gold} />
-              <Text
                 style={{
-                  color: C.gold,
-                  fontWeight: "700",
-                  fontSize: 12,
-                  letterSpacing: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-around",
                 }}
               >
-                DAILY FACT
+                <WaterRing
+                  pct={pct}
+                  size={IS_SMALL ? 120 : 140}
+                  color={ringColor}
+                />
+                <View style={{ alignItems: "center" }}>
+                  <Text style={st.heroLabel}>WATER SCORE</Text>
+                  <Text style={[st.scoreLetter, { color: scoreColor }]}>
+                    {score}
+                  </Text>
+                  <Text style={st.heroValue}>
+                    {fmtVol(todayGal, profile.units, 1)} /{" "}
+                    {fmtVol(profile.goal, profile.units, 0)}
+                  </Text>
+                </View>
+              </View>
+              <View style={st.xpBarWrap}>
+                <View style={st.xpHeader}>
+                  <Text style={st.xpLevel}>LEVEL {level} GUARDIAN</Text>
+                  <Text style={st.xpCount}>{progress}/100 XP</Text>
+                </View>
+                <View style={st.xpTrack}>
+                  <View style={[st.xpFill, { width: `${progress}%` }]} />
+                </View>
+              </View>
+            </View>
+          </FadeInUp>
+
+          {/* QUICK ACTIONS */}
+          <FadeInUp delay={80}>
+            <View style={st.quickRow}>
+              <Press onPress={() => setShowGoal(true)} style={st.quickAction}>
+                <View
+                  style={[st.quickIcon, { backgroundColor: C.accent + "20" }]}
+                >
+                  <Ionicons name="flag" size={20} color={C.accent} />
+                </View>
+                <Text style={st.quickLabel}>Goal</Text>
+                <Text style={st.quickValue}>
+                  {fmtVol(profile.goal, profile.units, 0)}
+                </Text>
+              </Press>
+              <Press
+                onPress={() => {
+                  setJourneyIsReplay(true);
+                  setShowJourney(true);
+                }}
+                style={st.quickAction}
+              >
+                <View
+                  style={[
+                    st.quickIcon,
+                    { backgroundColor: C.accentBright + "20" },
+                  ]}
+                >
+                  <Ionicons
+                    name="git-network"
+                    size={20}
+                    color={C.accentBright}
+                  />
+                </View>
+                <Text style={st.quickLabel}>Journey</Text>
+                <Text style={st.quickValue}>Sierra → tap</Text>
+              </Press>
+              <Press onPress={() => setShowTour(true)} style={st.quickAction}>
+                <View
+                  style={[st.quickIcon, { backgroundColor: C.purple + "20" }]}
+                >
+                  <Ionicons name="compass" size={20} color={C.purple} />
+                </View>
+                <Text style={st.quickLabel}>Tour</Text>
+                <Text style={st.quickValue}>Learn app</Text>
+              </Press>
+            </View>
+          </FadeInUp>
+          <FadeInUp delay={140}>
+            <View style={[st.quickRow, { marginTop: 8 }]}>
+              <Press onPress={onShare} style={st.quickAction}>
+                <View
+                  style={[st.quickIcon, { backgroundColor: C.teal + "20" }]}
+                >
+                  <Ionicons name="share-social" size={20} color={C.teal} />
+                </View>
+                <Text style={st.quickLabel}>Share</Text>
+                <Text style={st.quickValue}>Spread word</Text>
+              </Press>
+              <Press onPress={() => setShowNotifs(true)} style={st.quickAction}>
+                <View
+                  style={[st.quickIcon, { backgroundColor: C.gold + "20" }]}
+                >
+                  <Ionicons name="notifications" size={20} color={C.gold} />
+                </View>
+                <Text style={st.quickLabel}>Alerts</Text>
+                <Text style={st.quickValue}>{unreadCount} new</Text>
+              </Press>
+              <Press onPress={() => setShowAch(true)} style={st.quickAction}>
+                <View
+                  style={[st.quickIcon, { backgroundColor: C.amber + "20" }]}
+                >
+                  <Ionicons name="trophy" size={20} color={C.amber} />
+                </View>
+                <Text style={st.quickLabel}>Trophies</Text>
+                <Text style={st.quickValue}>
+                  {badges.length}/{BADGES.length}
+                </Text>
+              </Press>
+            </View>
+          </FadeInUp>
+
+          {/* THIRD ROW — high-impact daily actions */}
+          <FadeInUp delay={200}>
+            <View style={[st.quickRow, { marginTop: 8 }]}>
+              <Press onPress={() => setShowShower(true)} style={st.quickAction}>
+                <View
+                  style={[st.quickIcon, { backgroundColor: C.accent + "20" }]}
+                >
+                  <Ionicons name="water-outline" size={20} color={C.accent} />
+                </View>
+                <Text style={st.quickLabel}>Shower</Text>
+                <Text style={st.quickValue}>Live coach</Text>
+              </Press>
+              <Press
+                onPress={() => setShowRebates(true)}
+                style={st.quickAction}
+              >
+                <View
+                  style={[st.quickIcon, { backgroundColor: C.gold + "20" }]}
+                >
+                  <Ionicons name="cash" size={20} color={C.gold} />
+                </View>
+                <Text style={st.quickLabel}>Rebates</Text>
+                <Text style={st.quickValue}>Find $</Text>
+              </Press>
+              <Press
+                onPress={() => nav.navigate("Map", { mode: "outlook" })}
+                style={st.quickAction}
+              >
+                <View
+                  style={[st.quickIcon, { backgroundColor: C.purple + "20" }]}
+                >
+                  <Ionicons name="telescope" size={20} color={C.purple} />
+                </View>
+                <Text style={st.quickLabel}>Forecast</Text>
+                <Text style={st.quickValue}>10-yr outlook</Text>
+              </Press>
+            </View>
+          </FadeInUp>
+
+          {/* STAT CARDS */}
+          <FadeInUp delay={260}>
+            <View style={st.statRow}>
+              {[
+                {
+                  label: "Saved vs CA Avg",
+                  value: fmtVol(savings, profile.units, 0),
+                  icon: "🌿",
+                  color: C.success,
+                },
+                {
+                  label: "Day Streak",
+                  value: `${streak}`,
+                  sub: "days",
+                  icon: "🔥",
+                  color: C.gold,
+                },
+                {
+                  label: "Level",
+                  value: `${level}`,
+                  sub: "guardian",
+                  icon: "⚡",
+                  color: C.accent,
+                },
+              ].map((c) => (
+                <View key={c.label} style={st.statCard}>
+                  <Text style={{ fontSize: 22 }}>{c.icon}</Text>
+                  <Text style={[st.statValue, { color: c.color }]}>
+                    {c.value}
+                  </Text>
+                  {c.sub ? <Text style={st.statSub}>{c.sub}</Text> : null}
+                  <Text style={st.statLabel}>{c.label}</Text>
+                </View>
+              ))}
+            </View>
+          </FadeInUp>
+
+          {/* DROUGHT ALERT — driven by latest WATER_HISTORY snapshot */}
+          <FadeInUp delay={320}>
+            {(() => {
+              const r = classifyReservoir(LATEST.reservoir);
+              const sn = classifySnowpack(LATEST.snowpack);
+              const p = classifyPrecip(LATEST.precip);
+              const headline =
+                LATEST.reservoir < 60 || LATEST.snowpack < 50
+                  ? "Active Drought Alert"
+                  : LATEST.reservoir < 75 || LATEST.snowpack < 75
+                    ? "Watch Conditions"
+                    : "Conditions Normal";
+              const headlineColor =
+                LATEST.reservoir < 60
+                  ? C.danger
+                  : LATEST.reservoir < 75
+                    ? C.warn
+                    : C.success;
+              return (
+                <View style={st.alertBanner}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <View style={st.alertIcon}>
+                      <Text style={{ fontSize: 18 }}>
+                        {LATEST.reservoir < 60 ? "⚠️" : "💧"}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          color: headlineColor,
+                          fontWeight: "700",
+                          fontSize: 13,
+                        }}
+                      >
+                        {headline} · {LATEST.date}
+                      </Text>
+                      <Text
+                        style={{
+                          color: C.textSoft,
+                          fontSize: 12,
+                          marginTop: 2,
+                        }}
+                      >
+                        Reservoirs {LATEST.reservoir}% ({r.label}) · Snowpack{" "}
+                        {LATEST.snowpack}% ({sn.label}) · Precip {LATEST.precip}
+                        % ({p.label})
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })()}
+          </FadeInUp>
+
+          {/* DAILY CHALLENGES */}
+          <FadeInUp delay={380}>
+            <DailyChallengesCard />
+          </FadeInUp>
+
+          {/* HYDRATION */}
+          <FadeInUp delay={440}>
+            <HydrationCard />
+          </FadeInUp>
+
+          {/* RESERVOIRS */}
+          <FadeInUp delay={500}>
+            <ReservoirStrip />
+          </FadeInUp>
+
+          {/* AI TIP */}
+          <FadeInUp delay={560}>
+            <AITipCard />
+          </FadeInUp>
+
+          {/* LEADERBOARD */}
+          <FadeInUp delay={620}>
+            <LeaderboardCard />
+          </FadeInUp>
+
+          {/* BADGES */}
+          <FadeInUp delay={680}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginHorizontal: 16,
+                marginTop: 18,
+                marginBottom: 10,
+              }}
+            >
+              <Text style={s.sectionInline}>
+                ACHIEVEMENTS · {badges.length}/{BADGES.length}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAch(true)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text
+                  style={{ color: C.accent, fontSize: 12, fontWeight: "700" }}
+                >
+                  View all →
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
+            >
+              {BADGES.map((b) => {
+                const got = badges.includes(b.id);
+                return (
+                  <Press
+                    key={b.id}
+                    onPress={() => setShowAch(true)}
+                    style={[st.badgeCard, !got && { opacity: 0.35 }]}
+                  >
+                    <Text style={{ fontSize: 26 }}>{b.icon}</Text>
+                    <Text style={st.badgeName}>{b.name}</Text>
+                    <Text style={st.badgeDesc}>{b.desc}</Text>
+                    {got ? (
+                      <View style={st.badgeCheck}>
+                        <Ionicons name="checkmark" size={10} color={C.bg} />
+                      </View>
+                    ) : null}
+                  </Press>
+                );
+              })}
+            </ScrollView>
+          </FadeInUp>
+
+          {/* DAILY FACT */}
+          <FadeInUp delay={740}>
+            <View style={[st.glassCard, { margin: 16 }]}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 8,
+                }}
+              >
+                <Ionicons name="bulb" size={16} color={C.gold} />
+                <Text
+                  style={{
+                    color: C.gold,
+                    fontWeight: "700",
+                    fontSize: 12,
+                    letterSpacing: 1,
+                  }}
+                >
+                  DAILY FACT
+                </Text>
+              </View>
+              <Text style={{ color: C.text, fontSize: 13, lineHeight: 21 }}>
+                A single avocado requires 60 gallons of water to grow.
+                California produces 90% of America's avocados — making water
+                conservation critical to our food supply.
               </Text>
             </View>
-            <Text style={{ color: C.text, fontSize: 13, lineHeight: 21 }}>
-              A single avocado requires 60 gallons of water to grow. California
-              produces 90% of America's avocados — making water conservation
-              critical to our food supply.
-            </Text>
-          </View>
-        </Animated.View>
+          </FadeInUp>
+        </View>
       </ScrollView>
 
       {/* MODALS */}
@@ -3899,7 +4152,6 @@ function LoggerScreen() {
   const [customAmt, setCustomAmt] = useState("");
   const [customLabel, setCustomLabel] = useState("");
   const popAnim = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
 
   const today = new Date().toISOString().split("T")[0];
   const total = log.reduce((sum, e) => sum + e.gallons, 0);
@@ -3980,7 +4232,7 @@ function LoggerScreen() {
       const day = JSON.parse((await AsyncStorage.getItem(`log_${k}`)) || "[]");
       weekTotal += day.reduce((s: number, e: any) => s + e.gallons, 0);
     }
-    if (196 * 7 - weekTotal >= 500) add("saver");
+    if (CA_DAILY_AVG * 7 - weekTotal >= 500) add("saver");
 
     await AsyncStorage.setItem("badges", JSON.stringify(badges));
   };
@@ -4008,7 +4260,7 @@ function LoggerScreen() {
     await updateBadgesAndStreak(newLog);
     // update lifetime savings counter
     const dayTotal = newLog.reduce((s: number, e: any) => s + e.gallons, 0);
-    await bumpLifetimeSaved(Math.max(0, 196 - dayTotal));
+    await bumpLifetimeSaved(Math.max(0, CA_DAILY_AVG - dayTotal));
     refreshNotifs();
   };
 
@@ -4037,17 +4289,15 @@ function LoggerScreen() {
   };
 
   const clearLog = () =>
-    Alert.alert("Clear Log", "Reset today's log? This can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Clear",
-        style: "destructive",
-        onPress: async () => {
-          setLog([]);
-          await AsyncStorage.removeItem(`log_${today}`);
-        },
+    confirmAction(
+      "Clear Log",
+      "Reset today's log? This can't be undone.",
+      async () => {
+        setLog([]);
+        await AsyncStorage.removeItem(`log_${today}`);
       },
-    ]);
+      "Clear",
+    );
 
   const filtered = ACTIVITIES.filter((a) =>
     a.label.toLowerCase().includes(search.toLowerCase()),
@@ -4156,7 +4406,7 @@ function LoggerScreen() {
             ]}
           >
             <Text style={{ color: C.success, fontSize: 18, fontWeight: "800" }}>
-              ${(Math.max(0, 196 - total) * 0.004).toFixed(2)}
+              ${(Math.max(0, CA_DAILY_AVG - total) * 0.004).toFixed(2)}
             </Text>
             <Text style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>
               Saved today
@@ -4359,6 +4609,526 @@ function LoggerScreen() {
   );
 }
 
+// ─── ACTIVITY HEATMAP — 12 weeks of water-saving intensity ──────────────
+// Reads each day's `log_<date>` total, computes (CA_AVG - total) as the
+// "saved" delta. Higher saved → darker accent cell. Days with no log →
+// neutral surface color. GitHub-contributions style: 7 rows × 12 cols.
+const HM_WEEKS = 12;
+const HM_DAYS = HM_WEEKS * 7;
+const HM_CELL = 11;
+const HM_GAP = 3;
+// Lookup table for the 5-step intensity scale (less → more saving).
+const HEATMAP_COLORS = [
+  C.surface2,
+  C.accent + "33",
+  C.accent + "66",
+  C.accent + "99",
+  C.accent,
+];
+function heatmapColor(saved: number, total: number, max: number): string {
+  if (total === 0) return HEATMAP_COLORS[0];
+  if (max === 0) return HEATMAP_COLORS[1];
+  const ratio = saved / max;
+  if (ratio < 0.25) return HEATMAP_COLORS[1];
+  if (ratio < 0.5) return HEATMAP_COLORS[2];
+  if (ratio < 0.75) return HEATMAP_COLORS[3];
+  return HEATMAP_COLORS[4];
+}
+
+function ActivityHeatmap() {
+  const [grid, setGrid] = useState<
+    { date: string; total: number; saved: number }[]
+  >([]);
+  const [maxSaved, setMaxSaved] = useState(0);
+
+  const load = useCallback(async () => {
+    const today = new Date();
+    const days: { date: string; total: number; saved: number }[] = [];
+    let max = 0;
+    const reads = [];
+    for (let i = HM_DAYS - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = d.toISOString().split("T")[0];
+      reads.push(
+        AsyncStorage.getItem(`log_${key}`).then((raw) => ({ key, raw })),
+      );
+    }
+    const results = await Promise.all(reads);
+    for (const { key, raw } of results) {
+      let total = 0;
+      try {
+        const log = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(log))
+          total = log.reduce((s: number, e: any) => s + (e.gallons || 0), 0);
+      } catch {
+        // ignore corrupt entries
+      }
+      const saved = total > 0 ? Math.max(0, CA_DAILY_AVG - total) : 0;
+      if (saved > max) max = saved;
+      days.push({ date: key, total, saved });
+    }
+    setGrid(days);
+    setMaxSaved(max);
+  }, []);
+
+  // Loads once on mount; user pulling-to-refresh on Stats will re-mount the
+  // heatmap via parent re-render. No need to poll — log_<date> only changes
+  // when the user logs activity, and they'd be doing that on the Log tab.
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Color helper hoisted to module scope; just bind maxSaved here.
+  const cellColor = (saved: number, total: number) =>
+    heatmapColor(saved, total, maxSaved);
+
+  const totalSaved = grid.reduce((s, d) => s + d.saved, 0);
+  const activeDays = grid.filter((d) => d.total > 0).length;
+
+  const width = HM_WEEKS * (HM_CELL + HM_GAP);
+  const height = 7 * (HM_CELL + HM_GAP);
+
+  return (
+    <View
+      style={[
+        st.glassCard,
+        { marginHorizontal: 16, marginBottom: 16, padding: 14 },
+      ]}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          marginBottom: 10,
+        }}
+      >
+        <Text
+          style={{
+            color: C.accent,
+            fontWeight: "800",
+            fontSize: 12,
+            letterSpacing: 1,
+          }}
+        >
+          🔥 ACTIVITY · LAST 12 WEEKS
+        </Text>
+        <Text style={{ color: C.muted, fontSize: 10 }}>
+          {activeDays}/{HM_DAYS} active
+        </Text>
+      </View>
+      <Svg width={width} height={height}>
+        {grid.map((d, i) => {
+          const week = Math.floor(i / 7);
+          const day = i % 7;
+          return (
+            <Rect
+              key={d.date}
+              x={week * (HM_CELL + HM_GAP)}
+              y={day * (HM_CELL + HM_GAP)}
+              width={HM_CELL}
+              height={HM_CELL}
+              rx={2}
+              fill={cellColor(d.saved, d.total)}
+            />
+          );
+        })}
+      </Svg>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 10,
+        }}
+      >
+        <Text style={{ color: C.textSoft, fontSize: 11 }}>
+          Saved {totalSaved.toFixed(0)} gal vs CA avg
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Text style={{ color: C.muted, fontSize: 10 }}>less</Text>
+          {HEATMAP_COLORS.map((bg, i) => (
+            <View
+              key={i}
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                backgroundColor: bg,
+              }}
+            />
+          ))}
+          <Text style={{ color: C.muted, fontSize: 10 }}>more</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ─── CONSERVATION REPORT — pro "data ownership" modal ─────────────────
+// Aggregates everything (XP, streak, badges, lifetime saved, weekly avg,
+// active days, top activities) and offers Share + Export-JSON. The export
+// is the user's full local data — privacy-first, takes the data with you.
+type ReportData = {
+  generatedAt: string;
+  profile: any;
+  xp: number;
+  level: number;
+  streak: number;
+  badges: string[];
+  lifetimeSaved: number;
+  activeDays: number;
+  weeklyAvg: number;
+  totalLogs: number;
+  topActivity: { label: string; gallons: number } | null;
+  daily: { date: string; total: number }[];
+};
+
+async function buildConservationReport(profile: any): Promise<ReportData> {
+  const [xp, streakRaw, badgesRaw, lifetimeRaw] = await Promise.all([
+    AsyncStorage.getItem("xp"),
+    AsyncStorage.getItem("streak"),
+    AsyncStorage.getItem("badges"),
+    AsyncStorage.getItem("lifetime_saved"),
+  ]);
+  const today = new Date();
+  const reads: Promise<{ key: string; raw: string | null }>[] = [];
+  for (let i = 0; i < 90; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().split("T")[0];
+    reads.push(
+      AsyncStorage.getItem(`log_${key}`).then((raw) => ({ key, raw })),
+    );
+  }
+  const results = await Promise.all(reads);
+  const daily: { date: string; total: number }[] = [];
+  let totalLogs = 0;
+  let weekTotal = 0;
+  let activeDays = 0;
+  const activityTotals = new Map<string, number>();
+  for (let i = 0; i < results.length; i++) {
+    const { key, raw } = results[i];
+    let total = 0;
+    try {
+      const log = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(log)) {
+        totalLogs += log.length;
+        for (const e of log) {
+          total += e.gallons || 0;
+          const label = e.label || e.type || "Other";
+          activityTotals.set(
+            label,
+            (activityTotals.get(label) || 0) + (e.gallons || 0),
+          );
+        }
+      }
+    } catch {
+      // ignore
+    }
+    if (i < 7) weekTotal += total;
+    if (total > 0) activeDays += 1;
+    daily.push({ date: key, total });
+  }
+  const top = [...activityTotals.entries()].sort((a, b) => b[1] - a[1])[0];
+  const xpNum = parseInt(xp || "0");
+  return {
+    generatedAt: new Date().toISOString(),
+    profile,
+    xp: xpNum,
+    level: xpToLevel(xpNum).level,
+    streak: parseInt(streakRaw || "0"),
+    badges: badgesRaw ? JSON.parse(badgesRaw) : [],
+    lifetimeSaved: parseFloat(lifetimeRaw || "0"),
+    activeDays,
+    weeklyAvg: weekTotal / 7,
+    totalLogs,
+    topActivity: top ? { label: top[0], gallons: top[1] } : null,
+    daily,
+  };
+}
+
+function ConservationReportModal({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const { profile } = useApp();
+  const [report, setReport] = useState<ReportData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    setLoading(true);
+    buildConservationReport(profile)
+      .then(setReport)
+      .finally(() => setLoading(false));
+  }, [visible, profile]);
+
+  const onShare = useCallback(async () => {
+    if (!report) return;
+    const lines = [
+      `🌊 H2O to You — Conservation Report`,
+      `Generated ${new Date(report.generatedAt).toLocaleDateString()}`,
+      ``,
+      `• Lifetime saved: ${report.lifetimeSaved.toFixed(0)} gal`,
+      `• Active days (90d): ${report.activeDays}`,
+      `• Weekly avg use: ${report.weeklyAvg.toFixed(0)} gal/day`,
+      `• Streak: ${report.streak} day(s)`,
+      `• Level ${report.level} Guardian · ${report.xp} XP`,
+      `• Badges earned: ${report.badges.length}/${BADGES.length}`,
+      ``,
+      `Built for the H2O Hackathon · 2026`,
+    ];
+    await shareText(lines.join("\n"), "Conservation Report");
+  }, [report]);
+
+  const onExport = useCallback(async () => {
+    if (!report) return;
+    const json = JSON.stringify(report, null, 2);
+    if (Platform.OS === "web") {
+      try {
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `h2o-conservation-${new Date().toISOString().split("T")[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch {
+        // Fall through to clipboard
+        const navAny: any = typeof navigator !== "undefined" ? navigator : null;
+        if (navAny?.clipboard?.writeText) {
+          await navAny.clipboard.writeText(json);
+          Alert.alert("Copied!", "Full export copied to your clipboard.");
+        }
+      }
+      return;
+    }
+    try {
+      await Share.share({ message: json });
+    } catch {
+      // cancelled
+    }
+  }, [report]);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={st.modalOverlay}>
+        <View style={[st.modalBox, { maxHeight: "85%" }]}>
+          <View style={st.modalHandle} />
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <View>
+              <Text style={st.modalTitle}>Conservation Report</Text>
+              <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
+                Your full local profile · privacy-first
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={onClose}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close" size={22} color={C.muted} />
+            </TouchableOpacity>
+          </View>
+          {loading || !report ? (
+            <View style={{ alignItems: "center", paddingVertical: 32 }}>
+              <ActivityIndicator color={C.accent} />
+              <Text style={{ color: C.muted, marginTop: 8, fontSize: 12 }}>
+                Aggregating 90 days of data…
+              </Text>
+            </View>
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Hero numbers */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  marginBottom: 12,
+                }}
+              >
+                {[
+                  {
+                    label: "Lifetime saved",
+                    value: `${report.lifetimeSaved.toFixed(0)} gal`,
+                    color: C.success,
+                  },
+                  {
+                    label: "Active days",
+                    value: `${report.activeDays}/90`,
+                    color: C.accent,
+                  },
+                  {
+                    label: "Weekly avg",
+                    value: `${report.weeklyAvg.toFixed(0)} gal`,
+                    color: C.teal,
+                  },
+                  {
+                    label: "Streak",
+                    value: `${report.streak} d`,
+                    color: C.gold,
+                  },
+                  {
+                    label: "Level",
+                    value: `${report.level}`,
+                    color: C.accent,
+                  },
+                  {
+                    label: "Badges",
+                    value: `${report.badges.length}/${BADGES.length}`,
+                    color: C.amber,
+                  },
+                ].map((tile) => (
+                  <View
+                    key={tile.label}
+                    style={{
+                      width: (SW - 56) / 2,
+                      padding: 12,
+                      borderRadius: 12,
+                      backgroundColor: tile.color + "14",
+                      borderWidth: 1,
+                      borderColor: tile.color + "55",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: tile.color,
+                        fontWeight: "900",
+                        fontSize: 18,
+                      }}
+                    >
+                      {tile.value}
+                    </Text>
+                    <Text
+                      style={{
+                        color: C.muted,
+                        fontSize: 10,
+                        marginTop: 2,
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      {tile.label.toUpperCase()}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              {report.topActivity ? (
+                <View style={[st.glassCard, { marginBottom: 12, padding: 12 }]}>
+                  <Text
+                    style={{
+                      color: C.muted,
+                      fontSize: 10,
+                      letterSpacing: 1,
+                      fontWeight: "700",
+                    }}
+                  >
+                    TOP ACTIVITY · 90 DAYS
+                  </Text>
+                  <Text
+                    style={{
+                      color: C.white,
+                      fontSize: 16,
+                      fontWeight: "800",
+                      marginTop: 4,
+                    }}
+                  >
+                    {report.topActivity.label}
+                  </Text>
+                  <Text style={{ color: C.accent, fontSize: 12, marginTop: 2 }}>
+                    {report.topActivity.gallons.toFixed(0)} gal logged
+                  </Text>
+                </View>
+              ) : null}
+
+              <Text
+                style={{
+                  color: C.muted,
+                  fontSize: 11,
+                  lineHeight: 16,
+                  marginBottom: 12,
+                  fontStyle: "italic",
+                }}
+              >
+                The export below is the full report as JSON — your data, owned
+                by you. No cloud, no account, no telemetry.
+              </Text>
+
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <Press
+                  onPress={onShare}
+                  style={[
+                    {
+                      flex: 1,
+                      backgroundColor: C.accent,
+                      borderRadius: 12,
+                      padding: 12,
+                      alignItems: "center",
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      gap: 6,
+                    },
+                  ]}
+                >
+                  <Ionicons name="share-social" size={16} color={C.bg} />
+                  <Text
+                    style={{ color: C.bg, fontWeight: "800", fontSize: 13 }}
+                  >
+                    Share
+                  </Text>
+                </Press>
+                <Press
+                  onPress={onExport}
+                  style={[
+                    {
+                      flex: 1,
+                      backgroundColor: C.purple,
+                      borderRadius: 12,
+                      padding: 12,
+                      alignItems: "center",
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      gap: 6,
+                    },
+                  ]}
+                >
+                  <Ionicons name="download" size={16} color={C.bg} />
+                  <Text
+                    style={{ color: C.bg, fontWeight: "800", fontSize: 13 }}
+                  >
+                    Export JSON
+                  </Text>
+                </Press>
+              </View>
+
+              <View style={{ height: 16 }} />
+            </ScrollView>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 // ─── STATS SCREEN ───────────────────────────────────────
 function StatsScreen() {
   const { profile } = useApp();
@@ -4366,6 +5136,7 @@ function StatsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [labels, setLabels] = useState(["M", "T", "W", "T", "F", "S", "S"]);
   const [myReferral, setMyReferral] = useState<string | null>(null);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -4412,8 +5183,7 @@ function StatsScreen() {
   const avg = sum / 7;
   const filtered = weekData.filter((d) => d > 0);
   const best = filtered.length ? Math.min(...filtered) : 0;
-  const worst = filtered.length ? Math.max(...filtered) : 0;
-  const caAvg = 196;
+  const caAvg = CA_DAILY_AVG;
   const savedVsCA = Math.max(0, caAvg - avg);
 
   // convert for display
@@ -4438,330 +5208,399 @@ function StatsScreen() {
           />
         }
       >
-        {/* WEEK SUM */}
-        <View style={[st.glassCard, { margin: 16, alignItems: "center" }]}>
-          <Text style={st.bigLabel}>WEEK TOTAL</Text>
-          <Text
+        {/* GENERATE CONSERVATION REPORT — pro CTA */}
+        <FadeInUp delay={0}>
+          <Press
+            onPress={() => setShowReport(true)}
             style={{
-              color: C.accent,
-              fontSize: 48,
-              fontWeight: "900",
-              lineHeight: 56,
+              marginHorizontal: 16,
+              marginTop: 12,
+              marginBottom: 4,
+              borderRadius: 14,
+              padding: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              backgroundColor: C.purple + "16",
+              borderWidth: 1,
+              borderColor: C.purple + "55",
             }}
           >
-            {display(sum).toFixed(0)}
-          </Text>
-          <Text style={{ color: C.muted, fontSize: 12 }}>
-            {unit} used in last 7 days
-          </Text>
-        </View>
-
-        <Text style={s.section}>WEEKLY USAGE</Text>
-        <View
-          style={{
-            marginHorizontal: 16,
-            marginBottom: 16,
-            borderRadius: 16,
-            overflow: "hidden",
-          }}
-        >
-          <LineChart
-            data={{
-              labels,
-              datasets: [
-                {
-                  data: weekData.map((d) => display(d) || 0.1),
-                  color: () => C.accent,
-                  strokeWidth: 3,
-                },
-                {
-                  data: Array(7).fill(display(profile.goal)),
-                  color: () => C.danger + "60",
-                  strokeWidth: 1,
-                  withDots: false,
-                },
-              ],
-              legend: [`Usage (${unit})`, "Target"],
-            }}
-            width={SW - 32}
-            height={210}
-            chartConfig={chartCfg}
-            bezier
-            style={{ borderRadius: 16 }}
-          />
-        </View>
-
-        {/* SUMMARY CARDS */}
-        <View
-          style={{
-            flexDirection: "row",
-            marginHorizontal: 16,
-            gap: 10,
-            marginBottom: 12,
-          }}
-        >
-          {[
-            {
-              label: "Avg Daily",
-              value: `${display(avg).toFixed(0)} ${unit}`,
-              color: C.accent,
-            },
-            {
-              label: "Best Day",
-              value: best ? `${display(best).toFixed(0)} ${unit}` : "—",
-              color: C.success,
-            },
-            {
-              label: "Saved vs CA",
-              value: `${display(savedVsCA).toFixed(0)} ${unit}`,
-              color: C.teal,
-            },
-          ].map((c) => (
             <View
-              key={c.label}
-              style={[st.glassCard, { flex: 1, alignItems: "center" }]}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                backgroundColor: C.purple + "26",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <Text style={{ color: c.color, fontSize: 16, fontWeight: "800" }}>
-                {c.value}
+              <Ionicons name="document-text" size={18} color={C.purple} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>
+                Generate Conservation Report
               </Text>
-              <Text
-                style={{
-                  color: C.muted,
-                  fontSize: 10,
-                  marginTop: 4,
-                  textAlign: "center",
-                }}
-              >
-                {c.label}
+              <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
+                Aggregates 90 days · Share or export your data
               </Text>
             </View>
-          ))}
-        </View>
+            <Ionicons name="chevron-forward" size={18} color={C.purple} />
+          </Press>
+        </FadeInUp>
 
-        <Text style={s.section}>DAILY BREAKDOWN</Text>
-        <View
-          style={{
-            marginHorizontal: 16,
-            marginBottom: 16,
-            borderRadius: 16,
-            overflow: "hidden",
-          }}
-        >
-          <BarChart
-            data={{
-              labels,
-              datasets: [{ data: weekData.map((d) => display(d) || 0.1) }],
-            }}
-            width={SW - 32}
-            height={190}
-            chartConfig={{
-              ...chartCfg,
-              color: (o = 1) => `rgba(45,212,191,${o})`,
-            }}
-            style={{ borderRadius: 16 }}
-            yAxisLabel=""
-            yAxisSuffix={` ${unit}`}
-            fromZero
-          />
-        </View>
-
-        {/* COMMUNITY REACH — local showcase: mocked counts + user's actual referral highlighted */}
-        <Text style={s.section}>COMMUNITY REACH</Text>
-        {(() => {
-          const totalUsers = MOCK_REFERRAL_BREAKDOWN.reduce(
-            (s, r) => s + r.count,
-            0,
-          );
-          const maxCount = Math.max(
-            ...MOCK_REFERRAL_BREAKDOWN.map((r) => r.count),
-          );
-          const sorted = [...MOCK_REFERRAL_BREAKDOWN].sort(
-            (a, b) => b.count - a.count,
-          );
-          const mine = sorted.find((r) => r.value === myReferral);
-          return (
-            <View
-              style={[
-                st.glassCard,
-                { marginHorizontal: 16, marginBottom: 16, padding: 14 },
-              ]}
+        {/* WEEK SUM */}
+        <FadeInUp delay={60}>
+          <View style={[st.glassCard, { margin: 16, alignItems: "center" }]}>
+            <Text style={st.bigLabel}>WEEK TOTAL</Text>
+            <Text
+              style={{
+                color: C.accent,
+                fontSize: 48,
+                fontWeight: "900",
+                lineHeight: 56,
+              }}
             >
+              {display(sum).toFixed(0)}
+            </Text>
+            <Text style={{ color: C.muted, fontSize: 12 }}>
+              {unit} used in last 7 days
+            </Text>
+          </View>
+        </FadeInUp>
+
+        <FadeInUp delay={80}>
+          <Text style={s.section}>WEEKLY USAGE</Text>
+          <View
+            style={{
+              marginHorizontal: 16,
+              marginBottom: 16,
+              borderRadius: 16,
+              overflow: "hidden",
+            }}
+          >
+            <LineChart
+              data={{
+                labels,
+                datasets: [
+                  {
+                    data: weekData.map((d) => display(d) || 0.1),
+                    color: () => C.accent,
+                    strokeWidth: 3,
+                  },
+                  {
+                    data: Array(7).fill(display(profile.goal)),
+                    color: () => C.danger + "60",
+                    strokeWidth: 1,
+                    withDots: false,
+                  },
+                ],
+                legend: [`Usage (${unit})`, "Target"],
+              }}
+              width={SW - 32}
+              height={210}
+              chartConfig={chartCfg}
+              bezier
+              style={{ borderRadius: 16 }}
+            />
+          </View>
+        </FadeInUp>
+
+        {/* SUMMARY CARDS */}
+        <FadeInUp delay={140}>
+          <View
+            style={{
+              flexDirection: "row",
+              marginHorizontal: 16,
+              gap: 10,
+              marginBottom: 12,
+            }}
+          >
+            {[
+              {
+                label: "Avg Daily",
+                value: `${display(avg).toFixed(0)} ${unit}`,
+                color: C.accent,
+              },
+              {
+                label: "Best Day",
+                value: best ? `${display(best).toFixed(0)} ${unit}` : "—",
+                color: C.success,
+              },
+              {
+                label: "Saved vs CA",
+                value: `${display(savedVsCA).toFixed(0)} ${unit}`,
+                color: C.teal,
+              },
+            ].map((c) => (
               <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 4,
-                }}
+                key={c.label}
+                style={[st.glassCard, { flex: 1, alignItems: "center" }]}
               >
                 <Text
+                  style={{ color: c.color, fontSize: 16, fontWeight: "800" }}
+                >
+                  {c.value}
+                </Text>
+                <Text
                   style={{
-                    color: C.purple,
-                    fontWeight: "800",
-                    fontSize: 12,
-                    letterSpacing: 1,
+                    color: C.muted,
+                    fontSize: 10,
+                    marginTop: 4,
+                    textAlign: "center",
                   }}
                 >
-                  📣 HOW USERS FOUND US
-                </Text>
-                <Text style={{ color: C.muted, fontSize: 10 }}>
-                  ~{totalUsers.toLocaleString()} responses
+                  {c.label}
                 </Text>
               </View>
-              <Text
-                style={{
-                  color: C.textSoft,
-                  fontSize: 11,
-                  lineHeight: 16,
-                  marginBottom: 12,
-                }}
+            ))}
+          </View>
+        </FadeInUp>
+
+        {/* ACTIVITY HEATMAP — 12 weeks of saving intensity */}
+        <FadeInUp delay={170}>
+          <ActivityHeatmap />
+        </FadeInUp>
+
+        <FadeInUp delay={200}>
+          <Text style={s.section}>DAILY BREAKDOWN</Text>
+          <View
+            style={{
+              marginHorizontal: 16,
+              marginBottom: 16,
+              borderRadius: 16,
+              overflow: "hidden",
+            }}
+          >
+            <BarChart
+              data={{
+                labels,
+                datasets: [{ data: weekData.map((d) => display(d) || 0.1) }],
+              }}
+              width={SW - 32}
+              height={190}
+              chartConfig={{
+                ...chartCfg,
+                color: (o = 1) => `rgba(45,212,191,${o})`,
+              }}
+              style={{ borderRadius: 16 }}
+              yAxisLabel=""
+              yAxisSuffix={` ${unit}`}
+              fromZero
+            />
+          </View>
+        </FadeInUp>
+
+        {/* COMMUNITY REACH — local showcase: mocked counts + user's actual referral highlighted */}
+        <FadeInUp delay={260}>
+          <Text style={s.section}>COMMUNITY REACH</Text>
+          {(() => {
+            const totalUsers = MOCK_REFERRAL_BREAKDOWN.reduce(
+              (s, r) => s + r.count,
+              0,
+            );
+            const maxCount = Math.max(
+              ...MOCK_REFERRAL_BREAKDOWN.map((r) => r.count),
+            );
+            const sorted = [...MOCK_REFERRAL_BREAKDOWN].sort(
+              (a, b) => b.count - a.count,
+            );
+            const mine = sorted.find((r) => r.value === myReferral);
+            return (
+              <View
+                style={[
+                  st.glassCard,
+                  { marginHorizontal: 16, marginBottom: 16, padding: 14 },
+                ]}
               >
-                {mine
-                  ? `You said you found H2O to You via ${mine.label} ${mine.emoji} — joining ${mine.count.toLocaleString()} others. The fastest-growing channels are TikTok and word-of-mouth.`
-                  : "Quiz responses break down by source like this. Word-of-mouth and short-form video lead the way."}
-              </Text>
-              {sorted.map((r) => {
-                const pct = (r.count / maxCount) * 100;
-                const isMine = r.value === myReferral;
-                const barColor = isMine ? C.accent : C.teal;
-                return (
-                  <View key={r.value} style={{ marginBottom: 8 }}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 4,
-                      }}
-                    >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 4,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: C.purple,
+                      fontWeight: "800",
+                      fontSize: 12,
+                      letterSpacing: 1,
+                    }}
+                  >
+                    📣 HOW USERS FOUND US
+                  </Text>
+                  <Text style={{ color: C.muted, fontSize: 10 }}>
+                    ~{totalUsers.toLocaleString()} responses
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    color: C.textSoft,
+                    fontSize: 11,
+                    lineHeight: 16,
+                    marginBottom: 12,
+                  }}
+                >
+                  {mine
+                    ? `You said you found H2O to You via ${mine.label} ${mine.emoji} — joining ${mine.count.toLocaleString()} others. The fastest-growing channels are TikTok and word-of-mouth.`
+                    : "Quiz responses break down by source like this. Word-of-mouth and short-form video lead the way."}
+                </Text>
+                {sorted.map((r) => {
+                  const pct = (r.count / maxCount) * 100;
+                  const isMine = r.value === myReferral;
+                  const barColor = isMine ? C.accent : C.teal;
+                  return (
+                    <View key={r.value} style={{ marginBottom: 8 }}>
                       <View
                         style={{
                           flexDirection: "row",
+                          justifyContent: "space-between",
                           alignItems: "center",
-                          gap: 6,
-                          flex: 1,
+                          marginBottom: 4,
                         }}
                       >
-                        <Text style={{ fontSize: 13 }}>{r.emoji}</Text>
-                        <Text
+                        <View
                           style={{
-                            color: isMine ? C.accent : C.text,
-                            fontSize: 12,
-                            fontWeight: isMine ? "800" : "600",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 6,
+                            flex: 1,
                           }}
                         >
-                          {r.label}
-                        </Text>
-                        {isMine && (
-                          <View
+                          <Text style={{ fontSize: 13 }}>{r.emoji}</Text>
+                          <Text
                             style={{
-                              backgroundColor: C.accent + "22",
-                              borderColor: C.accent,
-                              borderWidth: 1,
-                              borderRadius: 6,
-                              paddingHorizontal: 5,
-                              paddingVertical: 1,
+                              color: isMine ? C.accent : C.text,
+                              fontSize: 12,
+                              fontWeight: isMine ? "800" : "600",
                             }}
                           >
-                            <Text
+                            {r.label}
+                          </Text>
+                          {isMine && (
+                            <View
                               style={{
-                                color: C.accent,
-                                fontSize: 8,
-                                fontWeight: "900",
-                                letterSpacing: 0.5,
+                                backgroundColor: C.accent + "22",
+                                borderColor: C.accent,
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                paddingHorizontal: 5,
+                                paddingVertical: 1,
                               }}
                             >
-                              YOU
-                            </Text>
-                          </View>
-                        )}
+                              <Text
+                                style={{
+                                  color: C.accent,
+                                  fontSize: 8,
+                                  fontWeight: "900",
+                                  letterSpacing: 0.5,
+                                }}
+                              >
+                                YOU
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text
+                          style={{
+                            color: isMine ? C.accent : C.muted,
+                            fontSize: 11,
+                            fontWeight: "800",
+                          }}
+                        >
+                          {r.count.toLocaleString()}
+                        </Text>
                       </View>
-                      <Text
-                        style={{
-                          color: isMine ? C.accent : C.muted,
-                          fontSize: 11,
-                          fontWeight: "800",
-                        }}
-                      >
-                        {r.count.toLocaleString()}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        height: 6,
-                        backgroundColor: C.border,
-                        borderRadius: 3,
-                        overflow: "hidden",
-                      }}
-                    >
                       <View
                         style={{
-                          width: `${pct}%`,
                           height: 6,
-                          backgroundColor: barColor,
+                          backgroundColor: C.border,
                           borderRadius: 3,
+                          overflow: "hidden",
                         }}
-                      />
+                      >
+                        <View
+                          style={{
+                            width: `${pct}%`,
+                            height: 6,
+                            backgroundColor: barColor,
+                            borderRadius: 3,
+                          }}
+                        />
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
-              <Text
-                style={{
-                  color: C.muted,
-                  fontSize: 9,
-                  marginTop: 8,
-                  fontStyle: "italic",
-                  lineHeight: 13,
-                }}
-              >
-                Showcase data — counts illustrative only. Live aggregation
-                requires a backend (out of scope for the local build).
-              </Text>
-            </View>
-          );
-        })()}
-
-        <Text style={s.section}>YOUR IMPACT THIS WEEK</Text>
-        <View style={{ marginHorizontal: 16, gap: 10, marginBottom: 30 }}>
-          {[
-            {
-              icon: "🌲",
-              label: "Trees supported",
-              value: `${((savedVsCA * 7) / 50).toFixed(1)}`,
-            },
-            {
-              icon: "🐟",
-              label: "Gallons back to nature",
-              value: `${(savedVsCA * 7).toFixed(0)}`,
-            },
-            {
-              icon: "💰",
-              label: "Money saved (est.)",
-              value: `$${(savedVsCA * 7 * 0.004).toFixed(2)}`,
-            },
-            {
-              icon: "🌡️",
-              label: "CO₂ offset (lbs)",
-              value: `${(savedVsCA * 7 * 0.003).toFixed(2)}`,
-            },
-          ].map((r) => (
-            <View key={r.label} style={[st.logRow, { paddingVertical: 14 }]}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-              >
-                <Text style={{ fontSize: 22 }}>{r.icon}</Text>
-                <Text style={{ color: C.text, fontSize: 13 }}>{r.label}</Text>
+                  );
+                })}
+                <Text
+                  style={{
+                    color: C.muted,
+                    fontSize: 9,
+                    marginTop: 8,
+                    fontStyle: "italic",
+                    lineHeight: 13,
+                  }}
+                >
+                  Showcase data — counts illustrative only. Live aggregation
+                  requires a backend (out of scope for the local build).
+                </Text>
               </View>
-              <Text
-                style={{ color: C.accent, fontWeight: "800", fontSize: 15 }}
-              >
-                {r.value}
-              </Text>
-            </View>
-          ))}
-        </View>
+            );
+          })()}
+        </FadeInUp>
+
+        <FadeInUp delay={320}>
+          <Text style={s.section}>YOUR IMPACT THIS WEEK</Text>
+          <View style={{ marginHorizontal: 16, gap: 10, marginBottom: 30 }}>
+            {[
+              {
+                icon: "🌲",
+                label: "Trees supported",
+                value: `${((savedVsCA * 7) / 50).toFixed(1)}`,
+              },
+              {
+                icon: "🐟",
+                label: "Gallons back to nature",
+                value: `${(savedVsCA * 7).toFixed(0)}`,
+              },
+              {
+                icon: "💰",
+                label: "Money saved (est.)",
+                value: `$${(savedVsCA * 7 * 0.004).toFixed(2)}`,
+              },
+              {
+                icon: "🌡️",
+                label: "CO₂ offset (lbs)",
+                value: `${(savedVsCA * 7 * 0.003).toFixed(2)}`,
+              },
+            ].map((r) => (
+              <View key={r.label} style={[st.logRow, { paddingVertical: 14 }]}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <Text style={{ fontSize: 22 }}>{r.icon}</Text>
+                  <Text style={{ color: C.text, fontSize: 13 }}>{r.label}</Text>
+                </View>
+                <Text
+                  style={{ color: C.accent, fontWeight: "800", fontSize: 15 }}
+                >
+                  {r.value}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </FadeInUp>
       </ScrollView>
+      <ConservationReportModal
+        visible={showReport}
+        onClose={() => setShowReport(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -4971,7 +5810,7 @@ function LearnScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {tab === "status" && (
-          <>
+          <FadeInUp key="status">
             {(() => {
               const r = classifyReservoir(LATEST.reservoir);
               const sn = classifySnowpack(LATEST.snowpack);
@@ -5209,11 +6048,11 @@ function LearnScreen() {
                 </Press>
               )}
             </View>
-          </>
+          </FadeInUp>
         )}
 
         {tab === "history" && (
-          <>
+          <FadeInUp key="history">
             <View style={[st.glassCard, { margin: 16 }]}>
               <Text
                 style={{
@@ -5331,11 +6170,11 @@ function LearnScreen() {
                 </Text>
               </View>
             ))}
-          </>
+          </FadeInUp>
         )}
 
         {tab === "tech" && (
-          <>
+          <FadeInUp key="tech">
             <View style={[st.glassCard, { margin: 16 }]}>
               <Text
                 style={{
@@ -5383,11 +6222,11 @@ function LearnScreen() {
                 </Text>
               </View>
             ))}
-          </>
+          </FadeInUp>
         )}
 
         {tab === "tips" && (
-          <>
+          <FadeInUp key="tips">
             <View style={[st.glassCard, { margin: 16 }]}>
               <Text
                 style={{
@@ -5435,7 +6274,7 @@ function LearnScreen() {
                 </Text>
               </View>
             ))}
-          </>
+          </FadeInUp>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -5523,8 +6362,10 @@ function ChatScreen() {
       <ScreenHeader title="AI Assistant" subtitle="Ask anything about water" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={
+          Platform.OS === "ios" ? 80 + insets.bottom : (insets.bottom || 0) + 64
+        }
       >
         <ScrollView
           horizontal
@@ -5598,29 +6439,41 @@ function ChatScreen() {
               style={[
                 st.bubble,
                 st.bubbleBot,
-                { flexDirection: "row", gap: 6, alignItems: "center" },
+                {
+                  flexDirection: "row",
+                  gap: 5,
+                  alignItems: "center",
+                  paddingVertical: 16,
+                },
               ]}
             >
-              <ActivityIndicator size="small" color={C.accent} />
-              <Text style={{ color: C.muted, fontSize: 13 }}>Thinking...</Text>
+              <TypingDots />
             </View>
           )}
         </ScrollView>
 
-        <View style={st.inputRow}>
+        <View
+          style={[st.inputRow, { paddingBottom: 12 + (insets.bottom || 0) }]}
+        >
           <TextInput
-            style={[st.input, { flex: 1, marginBottom: 0 }]}
+            style={[st.input, { flex: 1, marginBottom: 0, color: C.white }]}
             value={input}
             onChangeText={setInput}
             placeholder="Ask about water conservation..."
             placeholderTextColor={C.muted}
+            selectionColor={C.accent}
+            cursorColor={C.accent}
+            keyboardAppearance="dark"
+            autoCorrect
+            submitBehavior="submit"
             onSubmitEditing={() => send(input)}
             returnKeyType="send"
           />
           <Press
             onPress={() => send(input)}
             disabled={loading}
-            style={st.sendBtn}
+            haptic={false}
+            style={[st.sendBtn, loading && { opacity: 0.5 }]}
           >
             <Ionicons name="send" size={18} color={C.bg} />
           </Press>
@@ -5652,24 +6505,18 @@ function SettingsModal({
   };
 
   const resetData = () =>
-    Alert.alert(
+    confirmAction(
       "Reset all data?",
       "This will erase your logs, XP, badges, streak, and preferences. This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset",
-          style: "destructive",
-          onPress: async () => {
-            const keys = await AsyncStorage.getAllKeys();
-            await AsyncStorage.multiRemove(keys);
-            await setProfile(DEFAULT_PROFILE);
-            await clearNotifs();
-            onClose();
-            Alert.alert("Reset complete", "Your data has been erased.");
-          },
-        },
-      ],
+      async () => {
+        const keys = await AsyncStorage.getAllKeys();
+        await AsyncStorage.multiRemove(keys);
+        await setProfile(DEFAULT_PROFILE);
+        await clearNotifs();
+        onClose();
+        Alert.alert("Reset complete", "Your data has been erased.");
+      },
+      "Reset",
     );
 
   return (
@@ -5975,52 +6822,12 @@ const SOCIAL_LINKS: {
   url: string;
 }[] = [
   {
-    id: "instagram",
-    label: "Instagram",
-    handle: "@h2o.to.you",
-    icon: "logo-instagram",
-    color: "#e1306c",
-    url: CONTACT_PLACEHOLDER_URL,
-  },
-  {
-    id: "tiktok",
-    label: "TikTok",
-    handle: "@h2o.to.you",
-    icon: "logo-tiktok",
-    color: "#69c9d0",
-    url: CONTACT_PLACEHOLDER_URL,
-  },
-  {
-    id: "x",
-    label: "X / Twitter",
-    handle: "@h2o_to_you",
-    icon: "logo-twitter",
-    color: "#1da1f2",
-    url: CONTACT_PLACEHOLDER_URL,
-  },
-  {
-    id: "youtube",
-    label: "YouTube",
-    handle: "H2O to You",
-    icon: "logo-youtube",
-    color: "#ff0000",
-    url: CONTACT_PLACEHOLDER_URL,
-  },
-  {
-    id: "facebook",
-    label: "Facebook",
-    handle: "H2O to You",
-    icon: "logo-facebook",
-    color: "#1877f2",
-    url: CONTACT_PLACEHOLDER_URL,
-  },
-  {
-    id: "discord",
-    label: "Discord",
-    handle: "Join our community",
-    icon: "logo-discord",
-    color: "#5865f2",
-    url: CONTACT_PLACEHOLDER_URL,
+    id: "smore",
+    label: "Smore Newsletter",
+    handle: "itsthe_aquanauts",
+    icon: "newspaper",
+    color: "#10b981",
+    url: "https://app.smore.com/n/qegf03",
   },
 ];
 
@@ -6121,8 +6928,8 @@ function AboutModal({
                 marginBottom: 10,
               }}
             >
-              Daily water tips, alerts, and California water news on every
-              platform.
+              Read the Aquanauts' Smore newsletter for water tips, alerts, and
+              California water news.
             </Text>
             <View
               style={{
@@ -6988,7 +7795,6 @@ function PreQuizModal({
   const [answers, setAnswers] = useState<QuizAnswers>({});
   const [showResult, setShowResult] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -7043,7 +7849,7 @@ function PreQuizModal({
   };
 
   const result = useMemo(() => calcQuizGallons(answers), [answers, showResult]);
-  const CA_AVG_YEAR = 196 * 365; // 71,540 gal/year
+  const CA_AVG_YEAR = CA_DAILY_AVG * 365; // ~71,540 gal/year
   const pctOfAvg =
     result.total > 0 ? Math.round((result.total / CA_AVG_YEAR) * 100) : 0;
   const verdict =
@@ -10124,14 +10930,35 @@ function AnimatedDroplet({ x, y }: { x: any; y: any }) {
 
 // ─── MAP SCREEN ─────────────────────────────────────────
 type MapMode = "aqueducts" | "reservoirs" | "quality" | "drought" | "outlook";
+const VALID_MAP_MODES: MapMode[] = [
+  "aqueducts",
+  "reservoirs",
+  "quality",
+  "drought",
+  "outlook",
+];
+const parseMapMode = (raw: unknown): MapMode | null =>
+  typeof raw === "string" && (VALID_MAP_MODES as string[]).includes(raw)
+    ? (raw as MapMode)
+    : null;
 
 function MapScreen() {
-  const [mode, setMode] = useState<MapMode>("aqueducts");
+  const route = useRoute<any>();
+  const paramMode = route.params?.mode;
+  const [mode, setMode] = useState<MapMode>(
+    () => parseMapMode(paramMode) ?? "aqueducts",
+  );
   const [selected, setSelected] = useState<string | null>(null);
   const [persona, setPersona] = useState<Persona>("manager");
   const [refreshing, setRefreshing] = useState(false);
-  const flowAnim = useRef(new Animated.Value(0)).current;
   const [flowTick, setFlowTick] = useState(0);
+
+  // Re-honor a `mode` route param when it changes (e.g. user taps Home →
+  // Forecast again). Guarded so a no-op param doesn't trigger a re-render.
+  useEffect(() => {
+    const next = parseMapMode(paramMode);
+    if (next && next !== mode) setMode(next);
+  }, [paramMode, mode]);
 
   useEffect(() => {
     awardBadge("map_explorer");
@@ -10865,176 +11692,253 @@ function MapScreen() {
             return (
               <>
                 {/* Persona toggle */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 8,
-                    marginHorizontal: 16,
-                    marginBottom: 12,
-                  }}
-                >
-                  {OUTLOOK_PERSONAS.map((px) => {
-                    const active = persona === px.id;
-                    return (
-                      <Press
-                        key={px.id}
-                        onPress={() => setPersona(px.id)}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 10,
-                          paddingHorizontal: 8,
-                          borderRadius: 12,
-                          alignItems: "center",
-                          backgroundColor: active ? C.accent : C.cardLight,
-                          borderWidth: 1,
-                          borderColor: active ? C.accent : C.border,
-                        }}
-                      >
-                        <Text style={{ fontSize: 18 }}>{px.icon}</Text>
-                        <Text
-                          style={{
-                            color: active ? C.bg : C.textSoft,
-                            fontWeight: "800",
-                            fontSize: 11,
-                            marginTop: 2,
-                            textAlign: "center",
-                          }}
-                        >
-                          {px.label}
-                        </Text>
-                      </Press>
-                    );
-                  })}
-                </View>
-
-                {/* Headline forecast card */}
-                <View
-                  style={[
-                    st.glassCard,
-                    { marginHorizontal: 16, marginBottom: 12, padding: 14 },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: C.accent,
-                      fontWeight: "800",
-                      fontSize: 12,
-                      letterSpacing: 1,
-                      marginBottom: 4,
-                    }}
-                  >
-                    🔭 SUPPLY OUTLOOK · {LATEST.date}
-                  </Text>
-                  <Text
-                    style={{
-                      color: C.white,
-                      fontWeight: "800",
-                      fontSize: 15,
-                      marginBottom: 6,
-                    }}
-                  >
-                    {p.kpiLabel}:{" "}
-                    <Text style={{ color: kpiC.color }}>
-                      {kpiVal}% · {kpiC.label}
-                    </Text>
-                  </Text>
-                  <Text
-                    style={{
-                      color: C.textSoft,
-                      fontSize: 12,
-                      lineHeight: 18,
-                    }}
-                  >
-                    {p.framing(LATEST)}
-                  </Text>
-                </View>
-
-                {/* Analog year card */}
-                <View
-                  style={[
-                    st.glassCard,
-                    { marginHorizontal: 16, marginBottom: 12, padding: 14 },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: C.purple,
-                      fontWeight: "800",
-                      fontSize: 12,
-                      letterSpacing: 1,
-                      marginBottom: 6,
-                    }}
-                  >
-                    🧭 NEAREST HISTORICAL ANALOG
-                  </Text>
+                <FadeInUp delay={0}>
                   <View
                     style={{
                       flexDirection: "row",
-                      alignItems: "baseline",
                       gap: 8,
-                      marginBottom: 4,
+                      marginHorizontal: 16,
+                      marginBottom: 12,
                     }}
+                  >
+                    {OUTLOOK_PERSONAS.map((px) => {
+                      const active = persona === px.id;
+                      return (
+                        <Press
+                          key={px.id}
+                          onPress={() => setPersona(px.id)}
+                          style={{
+                            flex: 1,
+                            paddingVertical: 10,
+                            paddingHorizontal: 8,
+                            borderRadius: 12,
+                            alignItems: "center",
+                            backgroundColor: active ? C.accent : C.cardLight,
+                            borderWidth: 1,
+                            borderColor: active ? C.accent : C.border,
+                          }}
+                        >
+                          <Text style={{ fontSize: 18 }}>{px.icon}</Text>
+                          <Text
+                            style={{
+                              color: active ? C.bg : C.textSoft,
+                              fontWeight: "800",
+                              fontSize: 11,
+                              marginTop: 2,
+                              textAlign: "center",
+                            }}
+                          >
+                            {px.label}
+                          </Text>
+                        </Press>
+                      );
+                    })}
+                  </View>
+                </FadeInUp>
+
+                {/* Headline forecast card */}
+                <FadeInUp delay={80}>
+                  <View
+                    style={[
+                      st.glassCard,
+                      { marginHorizontal: 16, marginBottom: 12, padding: 14 },
+                    ]}
                   >
                     <Text
                       style={{
-                        color: C.white,
-                        fontSize: 22,
-                        fontWeight: "900",
+                        color: C.accent,
+                        fontWeight: "800",
+                        fontSize: 12,
+                        letterSpacing: 1,
+                        marginBottom: 4,
                       }}
                     >
-                      {a.analogDate || "—"}
+                      🔭 SUPPLY OUTLOOK · {LATEST.date}
                     </Text>
-                    <Text style={{ color: C.muted, fontSize: 11 }}>
-                      closest match across snowpack · precip · reservoir
+                    <Text
+                      style={{
+                        color: C.white,
+                        fontWeight: "800",
+                        fontSize: 15,
+                        marginBottom: 6,
+                      }}
+                    >
+                      {p.kpiLabel}:{" "}
+                      <Text style={{ color: kpiC.color }}>
+                        {kpiVal}% · {kpiC.label}
+                      </Text>
                     </Text>
-                  </View>
-                  {a.reservoirDelta6mo != null && (
                     <Text
                       style={{
                         color: C.textSoft,
                         fontSize: 12,
                         lineHeight: 18,
-                        marginBottom: 8,
                       }}
                     >
-                      In that year, reservoir storage moved{" "}
-                      <Text style={{ color: arrowColor, fontWeight: "800" }}>
-                        {arrow}
-                        {Math.abs(a.reservoirDelta6mo)} pts
-                      </Text>{" "}
-                      over the next 6 months — landing at{" "}
-                      <Text style={{ color: arrowColor, fontWeight: "800" }}>
-                        {a.nextReservoirAt6mo}%
-                      </Text>
-                      . If history repeats, that is the base case.
+                      {p.framing(LATEST)}
                     </Text>
-                  )}
-                  {projData.length >= 2 && (
+                  </View>
+                </FadeInUp>
+
+                {/* Analog year card */}
+                <FadeInUp delay={160}>
+                  <View
+                    style={[
+                      st.glassCard,
+                      { marginHorizontal: 16, marginBottom: 12, padding: 14 },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        color: C.purple,
+                        fontWeight: "800",
+                        fontSize: 12,
+                        letterSpacing: 1,
+                        marginBottom: 6,
+                      }}
+                    >
+                      🧭 NEAREST HISTORICAL ANALOG
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "baseline",
+                        gap: 8,
+                        marginBottom: 4,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: C.white,
+                          fontSize: 22,
+                          fontWeight: "900",
+                        }}
+                      >
+                        {a.analogDate || "—"}
+                      </Text>
+                      <Text style={{ color: C.muted, fontSize: 11 }}>
+                        closest match across snowpack · precip · reservoir
+                      </Text>
+                    </View>
+                    {a.reservoirDelta6mo != null && (
+                      <Text
+                        style={{
+                          color: C.textSoft,
+                          fontSize: 12,
+                          lineHeight: 18,
+                          marginBottom: 8,
+                        }}
+                      >
+                        In that year, reservoir storage moved{" "}
+                        <Text style={{ color: arrowColor, fontWeight: "800" }}>
+                          {arrow}
+                          {Math.abs(a.reservoirDelta6mo)} pts
+                        </Text>{" "}
+                        over the next 6 months — landing at{" "}
+                        <Text style={{ color: arrowColor, fontWeight: "800" }}>
+                          {a.nextReservoirAt6mo}%
+                        </Text>
+                        . If history repeats, that is the base case.
+                      </Text>
+                    )}
+                    {projData.length >= 2 && (
+                      <LineChart
+                        data={{
+                          labels: projLabels,
+                          datasets: [
+                            {
+                              data: projData,
+                              color: (o = 1) => `rgba(167,139,250,${o})`,
+                              strokeWidth: 2,
+                            },
+                          ],
+                        }}
+                        width={SW - 56}
+                        height={140}
+                        chartConfig={{
+                          backgroundColor: C.card,
+                          backgroundGradientFrom: C.card,
+                          backgroundGradientTo: C.surface,
+                          decimalPlaces: 0,
+                          color: (o = 1) => `rgba(167,139,250,${o})`,
+                          labelColor: () => C.muted,
+                          propsForDots: {
+                            r: "3",
+                            strokeWidth: "1",
+                            stroke: C.purple,
+                          },
+                          propsForBackgroundLines: {
+                            stroke: C.border,
+                            strokeDasharray: "4 4",
+                          },
+                        }}
+                        bezier
+                        withInnerLines
+                        fromZero={false}
+                        yAxisSuffix="%"
+                        style={{ borderRadius: 12, marginLeft: -8 }}
+                      />
+                    )}
+                  </View>
+                </FadeInUp>
+
+                {/* 10-year overlay */}
+                <FadeInUp delay={240}>
+                  <View
+                    style={[
+                      st.glassCard,
+                      { marginHorizontal: 16, marginBottom: 12, padding: 12 },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        color: C.teal,
+                        fontWeight: "800",
+                        fontSize: 12,
+                        letterSpacing: 1,
+                        marginBottom: 4,
+                      }}
+                    >
+                      📊 10-YEAR RECORD · 2016 → 2025
+                    </Text>
+                    <Text
+                      style={{ color: C.muted, fontSize: 11, marginBottom: 8 }}
+                    >
+                      Reservoir vs. snowpack vs. precipitation. Watch how
+                      snowpack leads reservoir on a 6-month lag.
+                    </Text>
                     <LineChart
                       data={{
-                        labels: projLabels,
+                        labels: overlayLabels,
+                        legend: ["Reservoir", "Snowpack", "Precip"],
                         datasets: [
                           {
-                            data: projData,
-                            color: (o = 1) => `rgba(167,139,250,${o})`,
+                            data: last10y.map((x) => x.reservoir),
+                            color: (o = 1) => `rgba(45,212,191,${o})`,
                             strokeWidth: 2,
+                          },
+                          {
+                            data: last10y.map((x) => x.snowpack),
+                            color: (o = 1) => `rgba(125,211,252,${o})`,
+                            strokeWidth: 2,
+                          },
+                          {
+                            data: last10y.map((x) => x.precip),
+                            color: (o = 1) => `rgba(251,191,36,${o})`,
+                            strokeWidth: 1,
                           },
                         ],
                       }}
                       width={SW - 56}
-                      height={140}
+                      height={190}
                       chartConfig={{
                         backgroundColor: C.card,
                         backgroundGradientFrom: C.card,
                         backgroundGradientTo: C.surface,
                         decimalPlaces: 0,
-                        color: (o = 1) => `rgba(167,139,250,${o})`,
+                        color: (o = 1) => `rgba(226,232,240,${o})`,
                         labelColor: () => C.muted,
-                        propsForDots: {
-                          r: "3",
-                          strokeWidth: "1",
-                          stroke: C.purple,
-                        },
+                        propsForDots: { r: "0" },
                         propsForBackgroundLines: {
                           stroke: C.border,
                           strokeDasharray: "4 4",
@@ -11042,145 +11946,78 @@ function MapScreen() {
                       }}
                       bezier
                       withInnerLines
-                      fromZero={false}
+                      fromZero
                       yAxisSuffix="%"
                       style={{ borderRadius: 12, marginLeft: -8 }}
                     />
-                  )}
-                </View>
-
-                {/* 10-year overlay */}
-                <View
-                  style={[
-                    st.glassCard,
-                    { marginHorizontal: 16, marginBottom: 12, padding: 12 },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: C.teal,
-                      fontWeight: "800",
-                      fontSize: 12,
-                      letterSpacing: 1,
-                      marginBottom: 4,
-                    }}
-                  >
-                    📊 10-YEAR RECORD · 2016 → 2025
-                  </Text>
-                  <Text
-                    style={{ color: C.muted, fontSize: 11, marginBottom: 8 }}
-                  >
-                    Reservoir vs. snowpack vs. precipitation. Watch how snowpack
-                    leads reservoir on a 6-month lag.
-                  </Text>
-                  <LineChart
-                    data={{
-                      labels: overlayLabels,
-                      legend: ["Reservoir", "Snowpack", "Precip"],
-                      datasets: [
-                        {
-                          data: last10y.map((x) => x.reservoir),
-                          color: (o = 1) => `rgba(45,212,191,${o})`,
-                          strokeWidth: 2,
-                        },
-                        {
-                          data: last10y.map((x) => x.snowpack),
-                          color: (o = 1) => `rgba(125,211,252,${o})`,
-                          strokeWidth: 2,
-                        },
-                        {
-                          data: last10y.map((x) => x.precip),
-                          color: (o = 1) => `rgba(251,191,36,${o})`,
-                          strokeWidth: 1,
-                        },
-                      ],
-                    }}
-                    width={SW - 56}
-                    height={190}
-                    chartConfig={{
-                      backgroundColor: C.card,
-                      backgroundGradientFrom: C.card,
-                      backgroundGradientTo: C.surface,
-                      decimalPlaces: 0,
-                      color: (o = 1) => `rgba(226,232,240,${o})`,
-                      labelColor: () => C.muted,
-                      propsForDots: { r: "0" },
-                      propsForBackgroundLines: {
-                        stroke: C.border,
-                        strokeDasharray: "4 4",
-                      },
-                    }}
-                    bezier
-                    withInnerLines
-                    fromZero
-                    yAxisSuffix="%"
-                    style={{ borderRadius: 12, marginLeft: -8 }}
-                  />
-                </View>
+                  </View>
+                </FadeInUp>
 
                 {/* Action list */}
-                <View
-                  style={[
-                    st.glassCard,
-                    { marginHorizontal: 16, marginBottom: 12, padding: 14 },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: C.gold,
-                      fontWeight: "800",
-                      fontSize: 12,
-                      letterSpacing: 1,
-                      marginBottom: 8,
-                    }}
+                <FadeInUp delay={320}>
+                  <View
+                    style={[
+                      st.glassCard,
+                      { marginHorizontal: 16, marginBottom: 12, padding: 14 },
+                    ]}
                   >
-                    ✅ WHAT TO DO · {p.label.toUpperCase()}
-                  </Text>
-                  {actions.map((line, i) => (
-                    <View
-                      key={i}
+                    <Text
                       style={{
-                        flexDirection: "row",
-                        gap: 8,
+                        color: C.gold,
+                        fontWeight: "800",
+                        fontSize: 12,
+                        letterSpacing: 1,
                         marginBottom: 8,
-                        alignItems: "flex-start",
                       }}
                     >
-                      <Text
+                      ✅ WHAT TO DO · {p.label.toUpperCase()}
+                    </Text>
+                    {actions.map((line, i) => (
+                      <View
+                        key={i}
                         style={{
-                          color: C.gold,
-                          fontWeight: "900",
-                          fontSize: 12,
-                          width: 18,
+                          flexDirection: "row",
+                          gap: 8,
+                          marginBottom: 8,
+                          alignItems: "flex-start",
                         }}
                       >
-                        {i + 1}.
-                      </Text>
-                      <Text
-                        style={{
-                          color: C.textSoft,
-                          fontSize: 12,
-                          lineHeight: 17,
-                          flex: 1,
-                        }}
-                      >
-                        {line}
-                      </Text>
-                    </View>
-                  ))}
-                  <Text
-                    style={{
-                      color: C.muted,
-                      fontSize: 9,
-                      marginTop: 4,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    Recommendations derived from the {LATEST.date} observation
-                    and the {a.analogDate || "—"} analog year. Not a forecast in
-                    the meteorological sense — a planning baseline.
-                  </Text>
-                </View>
+                        <Text
+                          style={{
+                            color: C.gold,
+                            fontWeight: "900",
+                            fontSize: 12,
+                            width: 18,
+                          }}
+                        >
+                          {i + 1}.
+                        </Text>
+                        <Text
+                          style={{
+                            color: C.textSoft,
+                            fontSize: 12,
+                            lineHeight: 17,
+                            flex: 1,
+                          }}
+                        >
+                          {line}
+                        </Text>
+                      </View>
+                    ))}
+                    <Text
+                      style={{
+                        color: C.muted,
+                        fontSize: 9,
+                        marginTop: 4,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      Recommendations derived from the {LATEST.date} observation
+                      and the {a.analogDate || "—"} analog year. Not a forecast
+                      in the meteorological sense — a planning baseline.
+                    </Text>
+                  </View>
+                </FadeInUp>
               </>
             );
           })()}
@@ -11231,11 +12068,11 @@ function MapScreen() {
                 lineHeight: 16,
               }}
             >
-              Long-run averages (10y, statewide): reservoir{" "}
-              {AVG_RES.toFixed(0)}% · snowpack {AVG_SNOW.toFixed(0)}%. The
-              persona toggle reframes the same data for who is reading it — an
-              operator cares about carryover, a grower cares about snowpack, a
-              citizen cares about household action.
+              Long-run averages (10y, statewide): reservoir {AVG_RES.toFixed(0)}
+              % · snowpack {AVG_SNOW.toFixed(0)}%. The persona toggle reframes
+              the same data for who is reading it — an operator cares about
+              carryover, a grower cares about snowpack, a citizen cares about
+              household action.
             </Text>
           </View>
         )}
@@ -12022,10 +12859,12 @@ function CameraScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {mode === "strip" && <StripView />}
-        {mode === "pollution" && <PollutionView />}
-        {mode === "footprint" && <FootprintView />}
-        {mode === "landscape" && <LandscapeAuditView />}
+        <FadeInUp key={mode}>
+          {mode === "strip" && <StripView />}
+          {mode === "pollution" && <PollutionView />}
+          {mode === "footprint" && <FootprintView />}
+          {mode === "landscape" && <LandscapeAuditView />}
+        </FadeInUp>
       </ScrollView>
     </SafeAreaView>
   );
@@ -12514,12 +13353,6 @@ function PollutionView() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const reset = () => {
-    setItem(null);
-    setImageUri(null);
-    setError("");
-  };
-
   const analyzeImage = async (img: { uri: string; base64: string }) => {
     setImageUri(img.uri);
     setItem(null);
@@ -12844,12 +13677,6 @@ function FootprintView() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [error, setError] = useState("");
   const fillAnim = useRef(new Animated.Value(0)).current;
-
-  const reset = () => {
-    setItem(null);
-    setImageUri(null);
-    setError("");
-  };
 
   const showResult = (result: FootprintAnalysis) => {
     setItem(result);
@@ -13299,7 +14126,6 @@ const PLANT_WATER_COLOR: Record<LandscapePlant["water_need"], string> = {
 };
 
 function LandscapeAuditView() {
-  const { profile } = useApp();
   const [result, setResult] = useState<LandscapeAnalysis | null>(null);
   const [scanning, setScanning] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -13998,12 +14824,24 @@ function NavRoot() {
           tabBarInactiveTintColor: C.muted,
           tabBarStyle: {
             backgroundColor: C.surface,
-            borderTopColor: C.border,
-            height: 56 + (insets.bottom > 0 ? insets.bottom : 8),
+            borderTopColor: C.accent + "22",
+            borderTopWidth: 1,
+            height: 58 + (insets.bottom > 0 ? insets.bottom : 8),
             paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-            paddingTop: 6,
+            paddingTop: 8,
+            ...(Platform.OS === "web"
+              ? ({
+                  boxShadow:
+                    "0 -8px 24px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
+                } as any)
+              : {}),
           },
-          tabBarLabelStyle: { fontSize: 9, fontWeight: "700", marginTop: 0 },
+          tabBarLabelStyle: {
+            fontSize: 9,
+            fontWeight: "800",
+            letterSpacing: 0.4,
+            marginTop: 1,
+          },
           tabBarItemStyle: { paddingHorizontal: 0 },
         }}
       >
@@ -14085,14 +14923,96 @@ function NavRoot() {
   );
 }
 
+// ─── ERROR BOUNDARY — pro apps never whitescreen ──────────────────────
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error) {
+    if (typeof console !== "undefined") console.error("[H2O] crash:", error);
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: C.bg,
+          padding: 24,
+          justifyContent: "center",
+        }}
+      >
+        <Text style={{ fontSize: 48, textAlign: "center" }}>💧</Text>
+        <Text
+          style={{
+            color: C.white,
+            fontSize: 22,
+            fontWeight: "900",
+            textAlign: "center",
+            marginTop: 16,
+          }}
+        >
+          Something went wrong
+        </Text>
+        <Text
+          style={{
+            color: C.textSoft,
+            fontSize: 13,
+            lineHeight: 20,
+            textAlign: "center",
+            marginTop: 8,
+          }}
+        >
+          The app hit an unexpected error. Your data is safe — tap below to
+          reload.
+        </Text>
+        <Text
+          style={{
+            color: C.muted,
+            fontSize: 11,
+            marginTop: 16,
+            textAlign: "center",
+            fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+          }}
+        >
+          {this.state.error.message?.slice(0, 200) || "Unknown error"}
+        </Text>
+        <Press
+          onPress={() => this.setState({ error: null })}
+          style={{
+            backgroundColor: C.accent,
+            paddingVertical: 14,
+            borderRadius: 14,
+            marginTop: 24,
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ color: C.bg, fontWeight: "800", fontSize: 14 }}>
+            Reload app
+          </Text>
+        </Press>
+      </View>
+    );
+  }
+}
+
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AppProvider>
-        <NavRoot />
-        <BadgeUnlockToast />
-      </AppProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AppProvider>
+          <NavRoot />
+          <BadgeUnlockToast />
+        </AppProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -14162,11 +15082,11 @@ const st = StyleSheet.create({
     backgroundColor: C.card,
     marginHorizontal: 16,
     marginBottom: 8,
-    borderRadius: 22,
+    borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: C.border,
-    ...SHADOW,
+    borderColor: C.accent + "33",
+    ...SHADOW_HERO,
   },
   heroLabel: {
     color: C.muted,
@@ -14219,6 +15139,7 @@ const st = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: C.border,
+    ...SHADOW,
   },
   quickIcon: {
     width: 38,
@@ -14251,6 +15172,7 @@ const st = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: C.border,
+    ...SHADOW,
   },
   statValue: { fontSize: 18, fontWeight: "900", marginTop: 4 },
   statSub: { color: C.muted, fontSize: 9, marginTop: -2 },
@@ -14283,6 +15205,7 @@ const st = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: C.border,
+    ...SHADOW,
   },
 
   // Alerts
@@ -14314,6 +15237,7 @@ const st = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.border,
     position: "relative",
+    ...SHADOW,
   },
   badgeName: {
     color: C.text,
@@ -14449,12 +15373,22 @@ const st = StyleSheet.create({
   input: {
     backgroundColor: C.card,
     borderRadius: 12,
-    padding: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     color: C.white,
     fontSize: 15,
     borderWidth: 1,
     borderColor: C.border,
     marginBottom: 12,
+    minHeight: 46,
+    // Web: ensure browser doesn't override input color (some defaults force black)
+    ...(Platform.OS === "web"
+      ? ({
+          outlineWidth: 0,
+          outlineColor: "transparent",
+          caretColor: C.accent,
+        } as any)
+      : {}),
   },
   btn: {
     backgroundColor: C.accent,
