@@ -14,7 +14,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "H2O Watch needs camera access to scan water test strips, identify pollution, and detect items for water-footprint analysis.",
+        "NSPhotoLibraryUsageDescription": "H2O Watch needs photo library access to analyze images of test strips, pollution, and items.",
+        "NSPhotoLibraryAddUsageDescription": "H2O Watch may save annotated analysis results to your photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,8 +27,23 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "H2O Watch accesses your photos to analyze water test strips, pollution samples, and items for water-footprint estimates.",
+          "cameraPermission": "H2O Watch uses your camera to scan water test strips, pollution, and items.",
+          "microphonePermission": false
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     },
