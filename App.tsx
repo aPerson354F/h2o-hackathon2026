@@ -14182,11 +14182,10 @@ function FootprintView() {
             marginBottom: 6,
           }}
         >
-          🥽 VIRTUAL WATER FOOTPRINT
+          {t("foot.virtual_title")}
         </Text>
         <Text style={{ color: C.text, fontSize: 13, lineHeight: 20 }}>
-          Photograph any item — AI vision identifies it and overlays a water
-          tank showing how many gallons it took to produce.
+          {t("foot.virtual_desc")}
         </Text>
       </View>
 
@@ -14382,8 +14381,8 @@ function FootprintView() {
               <Text
                 style={{ color: C.purple, fontSize: 11, fontWeight: "700" }}
               >
-                HIDDEN WATER COST{" "}
-                {item.confidence ? `· ${item.confidence}% CONFIDENCE` : ""}
+                {t("foot.hidden_cost")}{" "}
+                {item.confidence ? t("foot.confidence_suffix", { pct: item.confidence }) : ""}
               </Text>
             </View>
             <Text style={{ color: C.accent, fontSize: 22, fontWeight: "900" }}>
@@ -14417,7 +14416,7 @@ function FootprintView() {
                   marginTop: 2,
                 }}
               >
-                your daily goal
+                {t("foot.daily_goal")}
               </Text>
             </View>
             <View
@@ -14442,7 +14441,7 @@ function FootprintView() {
                   marginTop: 2,
                 }}
               >
-                showers (5gal)
+                {t("foot.showers_5gal")}
               </Text>
             </View>
             <View
@@ -14469,7 +14468,7 @@ function FootprintView() {
                   marginTop: 2,
                 }}
               >
-                retail water cost
+                {t("foot.retail_cost")}
               </Text>
             </View>
           </View>
@@ -14617,7 +14616,22 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
     setError("");
     setScanning(true);
     setTimeout(() => {
-      showResult(SAMPLE_LANDSCAPE);
+      showResult({
+        ...SAMPLE_LANDSCAPE,
+        plants: [
+          { name: t("audit.demo.kentucky"), water_need: "high", estimated_count: 1 },
+          { name: t("audit.demo.hydrangea"), water_need: "high", estimated_count: 4 },
+          { name: t("audit.demo.boxwood"), water_need: "medium", estimated_count: 6 },
+          { name: t("audit.demo.annuals"), water_need: "high", estimated_count: 12 },
+        ],
+        recommendations: [
+          { swap: t("audit.demo.swap1"), saves_gallons_yr: 18000, est_cost_usd: 4500 },
+          { swap: t("audit.demo.swap2"), saves_gallons_yr: 4800, est_cost_usd: 320 },
+          { swap: t("audit.demo.swap3"), saves_gallons_yr: 2400, est_cost_usd: 80 },
+          { swap: t("audit.demo.swap4"), saves_gallons_yr: 3000, est_cost_usd: 200 },
+        ],
+        summary: t("audit.demo.summary"),
+      });
       setScanning(false);
     }, 900);
   };
@@ -14642,20 +14656,16 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
             marginBottom: 6,
           }}
         >
-          🌿 LANDSCAPE AUDIT
+          {t("audit.title")}
         </Text>
         <Text style={{ color: C.text, fontSize: 13, lineHeight: 20 }}>
-          Snap a photo of your yard, lawn, or garden. AI identifies plants,
-          scores water needs, and recommends drought-tolerant swaps with gallon
-          and dollar savings.
+          {t("audit.intro")}
         </Text>
       </View>
 
       <View style={{ marginHorizontal: 16, marginBottom: 12 }}>
         <CameraViewport
-          hint={
-            scanning ? "Analyzing landscape..." : "Tap below to add a photo"
-          }
+          hint={scanning ? t("audit.analyzing") : t("audit.tap_add_photo")}
           imageUri={imageUri}
           scanning={scanning}
         >
@@ -14671,8 +14681,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                   paddingHorizontal: 18,
                 }}
               >
-                Wide shot works best — include lawn, beds, and any irrigated
-                areas in frame
+                {t("audit.wide_shot_hint")}
               </Text>
             </View>
           )}
@@ -14722,7 +14731,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
           }}
         >
           <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700" }}>
-            ▷ Try with sample yard
+            {t("audit.try_sample")}
           </Text>
         </Press>
 
@@ -14766,7 +14775,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 textAlign: "center",
               }}
             >
-              POTENTIAL ANNUAL SAVINGS
+              {t("audit.potential_savings")}
             </Text>
             <Text
               style={{
@@ -14787,7 +14796,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 marginTop: -2,
               }}
             >
-              gallons / year · ~${dollarSavings.toFixed(0)} off your bill
+              {t("audit.gal_year_off_bill", { dollars: dollarSavings.toFixed(0) })}
             </Text>
             <View
               style={{
@@ -14843,7 +14852,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                   fontStyle: "italic",
                 }}
               >
-                Vision confidence: {result.confidence}%
+                {t("audit.vision_confidence", { pct: result.confidence })}
               </Text>
             )}
           </View>
@@ -14894,7 +14903,11 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                           marginTop: 2,
                         }}
                       >
-                        {p.water_need.toUpperCase()} WATER NEED
+                        {p.water_need === "high"
+                          ? t("audit.water_need_high")
+                          : p.water_need === "medium"
+                            ? t("audit.water_need_medium")
+                            : t("audit.water_need_low")}
                       </Text>
                     </View>
                     <View
@@ -14969,7 +14982,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                             fontWeight: "800",
                           }}
                         >
-                          {r.saves_gallons_yr.toLocaleString()} gal/yr
+                          {t("audit.gal_yr_suffix", { gal: r.saves_gallons_yr.toLocaleString() })}
                         </Text>
                       </View>
                       <View
@@ -14987,7 +15000,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                             fontWeight: "800",
                           }}
                         >
-                          ~${r.est_cost_usd.toLocaleString()} cost
+                          {t("audit.cost_approx", { cost: r.est_cost_usd.toLocaleString() })}
                         </Text>
                       </View>
                       <View
@@ -15005,9 +15018,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                             fontWeight: "800",
                           }}
                         >
-                          $
-                          {(r.saves_gallons_yr * WATER_COST_PER_GAL).toFixed(0)}
-                          /yr
+                          {t("audit.dollars_yr", { val: (r.saves_gallons_yr * WATER_COST_PER_GAL).toFixed(0) })}
                         </Text>
                       </View>
                     </View>
@@ -15038,7 +15049,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                   marginBottom: 6,
                 }}
               >
-                💰 GET PAID FOR THIS
+                {t("audit.get_paid_title")}
               </Text>
               <Text
                 style={{
@@ -15048,10 +15059,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                   marginBottom: 8,
                 }}
               >
-                Most CA utilities offer turf-replacement and smart-controller
-                rebates. Use the Rebates finder on Home to see what's available
-                in your ZIP — many programs cover $2–$5 per square foot of lawn
-                converted.
+                {t("audit.get_paid_body")}
               </Text>
             </View>
           </View>
@@ -15070,7 +15078,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
             }}
           >
             <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700" }}>
-              ↺ Audit another yard
+              {t("audit.audit_another")}
             </Text>
           </Press>
         </>

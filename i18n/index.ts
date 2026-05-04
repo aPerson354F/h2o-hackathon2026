@@ -1184,6 +1184,46 @@ export const STRINGS = {
   "audit.est_sqft": "est sq ft",
   "audit.galyr_now": "gal/yr now",
   "audit.payback": "payback",
+
+  // FootprintView (camera tab #3 — virtual water footprint)
+  "foot.virtual_title": "🥽 VIRTUAL WATER FOOTPRINT",
+  "foot.virtual_desc": "Photograph any item — AI vision identifies it and overlays a water tank showing how many gallons it took to produce.",
+  "foot.hidden_cost": "HIDDEN WATER COST",
+  "foot.confidence_suffix": "· {pct}% CONFIDENCE",
+  "foot.daily_goal": "your daily goal",
+  "foot.showers_5gal": "showers (5gal)",
+  "foot.retail_cost": "retail water cost",
+
+  // LandscapeAuditView (camera tab #4)
+  "audit.title": "🌿 LANDSCAPE AUDIT",
+  "audit.intro": "Snap a photo of your yard, lawn, or garden. AI identifies plants, scores water needs, and recommends drought-tolerant swaps with gallon and dollar savings.",
+  "audit.analyzing": "Analyzing landscape...",
+  "audit.tap_add_photo": "Tap below to add a photo",
+  "audit.wide_shot_hint": "Wide shot works best — include lawn, beds, and any irrigated areas in frame",
+  "audit.try_sample": "▷ Try with sample yard",
+  "audit.potential_savings": "POTENTIAL ANNUAL SAVINGS",
+  "audit.gal_year_off_bill": "gallons / year · ~${dollars} off your bill",
+  "audit.vision_confidence": "Vision confidence: {pct}%",
+  "audit.water_need_high": "HIGH WATER NEED",
+  "audit.water_need_medium": "MEDIUM WATER NEED",
+  "audit.water_need_low": "LOW WATER NEED",
+  "audit.gal_yr_suffix": "{gal} gal/yr",
+  "audit.cost_approx": "~${cost} cost",
+  "audit.dollars_yr": "${val}/yr",
+  "audit.get_paid_title": "💰 GET PAID FOR THIS",
+  "audit.get_paid_body": "Most CA utilities offer turf-replacement and smart-controller rebates. Use the Rebates finder on Home to see what's available in your ZIP — many programs cover $2–$5 per square foot of lawn converted.",
+  "audit.audit_another": "↺ Audit another yard",
+
+  // sample-yard demo data (used when user taps \"Try with sample yard\")
+  "audit.demo.kentucky": "Kentucky Bluegrass lawn",
+  "audit.demo.hydrangea": "Hydrangea bushes",
+  "audit.demo.boxwood": "Boxwood hedge",
+  "audit.demo.annuals": "Annual flowers",
+  "audit.demo.swap1": "Replace lawn with native sedge (Carex pansa)",
+  "audit.demo.swap2": "Swap hydrangeas for Cleveland sage",
+  "audit.demo.swap3": "Replace annuals with CA poppy + lupine",
+  "audit.demo.swap4": "Add 2-inch mulch layer to all beds",
+  "audit.demo.summary": "Your yard is dominated by thirsty turf and water-loving ornamentals. A targeted xeriscape conversion could cut annual outdoor water use by ~88%, saving ~$225/year and qualifying for ~$2,400 in landscape rebates from your local utility.",
 } as const;
 
 export type StringKey = keyof typeof STRINGS;
