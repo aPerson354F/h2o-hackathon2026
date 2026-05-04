@@ -990,6 +990,33 @@ const STRINGS = {
 
   "map.sj_alert.headline": "San Joaquin County reservoirs are stressed from both ends.",
   "map.sj_alert.body": "Statewide storage has rebuilt from the 2022 lows (currently {res}% — {rl}), but the structural weakness remains exposed: warmer winter storms push Sierra snowmelt through the system in fast pulses instead of the slow May–July melt the dams were designed for. Operators must release water for flood-control safety even when downstream demand is high. Aging embankments at Camanche and New Hogan are the local pinch points.",
+
+  "tour.welcome_lbl": "WELCOME",
+  "tour.replay_lbl": "REPLAY",
+  "tour.skip": "SKIP",
+  "tour.close": "CLOSE",
+  "tour.back": "← Back",
+  "tour.next": "Next →",
+  "tour.done": "Done",
+  "tour.continue_quiz": "Continue to quiz →",
+  "tour.s1.title": "1. Sierra Snowpack",
+  "tour.s1.fact": "30% of California's water supply",
+  "tour.s1.body": "It starts here. Winter storms drop snow on the Sierra Nevada at 7,000+ ft — a frozen reservoir bigger than any dam in the state. The April-1 snowpack is the single most-watched number in California water.",
+  "tour.s2.title": "2. Spring Snowmelt",
+  "tour.s2.fact": "April–July: the meltdown",
+  "tour.s2.body": "As temperatures climb, the snowpack melts gradually. The released water trickles down granite slopes, picking up minerals on its way. In a healthy year, this slow melt is the perfect, steady supply for the dry months ahead.",
+  "tour.s3.title": "3. Sierra Rivers",
+  "tour.s3.fact": "Mokelumne · Stanislaus · Calaveras",
+  "tour.s3.body": "Three rivers gather the runoff and flow westward into the San Joaquin Valley. By the time they reach the foothills they've descended over 8,000 ft and are racing toward the dams that will hold them back.",
+  "tour.s4.title": "4. Local Reservoirs",
+  "tour.s4.fact": "Camanche · Pardee · New Hogan · New Melones",
+  "tour.s4.body": "Local dams capture and store this water — together they hold over 3 million acre-feet. They release it year-round to match the demand of farms and cities, including the 800,000 residents of San Joaquin County.",
+  "tour.s5.title": "5. Treatment & Pipes",
+  "tour.s5.fact": "Stockton-East Water District",
+  "tour.s5.body": "River water is filtered, disinfected, and fluoridated to drinking-water standards. The cleaned water then travels through pressurized mains under city streets — sometimes for miles before reaching the home meter.",
+  "tour.s6.title": "6. Your Tap",
+  "tour.s6.fact": "About 90 miles · 6 weeks of journey",
+  "tour.s6.body": "From mountain snow to your kitchen sink — water completes the trip in roughly six weeks, traveling about 90 miles. Every shower, dish, and glass of water you use here started as a snowflake on the Sierra.",
 };
 
 const GOOGLE_CODE = {

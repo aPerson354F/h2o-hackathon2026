@@ -10874,6 +10874,15 @@ const WATER_JOURNEY_STAGES: {
   },
 ];
 
+const TOUR_STAGE_KEYS: { title: StringKey; fact: StringKey; body: StringKey }[] = [
+  { title: "tour.s1.title", fact: "tour.s1.fact", body: "tour.s1.body" },
+  { title: "tour.s2.title", fact: "tour.s2.fact", body: "tour.s2.body" },
+  { title: "tour.s3.title", fact: "tour.s3.fact", body: "tour.s3.body" },
+  { title: "tour.s4.title", fact: "tour.s4.fact", body: "tour.s4.body" },
+  { title: "tour.s5.title", fact: "tour.s5.fact", body: "tour.s5.body" },
+  { title: "tour.s6.title", fact: "tour.s6.fact", body: "tour.s6.body" },
+];
+
 function WaterJourneyModal({
   visible,
   onDone,
@@ -10885,6 +10894,8 @@ function WaterJourneyModal({
   onSkip: () => void;
   isReplay?: boolean;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [stageIdx, setStageIdx] = useState(0);
   const fade = useRef(new Animated.Value(1)).current;
   const drop = useRef(new Animated.Value(0)).current;
@@ -10911,6 +10922,7 @@ function WaterJourneyModal({
 
   const total = WATER_JOURNEY_STAGES.length;
   const stage = WATER_JOURNEY_STAGES[stageIdx];
+  const stageTr = TOUR_STAGE_KEYS[stageIdx];
 
   const next = () => {
     Animated.sequence([
@@ -11008,14 +11020,14 @@ function WaterJourneyModal({
                 letterSpacing: 1.5,
               }}
             >
-              {isReplay ? "REPLAY" : "WELCOME"} · {stageIdx + 1} / {total}
+              {isReplay ? t("tour.replay_lbl") : t("tour.welcome_lbl")} · {stageIdx + 1} / {total}
             </Text>
             <TouchableOpacity
               onPress={onSkip}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700" }}>
-                {isReplay ? "CLOSE" : "SKIP"}
+                {isReplay ? t("tour.close") : t("tour.skip")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -11253,7 +11265,7 @@ function WaterJourneyModal({
                   textAlign: "center",
                 }}
               >
-                {stage.title}
+                {t(stageTr.title)}
               </Text>
               <Text
                 style={{
@@ -11265,7 +11277,7 @@ function WaterJourneyModal({
                   marginTop: 4,
                 }}
               >
-                {stage.fact.toUpperCase()}
+                {t(stageTr.fact).toUpperCase()}
               </Text>
               <Text
                 style={{
@@ -11277,7 +11289,7 @@ function WaterJourneyModal({
                   paddingHorizontal: 6,
                 }}
               >
-                {stage.body}
+                {t(stageTr.body)}
               </Text>
             </Animated.View>
           </ScrollView>
@@ -11299,7 +11311,7 @@ function WaterJourneyModal({
                 <Text
                   style={{ color: C.muted, fontWeight: "700", fontSize: 13 }}
                 >
-                  ← Back
+                  {t("tour.back")}
                 </Text>
               </TouchableOpacity>
             )}
@@ -11307,9 +11319,9 @@ function WaterJourneyModal({
               <Text style={st.btnText}>
                 {stageIdx === total - 1
                   ? isReplay
-                    ? "Done"
-                    : "Continue to quiz →"
-                  : "Next →"}
+                    ? t("tour.done")
+                    : t("tour.continue_quiz")
+                  : t("tour.next")}
               </Text>
             </Press>
           </View>
