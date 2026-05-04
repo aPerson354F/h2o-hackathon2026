@@ -48,3 +48,4 @@ plan.md
 
 # Hackathon raw dataset (embedded into App.tsx as WATER_HISTORY)
 challenge_data.json
+.vercel

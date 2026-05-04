@@ -138,7 +138,7 @@ const SHADOW_HERO = Platform.select({
 });
 
 const GROQ_PROXY_URL =
-  process.env.EXPO_PUBLIC_GROQ_PROXY_URL ?? "http://localhost:3000/api/groq";
+  process.env.EXPO_PUBLIC_GROQ_PROXY_URL ?? "/api/groq";
 
 function langDirective(lang?: Lang): string {
   if (!lang || lang === "en") return "";
@@ -4412,7 +4412,10 @@ const ACTIVITY_LABEL_KEY: Record<string, StringKey> = {
 const tActivityLabel = (
   englishLabel: string,
   t: (key: StringKey, params?: Record<string, string | number>) => string,
-) => (ACTIVITY_LABEL_KEY[englishLabel] ? t(ACTIVITY_LABEL_KEY[englishLabel]) : englishLabel);
+) =>
+  ACTIVITY_LABEL_KEY[englishLabel]
+    ? t(ACTIVITY_LABEL_KEY[englishLabel])
+    : englishLabel;
 
 function LoggerScreen() {
   const { profile, refreshNotifs } = useApp();
@@ -5156,7 +5159,9 @@ function ConservationReportModal({
     if (!report) return;
     const lines = [
       t("report.share_header"),
-      t("report.share_generated", { date: new Date(report.generatedAt).toLocaleDateString() }),
+      t("report.share_generated", {
+        date: new Date(report.generatedAt).toLocaleDateString(),
+      }),
       ``,
       `• ${t("report.share_lifetime_saved", { gal: report.lifetimeSaved.toFixed(0) })}`,
       `• ${t("report.share_active_days", { days: report.activeDays })}`,
@@ -15745,7 +15750,8 @@ class ErrorBoundary extends React.Component<
             fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
           }}
         >
-          {this.state.error.message?.slice(0, 200) || tx("err.unknown_capitalized")}
+          {this.state.error.message?.slice(0, 200) ||
+            tx("err.unknown_capitalized")}
         </Text>
         <Press
           onPress={() => this.setState({ error: null })}

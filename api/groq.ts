@@ -13,16 +13,6 @@ function loadGroqKey(): string | undefined {
   return undefined;
 }
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  "http://localhost:8081",
-  "http://localhost:8083",
-  "http://localhost:19006",
-];
-
-const ALLOWED_ORIGINS: string[] = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean)
-  : DEFAULT_ALLOWED_ORIGINS;
-
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 30;
 const RATE_MAP_SOFT_CAP = 1000;
@@ -38,9 +28,9 @@ function isRateLimited(ip: string): boolean {
   window.push(now);
   hits.set(ip, window);
   if (hits.size > RATE_MAP_SOFT_CAP) {
-    for (const [k, v] of hits) {
+    hits.forEach((v, k) => {
       if (!v.length || now - v[v.length - 1] >= RATE_WINDOW_MS) hits.delete(k);
-    }
+    });
   }
   return false;
 }
@@ -53,27 +43,6 @@ function clientIp(req: VercelRequest): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const origin = (req.headers.origin as string | undefined) ?? "";
-  const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : "";
-
-  if (req.method === "OPTIONS") {
-    if (corsOrigin) {
-      res.setHeader("Access-Control-Allow-Origin", corsOrigin);
-      res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-      res.setHeader("Vary", "Origin");
-    }
-    return res.status(204).end();
-  }
-
-  if (origin && !corsOrigin) {
-    return res.status(403).json({ error: { message: "Origin not allowed" } });
-  }
-  if (corsOrigin) {
-    res.setHeader("Access-Control-Allow-Origin", corsOrigin);
-    res.setHeader("Vary", "Origin");
-  }
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: { message: "Method not allowed" } });
   }
