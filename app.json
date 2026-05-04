@@ -1,6 +1,6 @@
 {
   "expo": {
-    "owner": "aperson354f",
+    "jsEngine": "hermes",
     "name": "h2o",
     "slug": "h2ohack2026",
     "version": "1.0.0",
@@ -8,6 +8,10 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -46,11 +50,6 @@
     ],
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "3b8281a7-a192-4f0e-8791-48f9cbb42851"
-      }
     }
   }
 }
