@@ -627,10 +627,12 @@ function WaterRing({
   pct,
   size = 150,
   color = C.accent,
+  label = "OF GOAL",
 }: {
   pct: number;
   size?: number;
   color?: string;
+  label?: string;
 }) {
   const anim = useRef(new Animated.Value(0)).current;
   const [animVal, setAnimVal] = useState(0);
@@ -702,7 +704,7 @@ function WaterRing({
             fontWeight: "600",
           }}
         >
-          OF GOAL
+          {label}
         </Text>
       </View>
     </View>
@@ -3677,7 +3679,7 @@ function AITipCard() {
               <ActivityIndicator color={C.amber} />
             ) : (
               <Text style={{ color: C.text, fontSize: 14, lineHeight: 22 }}>
-                {tip || "Tap refresh to get a personalized tip."}
+                {tip || t("ai_tip.tap_to_get")}
               </Text>
             )}
             <TouchableOpacity
@@ -3693,7 +3695,7 @@ function AITipCard() {
             >
               <Ionicons name="refresh" size={12} color={C.amber} />
               <Text style={{ color: C.amber, fontSize: 11, fontWeight: "700" }}>
-                NEW TIP
+                {t("ai_tip.new_tip")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -3880,6 +3882,7 @@ function HomeScreen() {
                   pct={pct}
                   size={IS_SMALL ? 120 : 140}
                   color={ringColor}
+                  label={t("ring.of_goal")}
                 />
                 <View style={{ alignItems: "center" }}>
                   <Text style={st.heroLabel}>{t("home.water_score")}</Text>
@@ -4225,13 +4228,11 @@ function HomeScreen() {
                     letterSpacing: 1,
                   }}
                 >
-                  DAILY FACT
+                  {t("home.daily_fact_label")}
                 </Text>
               </View>
               <Text style={{ color: C.text, fontSize: 13, lineHeight: 21 }}>
-                A single avocado requires 60 gallons of water to grow.
-                California produces 90% of America's avocados — making water
-                conservation critical to our food supply.
+                {t("home.daily_fact_body")}
               </Text>
             </View>
           </FadeInUp>
@@ -5139,9 +5140,9 @@ function ConservationReportModal({
             }}
           >
             <View>
-              <Text style={st.modalTitle}>Conservation Report</Text>
+              <Text style={st.modalTitle}>{t("cr.title")}</Text>
               <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                Your full local profile · privacy-first
+                {t("cr.subtitle")}
               </Text>
             </View>
             <TouchableOpacity
@@ -5155,7 +5156,7 @@ function ConservationReportModal({
             <View style={{ alignItems: "center", paddingVertical: 32 }}>
               <ActivityIndicator color={C.accent} />
               <Text style={{ color: C.muted, marginTop: 8, fontSize: 12 }}>
-                Aggregating 90 days of data…
+                {t("cr.aggregating")}
               </Text>
             </View>
           ) : (
@@ -5171,32 +5172,32 @@ function ConservationReportModal({
               >
                 {[
                   {
-                    label: "Lifetime saved",
+                    label: t("cr.tile_lifetime"),
                     value: `${report.lifetimeSaved.toFixed(0)} gal`,
                     color: C.success,
                   },
                   {
-                    label: "Active days",
+                    label: t("cr.tile_active"),
                     value: `${report.activeDays}/90`,
                     color: C.accent,
                   },
                   {
-                    label: "Weekly avg",
+                    label: t("cr.tile_weekly"),
                     value: `${report.weeklyAvg.toFixed(0)} gal`,
                     color: C.teal,
                   },
                   {
-                    label: "Streak",
+                    label: t("cr.tile_streak"),
                     value: `${report.streak} d`,
                     color: C.gold,
                   },
                   {
-                    label: "Level",
+                    label: t("cr.tile_level"),
                     value: `${report.level}`,
                     color: C.accent,
                   },
                   {
-                    label: "Badges",
+                    label: t("cr.tile_badges"),
                     value: `${report.badges.length}/${BADGES.length}`,
                     color: C.amber,
                   },
@@ -5245,7 +5246,7 @@ function ConservationReportModal({
                       fontWeight: "700",
                     }}
                   >
-                    TOP ACTIVITY · 90 DAYS
+                    {t("cr.top_activity")}
                   </Text>
                   <Text
                     style={{
@@ -5258,7 +5259,7 @@ function ConservationReportModal({
                     {report.topActivity.label}
                   </Text>
                   <Text style={{ color: C.accent, fontSize: 12, marginTop: 2 }}>
-                    {report.topActivity.gallons.toFixed(0)} gal logged
+                    {t("cr.gal_logged", { gal: report.topActivity.gallons.toFixed(0) })}
                   </Text>
                 </View>
               ) : null}
@@ -5272,8 +5273,7 @@ function ConservationReportModal({
                   fontStyle: "italic",
                 }}
               >
-                The export below is the full report as JSON — your data, owned
-                by you. No cloud, no account, no telemetry.
+                {t("cr.export_blurb")}
               </Text>
 
               <View style={{ flexDirection: "row", gap: 8 }}>
@@ -5296,7 +5296,7 @@ function ConservationReportModal({
                   <Text
                     style={{ color: C.bg, fontWeight: "800", fontSize: 13 }}
                   >
-                    Share
+                    {t("cr.share_btn")}
                   </Text>
                 </Press>
                 <Press
@@ -5318,7 +5318,7 @@ function ConservationReportModal({
                   <Text
                     style={{ color: C.bg, fontWeight: "800", fontSize: 13 }}
                   >
-                    Export JSON
+                    {t("cr.export_btn")}
                   </Text>
                 </Press>
               </View>
@@ -5444,10 +5444,10 @@ function StatsScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: C.white, fontWeight: "800", fontSize: 14 }}>
-                Generate Conservation Report
+                {t("stats.gen_report_title")}
               </Text>
               <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                Aggregates 90 days · Share or export your data
+                {t("stats.gen_report_sub")}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={C.purple} />
@@ -5457,7 +5457,7 @@ function StatsScreen() {
         {/* WEEK SUM */}
         <FadeInUp delay={60}>
           <View style={[st.glassCard, { margin: 16, alignItems: "center" }]}>
-            <Text style={st.bigLabel}>WEEK TOTAL</Text>
+            <Text style={st.bigLabel}>{t("stats.week_total")}</Text>
             <Text
               style={{
                 color: C.accent,
@@ -5469,13 +5469,13 @@ function StatsScreen() {
               {display(sum).toFixed(0)}
             </Text>
             <Text style={{ color: C.muted, fontSize: 12 }}>
-              {unit} used in last 7 days
+              {t("stats.unit_used_7d", { unit })}
             </Text>
           </View>
         </FadeInUp>
 
         <FadeInUp delay={80}>
-          <Text style={s.section}>WEEKLY USAGE</Text>
+          <Text style={s.section}>{t("stats.weekly_usage")}</Text>
           <View
             style={{
               marginHorizontal: 16,
@@ -5500,7 +5500,7 @@ function StatsScreen() {
                     withDots: false,
                   },
                 ],
-                legend: [`Usage (${unit})`, "Target"],
+                legend: [t("stats.usage_legend", { unit }), t("stats.target_legend")],
               }}
               width={SW - 32}
               height={210}
@@ -5523,17 +5523,17 @@ function StatsScreen() {
           >
             {[
               {
-                label: "Avg Daily",
+                label: t("stats.avg_daily"),
                 value: `${display(avg).toFixed(0)} ${unit}`,
                 color: C.accent,
               },
               {
-                label: "Best Day",
+                label: t("stats.best_day"),
                 value: best ? `${display(best).toFixed(0)} ${unit}` : "—",
                 color: C.success,
               },
               {
-                label: "Saved vs CA",
+                label: t("stats.saved_vs_ca_short"),
                 value: `${display(savedVsCA).toFixed(0)} ${unit}`,
                 color: C.teal,
               },
@@ -5568,7 +5568,7 @@ function StatsScreen() {
         </FadeInUp>
 
         <FadeInUp delay={200}>
-          <Text style={s.section}>DAILY BREAKDOWN</Text>
+          <Text style={s.section}>{t("stats.daily_breakdown")}</Text>
           <View
             style={{
               marginHorizontal: 16,
@@ -5598,7 +5598,7 @@ function StatsScreen() {
 
         {/* COMMUNITY REACH — local showcase: mocked counts + user's actual referral highlighted */}
         <FadeInUp delay={260}>
-          <Text style={s.section}>COMMUNITY REACH</Text>
+          <Text style={s.section}>{t("stats.community_reach")}</Text>
           {(() => {
             const totalUsers = MOCK_REFERRAL_BREAKDOWN.reduce(
               (s, r) => s + r.count,
@@ -5634,10 +5634,10 @@ function StatsScreen() {
                       letterSpacing: 1,
                     }}
                   >
-                    📣 HOW USERS FOUND US
+                    {t("stats.how_users_found")}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 10 }}>
-                    ~{totalUsers.toLocaleString()} responses
+                    {t("stats.responses", { count: totalUsers.toLocaleString() })}
                   </Text>
                 </View>
                 <Text
@@ -5649,8 +5649,8 @@ function StatsScreen() {
                   }}
                 >
                   {mine
-                    ? `You said you found H2O to You via ${mine.label} ${mine.emoji} — joining ${mine.count.toLocaleString()} others. The fastest-growing channels are TikTok and word-of-mouth.`
-                    : "Quiz responses break down by source like this. Word-of-mouth and short-form video lead the way."}
+                    ? t("stats.found_via_msg", { label: mine.label, emoji: mine.emoji, count: mine.count.toLocaleString() })
+                    : t("stats.found_via_default")}
                 </Text>
                 {sorted.map((r) => {
                   const pct = (r.count / maxCount) * 100;
@@ -5703,7 +5703,7 @@ function StatsScreen() {
                                   letterSpacing: 0.5,
                                 }}
                               >
-                                YOU
+                                {t("stats.you_chip")}
                               </Text>
                             </View>
                           )}
@@ -5747,8 +5747,7 @@ function StatsScreen() {
                     lineHeight: 13,
                   }}
                 >
-                  Showcase data — counts illustrative only. Live aggregation
-                  requires a backend (out of scope for the local build).
+                  {t("stats.showcase_disclaimer")}
                 </Text>
               </View>
             );
@@ -5756,27 +5755,27 @@ function StatsScreen() {
         </FadeInUp>
 
         <FadeInUp delay={320}>
-          <Text style={s.section}>YOUR IMPACT THIS WEEK</Text>
+          <Text style={s.section}>{t("stats.impact_week")}</Text>
           <View style={{ marginHorizontal: 16, gap: 10, marginBottom: 30 }}>
             {[
               {
                 icon: "🌲",
-                label: "Trees supported",
+                label: t("stats.impact_trees"),
                 value: `${((savedVsCA * 7) / 50).toFixed(1)}`,
               },
               {
                 icon: "🐟",
-                label: "Gallons back to nature",
+                label: t("stats.impact_gal_nature"),
                 value: `${(savedVsCA * 7).toFixed(0)}`,
               },
               {
                 icon: "💰",
-                label: "Money saved (est.)",
+                label: t("stats.impact_money"),
                 value: `$${(savedVsCA * 7 * 0.004).toFixed(2)}`,
               },
               {
                 icon: "🌡️",
-                label: "CO₂ offset (lbs)",
+                label: t("stats.impact_co2"),
                 value: `${(savedVsCA * 7 * 0.003).toFixed(2)}`,
               },
             ].map((r) => (
@@ -5810,12 +5809,12 @@ function StatsScreen() {
 }
 
 // ─── LEARN SCREEN ──────────────────────────────────────
-const DROUGHT_LEVELS = [
-  { level: "D0", label: "Abnormally Dry", color: "#eab308", pct: 12 },
-  { level: "D1", label: "Moderate Drought", color: "#f97316", pct: 18 },
-  { level: "D2", label: "Severe Drought", color: "#ef4444", pct: 31 },
-  { level: "D3", label: "Extreme Drought", color: "#991b1b", pct: 25 },
-  { level: "D4", label: "Exceptional", color: "#450a0a", pct: 8 },
+const DROUGHT_LEVELS: { level: string; label: string; labelKey: StringKey; color: string; pct: number }[] = [
+  { level: "D0", label: "Abnormally Dry", labelKey: "drought.d0_label", color: "#eab308", pct: 12 },
+  { level: "D1", label: "Moderate Drought", labelKey: "drought.d1_label", color: "#f97316", pct: 18 },
+  { level: "D2", label: "Severe Drought", labelKey: "drought.d2_label", color: "#ef4444", pct: 31 },
+  { level: "D3", label: "Extreme Drought", labelKey: "drought.d3_label", color: "#991b1b", pct: 25 },
+  { level: "D4", label: "Exceptional", labelKey: "drought.d4_label", color: "#450a0a", pct: 8 },
 ];
 
 const HISTORY = [
@@ -5956,6 +5955,40 @@ const TECH = [
   },
 ];
 
+// Index-aligned translation maps for HISTORY, LAWS, TECH arrays.
+const HIST_TR: { title: StringKey; body: StringKey }[] = [
+  { title: "hist.pre1900s.title", body: "hist.pre1900s.body" },
+  { title: "hist.1928_34.title", body: "hist.1928_34.body" },
+  { title: "hist.1976_77.title", body: "hist.1976_77.body" },
+  { title: "hist.1987_92.title", body: "hist.1987_92.body" },
+  { title: "hist.2007_09.title", body: "hist.2007_09.body" },
+  { title: "hist.2012_16.title", body: "hist.2012_16.body" },
+  { title: "hist.2020_22.title", body: "hist.2020_22.body" },
+  { title: "hist.2023_24.title", body: "hist.2023_24.body" },
+  { title: "hist.2025_26.title", body: "hist.2025_26.body" },
+];
+
+const LAW_TR: { title: StringKey; desc: StringKey }[] = [
+  { title: "law.1976.title", desc: "law.1976.desc" },
+  { title: "law.1991.title", desc: "law.1991.desc" },
+  { title: "law.2009.title", desc: "law.2009.desc" },
+  { title: "law.2014.title", desc: "law.2014.desc" },
+  { title: "law.2018.title", desc: "law.2018.desc" },
+  { title: "law.2022.title", desc: "law.2022.desc" },
+  { title: "law.2024.title", desc: "law.2024.desc" },
+];
+
+const TECH_TR: { title: StringKey; body: StringKey }[] = [
+  { title: "tech.drip.title", body: "tech.drip.body" },
+  { title: "tech.desal.title", body: "tech.desal.body" },
+  { title: "tech.recycle.title", body: "tech.recycle.body" },
+  { title: "tech.greywater.title", body: "tech.greywater.body" },
+  { title: "tech.smart_sprink.title", body: "tech.smart_sprink.body" },
+  { title: "tech.cloud_seed.title", body: "tech.cloud_seed.body" },
+  { title: "tech.atm_river.title", body: "tech.atm_river.body" },
+  { title: "tech.precision_ag.title", body: "tech.precision_ag.body" },
+];
+
 function LearnScreen() {
   const { profile } = useApp();
   const t = useT(profile.lang);
@@ -5988,24 +6021,24 @@ function LearnScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={st.tabBarScrollContent}
         >
-          {[
-            { id: "status", label: "Status", icon: "pulse" },
-            { id: "history", label: "History", icon: "time" },
-            { id: "tech", label: "Solutions", icon: "flash" },
-            { id: "tips", label: "Tips", icon: "bulb" },
-          ].map((t) => (
+          {([
+            { id: "status", label: t("learn.tab.status"), icon: "pulse" },
+            { id: "history", label: t("learn.tab.history"), icon: "time" },
+            { id: "tech", label: t("learn.tab.tech"), icon: "flash" },
+            { id: "tips", label: t("learn.tab.tips"), icon: "bulb" },
+          ] as const).map((tabItem) => (
             <Press
-              key={t.id}
-              onPress={() => setTab(t.id as any)}
-              style={[st.tabBtn, tab === t.id && st.tabBtnActive]}
+              key={tabItem.id}
+              onPress={() => setTab(tabItem.id as any)}
+              style={[st.tabBtn, tab === tabItem.id && st.tabBtnActive]}
             >
               <Ionicons
-                name={t.icon as any}
+                name={tabItem.icon as any}
                 size={14}
-                color={tab === t.id ? C.bg : C.muted}
+                color={tab === tabItem.id ? C.bg : C.muted}
               />
-              <Text style={[st.tabBtnText, tab === t.id && { color: C.bg }]}>
-                {t.label}
+              <Text style={[st.tabBtnText, tab === tabItem.id && { color: C.bg }]}>
+                {tabItem.label}
               </Text>
             </Press>
           ))}
@@ -6024,10 +6057,10 @@ function LearnScreen() {
               const p = classifyPrecip(LATEST.precip);
               const headline =
                 LATEST.reservoir < 50 || LATEST.snowpack < 50
-                  ? "DROUGHT EMERGENCY"
+                  ? t("learn.headline.emergency")
                   : LATEST.reservoir < 70 || LATEST.snowpack < 70
-                    ? "WATCH CONDITIONS"
-                    : "RECOVERING";
+                    ? t("learn.headline.watch")
+                    : t("learn.headline.recovering");
               const headlineColor =
                 LATEST.reservoir < 50
                   ? C.danger
@@ -6057,7 +6090,7 @@ function LearnScreen() {
                       fontWeight: "600",
                     }}
                   >
-                    STATEWIDE · {LATEST.date}
+                    {t("learn.statewide", { date: LATEST.date })}
                   </Text>
                   <Text
                     style={{
@@ -6078,27 +6111,26 @@ function LearnScreen() {
                       paddingHorizontal: 18,
                     }}
                   >
-                    Storage has rebuilt from the 2022 lows, but a thin start to
-                    the new water year keeps the system fragile.
+                    {t("learn.status_blurb")}
                   </Text>
                   <View
                     style={{ flexDirection: "row", gap: 18, marginTop: 18 }}
                   >
                     {[
                       {
-                        label: "Reservoirs",
+                        label: t("learn.label.reservoirs"),
                         value: `${LATEST.reservoir}%`,
                         sub: r.label,
                         color: r.color,
                       },
                       {
-                        label: "Snowpack",
+                        label: t("learn.label.snowpack"),
                         value: `${LATEST.snowpack}%`,
                         sub: sn.label,
                         color: sn.color,
                       },
                       {
-                        label: "Precip",
+                        label: t("learn.label.precip"),
                         value: `${LATEST.precip}%`,
                         sub: p.label,
                         color: p.color,
@@ -6146,14 +6178,13 @@ function LearnScreen() {
                       lineHeight: 14,
                     }}
                   >
-                    Snowpack benchmarked to April-1 statewide peak. Precip and
-                    reservoir % are vs. long-term averages.
+                    {t("learn.benchmark_note")}
                   </Text>
                 </View>
               );
             })()}
 
-            <Text style={s.section}>COVERAGE BY SEVERITY</Text>
+            <Text style={s.section}>{t("learn.coverage_severity")}</Text>
             {DROUGHT_LEVELS.map((d) => (
               <View
                 key={d.level}
@@ -6187,7 +6218,7 @@ function LearnScreen() {
                   <Text
                     style={{ color: C.text, fontSize: 13, marginBottom: 4 }}
                   >
-                    {d.label}
+                    {t(d.labelKey)}
                   </Text>
                   <View
                     style={{
@@ -6219,7 +6250,7 @@ function LearnScreen() {
               </View>
             ))}
 
-            <Text style={s.section}>AI BRIEFING</Text>
+            <Text style={s.section}>{t("learn.ai_briefing")}</Text>
             <View style={[st.glassCard, { margin: 16 }]}>
               {news ? (
                 <>
@@ -6237,7 +6268,7 @@ function LearnScreen() {
                         textAlign: "center",
                       }}
                     >
-                      Refresh briefing
+                      {t("learn.refresh_briefing")}
                     </Text>
                   </TouchableOpacity>
                 </>
@@ -6250,7 +6281,7 @@ function LearnScreen() {
                   {loadingNews ? (
                     <ActivityIndicator color={C.bg} />
                   ) : (
-                    <Text style={st.btnText}>📡 Get Latest Briefing</Text>
+                    <Text style={st.btnText}>{t("learn.get_briefing")}</Text>
                   )}
                 </Press>
               )}
@@ -6270,113 +6301,128 @@ function LearnScreen() {
                   marginBottom: 6,
                 }}
               >
-                📜 A CENTURY OF DROUGHT
+                {t("learn.century_drought")}
               </Text>
               <Text style={{ color: C.text, fontSize: 13, lineHeight: 21 }}>
-                California's relationship with water has shaped its identity.
-                From indigenous stewardship to climate-driven megadroughts,
-                here's the story of how we got here — and where we're going.
+                {t("learn.history_blurb")}
               </Text>
             </View>
 
-            <Text style={s.section}>TIMELINE</Text>
+            <Text style={s.section}>{t("learn.timeline")}</Text>
             <View style={{ paddingHorizontal: 16 }}>
-              {HISTORY.map((h, i) => (
-                <View
-                  key={i}
-                  style={{ flexDirection: "row", gap: 12, marginBottom: 14 }}
-                >
-                  <View style={{ alignItems: "center", width: 44 }}>
-                    <View
-                      style={[st.timelineDot, { backgroundColor: h.color }]}
-                    />
-                    {i < HISTORY.length - 1 ? (
-                      <View style={st.timelineLine} />
-                    ) : null}
+              {HISTORY.map((h, i) => {
+                const tr = HIST_TR[i];
+                const isLast = i === HISTORY.length - 1;
+                const body = !tr
+                  ? h.body
+                  : isLast
+                    ? t(tr.body, {
+                        res: LATEST.reservoir,
+                        rl: t(classifyReservoir(LATEST.reservoir).labelKey),
+                        sn: LATEST.snowpack,
+                        snl: t(classifySnowpack(LATEST.snowpack).labelKey),
+                      })
+                    : t(tr.body);
+                return (
+                  <View
+                    key={i}
+                    style={{ flexDirection: "row", gap: 12, marginBottom: 14 }}
+                  >
+                    <View style={{ alignItems: "center", width: 44 }}>
+                      <View
+                        style={[st.timelineDot, { backgroundColor: h.color }]}
+                      />
+                      {i < HISTORY.length - 1 ? (
+                        <View style={st.timelineLine} />
+                      ) : null}
+                    </View>
+                    <View style={[st.glassCard, { flex: 1, padding: 14 }]}>
+                      <Text
+                        style={{
+                          color: h.color,
+                          fontSize: 11,
+                          fontWeight: "800",
+                          letterSpacing: 1,
+                        }}
+                      >
+                        {h.era}
+                      </Text>
+                      <Text
+                        style={{
+                          color: C.white,
+                          fontSize: 15,
+                          fontWeight: "800",
+                          marginTop: 2,
+                        }}
+                      >
+                        {tr ? t(tr.title) : h.title}
+                      </Text>
+                      <Text
+                        style={{
+                          color: C.textSoft,
+                          fontSize: 13,
+                          lineHeight: 20,
+                          marginTop: 6,
+                        }}
+                      >
+                        {body}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={[st.glassCard, { flex: 1, padding: 14 }]}>
-                    <Text
-                      style={{
-                        color: h.color,
-                        fontSize: 11,
-                        fontWeight: "800",
-                        letterSpacing: 1,
-                      }}
-                    >
-                      {h.era}
-                    </Text>
+                );
+              })}
+            </View>
+
+            <Text style={s.section}>{t("learn.key_legislation")}</Text>
+            {LAWS.map((l, i) => {
+              const tr = LAW_TR[i];
+              return (
+                <View
+                  key={l.y}
+                  style={[
+                    st.logRow,
+                    {
+                      marginHorizontal: 16,
+                      marginBottom: 8,
+                      alignItems: "flex-start",
+                      flexDirection: "column",
+                    },
+                  ]}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <View style={st.yearChip}>
+                      <Text
+                        style={{ color: C.bg, fontWeight: "900", fontSize: 11 }}
+                      >
+                        {l.y}
+                      </Text>
+                    </View>
                     <Text
                       style={{
                         color: C.white,
-                        fontSize: 15,
-                        fontWeight: "800",
-                        marginTop: 2,
+                        fontWeight: "700",
+                        fontSize: 14,
+                        flex: 1,
                       }}
                     >
-                      {h.title}
-                    </Text>
-                    <Text
-                      style={{
-                        color: C.textSoft,
-                        fontSize: 13,
-                        lineHeight: 20,
-                        marginTop: 6,
-                      }}
-                    >
-                      {h.body}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-
-            <Text style={s.section}>KEY LEGISLATION</Text>
-            {LAWS.map((l) => (
-              <View
-                key={l.y}
-                style={[
-                  st.logRow,
-                  {
-                    marginHorizontal: 16,
-                    marginBottom: 8,
-                    alignItems: "flex-start",
-                    flexDirection: "column",
-                  },
-                ]}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 4,
-                  }}
-                >
-                  <View style={st.yearChip}>
-                    <Text
-                      style={{ color: C.bg, fontWeight: "900", fontSize: 11 }}
-                    >
-                      {l.y}
+                      {tr ? t(tr.title) : l.t}
                     </Text>
                   </View>
                   <Text
-                    style={{
-                      color: C.white,
-                      fontWeight: "700",
-                      fontSize: 14,
-                      flex: 1,
-                    }}
+                    style={{ color: C.textSoft, fontSize: 12, lineHeight: 18 }}
                   >
-                    {l.t}
+                    {tr ? t(tr.desc) : l.d}
                   </Text>
                 </View>
-                <Text
-                  style={{ color: C.textSoft, fontSize: 12, lineHeight: 18 }}
-                >
-                  {l.d}
-                </Text>
-              </View>
-            ))}
+              );
+            })}
           </FadeInUp>
         )}
 
@@ -6392,43 +6438,45 @@ function LearnScreen() {
                   marginBottom: 6,
                 }}
               >
-                🔬 INNOVATIONS
+                {t("learn.innovations")}
               </Text>
               <Text style={{ color: C.text, fontSize: 13, lineHeight: 21 }}>
-                California is the world's lab for water innovation. Here's the
-                tech reshaping our future.
+                {t("learn.innovations_blurb")}
               </Text>
             </View>
-            {TECH.map((t, i) => (
-              <View
-                key={i}
-                style={[
-                  st.glassCard,
-                  { marginHorizontal: 16, marginBottom: 10 },
-                ]}
-              >
+            {TECH.map((tech, i) => {
+              const tr = TECH_TR[i];
+              return (
                 <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 6,
-                  }}
+                  key={i}
+                  style={[
+                    st.glassCard,
+                    { marginHorizontal: 16, marginBottom: 10 },
+                  ]}
                 >
-                  <Text style={{ fontSize: 22 }}>{t.e}</Text>
-                  <Text
-                    style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                      marginBottom: 6,
+                    }}
                   >
-                    {t.t}
+                    <Text style={{ fontSize: 22 }}>{tech.e}</Text>
+                    <Text
+                      style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
+                    >
+                      {tr ? t(tr.title) : tech.t}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{ color: C.textSoft, fontSize: 13, lineHeight: 20 }}
+                  >
+                    {tr ? t(tr.body) : tech.b}
                   </Text>
                 </View>
-                <Text
-                  style={{ color: C.textSoft, fontSize: 13, lineHeight: 20 }}
-                >
-                  {t.b}
-                </Text>
-              </View>
-            ))}
+              );
+            })}
           </FadeInUp>
         )}
 
@@ -6444,43 +6492,45 @@ function LearnScreen() {
                   marginBottom: 6,
                 }}
               >
-                💡 EVERY DROP COUNTS
+                {t("learn.every_drop")}
               </Text>
               <Text style={{ color: C.text, fontSize: 13, lineHeight: 21 }}>
-                Practical, proven ways to slash your daily water use. Each tip
-                below shows estimated savings.
+                {t("learn.tips_blurb")}
               </Text>
             </View>
-            {TIPS.map((t, i) => (
-              <View
-                key={i}
-                style={[
-                  st.glassCard,
-                  { marginHorizontal: 16, marginBottom: 10 },
-                ]}
-              >
+            {TIPS.map((tip, i) => {
+              const tr = TIP_TR[i];
+              return (
                 <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 6,
-                  }}
+                  key={i}
+                  style={[
+                    st.glassCard,
+                    { marginHorizontal: 16, marginBottom: 10 },
+                  ]}
                 >
-                  <Text style={{ fontSize: 22 }}>{t.e}</Text>
-                  <Text
-                    style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                      marginBottom: 6,
+                    }}
                   >
-                    {t.t}
+                    <Text style={{ fontSize: 22 }}>{tip.e}</Text>
+                    <Text
+                      style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
+                    >
+                      {tr ? t(tr.title) : tip.t}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{ color: C.textSoft, fontSize: 13, lineHeight: 20 }}
+                  >
+                    {tr ? t(tr.body) : tip.b}
                   </Text>
                 </View>
-                <Text
-                  style={{ color: C.textSoft, fontSize: 13, lineHeight: 20 }}
-                >
-                  {t.b}
-                </Text>
-              </View>
-            ))}
+              );
+            })}
           </FadeInUp>
         )}
       </ScrollView>
@@ -6602,7 +6652,7 @@ function ChatScreen() {
                     fontWeight: "600",
                   }}
                 >
-                  💧 H2O Assistant
+                  {t("chat.assistant_label")}
                 </Text>
               )}
               <View
@@ -6648,7 +6698,7 @@ function ChatScreen() {
             style={[st.input, { flex: 1, marginBottom: 0, color: C.white }]}
             value={input}
             onChangeText={setInput}
-            placeholder="Ask about water conservation..."
+            placeholder={t("chat.input_placeholder")}
             placeholderTextColor={C.muted}
             selectionColor={C.accent}
             cursorColor={C.accent}
@@ -9173,14 +9223,14 @@ function SimulationModal({
                         fontWeight: "700",
                       }}
                     >
-                      WATER FLOW NODE
+                      {t("sim.flow_node_label")}
                     </Text>
                   </View>
                 </View>
                 <Text
                   style={{ color: C.textSoft, fontSize: 13, lineHeight: 20 }}
                 >
-                  {sel.desc}
+                  {t(`sim.node.${sel.id}` as StringKey)}
                 </Text>
               </View>
             ) : (
@@ -9199,7 +9249,7 @@ function SimulationModal({
                     textAlign: "center",
                   }}
                 >
-                  Tap a node above to learn about each part of the system
+                  {t("sim.tap_node_hint")}
                 </Text>
               </View>
             )}
@@ -9207,9 +9257,9 @@ function SimulationModal({
             {/* Stats */}
             <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
               {[
-                { v: "23M", l: "People served" },
-                { v: "444mi", l: "CA Aqueduct" },
-                { v: "80%", l: "For ag" },
+                { v: "23M", l: t("sim.stat_users_label") },
+                { v: "444mi", l: t("sim.stat_aqueduct_label") },
+                { v: "80%", l: t("sim.stat_ag_label") },
               ].map((s) => (
                 <View
                   key={s.l}
@@ -9257,14 +9307,10 @@ function SimulationModal({
                     marginBottom: 6,
                   }}
                 >
-                  📍 SAN JOAQUIN COUNTY
+                  {t("sim.local_county_label")}
                 </Text>
                 <Text style={{ color: C.text, fontSize: 13, lineHeight: 20 }}>
-                  Most of the county's water comes from the Sacramento–San
-                  Joaquin Delta and local groundwater wells. The Stanislaus,
-                  Calaveras, and Mokelumne Rivers feed local reservoirs, while
-                  the New Hogan and Camanche dams regulate flow into farmland
-                  and city distribution.
+                  {t("sim.local_county_blurb")}
                 </Text>
               </View>
             )}
@@ -10599,7 +10645,7 @@ function RebatesModal({
                             marginBottom: 6,
                           }}
                         >
-                          ROI ESTIMATE
+                          {t("rebate.roi_estimate")}
                         </Text>
                         <View
                           style={{
@@ -10609,7 +10655,7 @@ function RebatesModal({
                           }}
                         >
                           <Text style={{ color: C.muted, fontSize: 11 }}>
-                            Typical cost
+                            {t("rebate.typical_cost")}
                           </Text>
                           <Text
                             style={{
@@ -10629,7 +10675,7 @@ function RebatesModal({
                           }}
                         >
                           <Text style={{ color: C.muted, fontSize: 11 }}>
-                            Rebate
+                            {t("rebate.rebate")}
                           </Text>
                           <Text
                             style={{
@@ -10656,7 +10702,7 @@ function RebatesModal({
                           }}
                         >
                           <Text style={{ color: C.muted, fontSize: 11 }}>
-                            Net out-of-pocket
+                            {t("rebate.net_cost")}
                           </Text>
                           <Text
                             style={{
@@ -10676,7 +10722,7 @@ function RebatesModal({
                           }}
                         >
                           <Text style={{ color: C.muted, fontSize: 11 }}>
-                            Annual bill savings
+                            {t("rebate.annual_savings")}
                           </Text>
                           <Text
                             style={{
@@ -10696,7 +10742,7 @@ function RebatesModal({
                           }}
                         >
                           <Text style={{ color: C.muted, fontSize: 11 }}>
-                            Payback
+                            {t("rebate.payback")}
                           </Text>
                           <Text
                             style={{
@@ -10706,10 +10752,10 @@ function RebatesModal({
                             }}
                           >
                             {paybackYears < 0.1
-                              ? "immediate"
+                              ? t("rebate.payback_immediate")
                               : paybackYears < 1
-                                ? `${Math.round(paybackYears * 12)} months`
-                                : `${paybackYears.toFixed(1)} years`}
+                                ? t("rebate.payback_months", { n: Math.round(paybackYears * 12) })
+                                : t("rebate.payback_years", { n: paybackYears.toFixed(1) })}
                           </Text>
                         </View>
                         <View
@@ -10719,7 +10765,7 @@ function RebatesModal({
                           }}
                         >
                           <Text style={{ color: C.muted, fontSize: 11 }}>
-                            15-yr net savings
+                            {t("rebate.lifetime_label")}
                           </Text>
                           <Text
                             style={{
@@ -10758,10 +10804,7 @@ function RebatesModal({
                 lineHeight: 14,
               }}
             >
-              Rebate amounts and eligibility verified against utility websites
-              as of late 2025. Actual approval is subject to your utility's
-              requirements. ZIP-prefix matching is approximate — confirm
-              eligibility before purchase.
+              {t("rebate.disclaimer")}
             </Text>
           </ScrollView>
         </View>
@@ -13376,6 +13419,8 @@ function CameraControls({
 
 // ── STRIP ANALYSIS ─────────────────────────────────────
 function StripView() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [test, setTest] = useState(STRIP_TESTS[0]);
   const [scanning, setScanning] = useState(false);
   const [matched, setMatched] = useState<(typeof test.colors)[0] | null>(null);
@@ -13472,15 +13517,14 @@ function StripView() {
             marginBottom: 6,
           }}
         >
-          🧪 COLORIMETRIC ANALYSIS
+          {t("cam.colorimetric")}
         </Text>
         <Text style={{ color: C.text, fontSize: 13, lineHeight: 20 }}>
-          Take or pick a photo of a water test strip — our vision model compares
-          it to the reference scale and gives a precise reading.
+          {t("cam.colorimetric_blurb")}
         </Text>
       </View>
 
-      <Text style={s.section}>SELECT TEST</Text>
+      <Text style={s.section}>{t("cam.select_test")}</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -13521,10 +13565,10 @@ function StripView() {
           scanning={scanning}
           hint={
             scanning
-              ? "ANALYZING…"
+              ? t("cam.analyzing_hint")
               : matched
-                ? `READING: ${matched.value}`
-                : 'TAP "TAKE PHOTO" BELOW'
+                ? t("cam.reading_hint", { value: matched.value })
+                : t("cam.tap_take_photo")
           }
         >
           {matched && !imageUri ? (
@@ -13566,7 +13610,7 @@ function StripView() {
         </View>
       ) : null}
 
-      <Text style={s.section}>REFERENCE SCALE — TAP FOR DEMO READING</Text>
+      <Text style={s.section}>{t("cam.reference_scale")}</Text>
       <View
         style={{
           flexDirection: "row",
@@ -13655,7 +13699,7 @@ function StripView() {
                 }}
               >
                 {matched.verdict.toUpperCase()} • {matched.risk.toUpperCase()}{" "}
-                RISK
+                {t("cam.risk_suffix")}
               </Text>
             </View>
           </View>
@@ -13688,7 +13732,7 @@ function StripView() {
                   marginBottom: 6,
                 }}
               >
-                AI VISION ANALYSIS
+                {t("cam.ai_vision")}
               </Text>
               <Text style={{ color: C.textSoft, fontSize: 12, lineHeight: 18 }}>
                 {aiNarrative}
@@ -13713,6 +13757,8 @@ type PollutionAnalysis = {
 };
 
 function PollutionView() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [item, setItem] = useState<PollutionAnalysis | null>(null);
   const [scanning, setScanning] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -13733,7 +13779,7 @@ function PollutionView() {
     if (parsed && parsed.name) {
       setItem(parsed);
     } else {
-      setError("Could not analyze image. Try a clearer photo of the item.");
+      setError(t("cam.could_not_analyze"));
     }
     setScanning(false);
   };
@@ -13779,12 +13825,10 @@ function PollutionView() {
             marginBottom: 6,
           }}
         >
-          🕵️ POLLUTION FINGERPRINTING
+          {t("cam.pollution_finger")}
         </Text>
         <Text style={{ color: C.text, fontSize: 13, lineHeight: 20 }}>
-          Photograph trash in waterways or streets. AI vision distinguishes
-          biodegradable from synthetic, traces likely sources, and quantifies
-          impact.
+          {t("cam.pollution_blurb")}
         </Text>
       </View>
 
@@ -13794,10 +13838,10 @@ function PollutionView() {
           scanning={scanning}
           hint={
             scanning
-              ? "IDENTIFYING…"
+              ? t("cam.identifying_hint")
               : item
-                ? "MATCHED"
-                : 'TAP "TAKE PHOTO" BELOW'
+                ? t("cam.matched")
+                : t("cam.tap_take_photo")
           }
         >
           {!imageUri && item ? (
@@ -13830,7 +13874,7 @@ function PollutionView() {
         </View>
       ) : null}
 
-      <Text style={s.section}>SAMPLE GALLERY — TAP FOR DEMO</Text>
+      <Text style={s.section}>{t("cam.sample_gallery")}</Text>
       <View
         style={{
           flexDirection: "row",
@@ -14037,6 +14081,7 @@ type FootprintAnalysis = {
 
 function FootprintView() {
   const { profile } = useApp();
+  const t = useT(profile.lang);
   const [item, setItem] = useState<FootprintAnalysis | null>(null);
   const [scanning, setScanning] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -14257,7 +14302,7 @@ function FootprintView() {
         </View>
       ) : null}
 
-      <Text style={s.section}>ITEM LIBRARY — TAP FOR DEMO</Text>
+      <Text style={s.section}>{t("cam.item_library")}</Text>
       <View
         style={{
           flexDirection: "row",
@@ -14793,7 +14838,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
           {/* PLANTS IDENTIFIED */}
           {result.plants.length > 0 && (
             <>
-              <Text style={s.section}>PLANTS IDENTIFIED</Text>
+              <Text style={s.section}>{t("cam.plants_identified")}</Text>
               <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
                 {result.plants.map((p, i) => (
                   <View
@@ -14866,7 +14911,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
           {/* RECOMMENDATIONS */}
           {result.recommendations.length > 0 && (
             <>
-              <Text style={s.section}>RECOMMENDED SWAPS</Text>
+              <Text style={s.section}>{t("cam.recommended_swaps")}</Text>
               <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
                 {result.recommendations.map((r, i) => (
                   <View
