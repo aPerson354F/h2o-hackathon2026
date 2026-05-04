@@ -7997,6 +7997,21 @@ function calcQuizGallons(a: QuizAnswers) {
   return { total, breakdown };
 }
 
+// Maps quiz breakdown category names to translation keys.
+const QUIZ_CAT_KEY: Record<string, { name: StringKey; tip: StringKey }> = {
+  Showers: { name: "quiz.cat.showers", tip: "quiz.tip.showers" },
+  Toilet: { name: "quiz.cat.toilet", tip: "quiz.tip.toilet" },
+  Faucet: { name: "quiz.cat.faucet", tip: "quiz.tip.faucet" },
+  Drinking: { name: "quiz.cat.drinking", tip: "quiz.tip.drinking" },
+  Laundry: { name: "quiz.cat.laundry", tip: "quiz.tip.laundry" },
+  Dishes: { name: "quiz.cat.dishes", tip: "quiz.tip.dishes" },
+  "Lawn & Garden": { name: "quiz.cat.lawn_garden", tip: "quiz.tip.lawn_garden" },
+  Baths: { name: "quiz.cat.baths", tip: "quiz.tip.baths" },
+  "Pool & Spa": { name: "quiz.cat.pool_spa", tip: "quiz.tip.pool_spa" },
+  "Car Wash": { name: "quiz.cat.car_wash", tip: "quiz.tip.car_wash" },
+  "Pet Care": { name: "quiz.cat.pet_care", tip: "quiz.tip.pet_care" },
+};
+
 function PreQuizModal({
   visible,
   onDone,
@@ -8006,6 +8021,8 @@ function PreQuizModal({
   onDone: (answers: QuizAnswers, totalAnnual: number) => void;
   onSkip: () => void;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>({});
   const [showResult, setShowResult] = useState(false);
@@ -8069,10 +8086,10 @@ function PreQuizModal({
     result.total > 0 ? Math.round((result.total / CA_AVG_YEAR) * 100) : 0;
   const verdict =
     pctOfAvg < 70
-      ? { color: C.success, label: "Below California average — great job!" }
+      ? { color: C.success, label: t("quiz.verdict_below") }
       : pctOfAvg < 110
-        ? { color: C.gold, label: "Roughly average — room to improve." }
-        : { color: C.danger, label: "Above average — big savings possible." };
+        ? { color: C.gold, label: t("quiz.verdict_avg") }
+        : { color: C.danger, label: t("quiz.verdict_above") };
 
   const finish = async () => {
     await AsyncStorage.setItem("quiz_done", "1");
@@ -8114,7 +8131,7 @@ function PreQuizModal({
                     letterSpacing: 1.5,
                   }}
                 >
-                  WATER QUIZ · {step + 1} / {totalSteps}
+                  {t("quiz.header", { step: step + 1, total: totalSteps })}
                 </Text>
                 <TouchableOpacity
                   onPress={onSkip}
@@ -8123,7 +8140,7 @@ function PreQuizModal({
                   <Text
                     style={{ color: C.muted, fontSize: 12, fontWeight: "700" }}
                   >
-                    SKIP
+                    {t("quiz.skip")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -8159,7 +8176,7 @@ function PreQuizModal({
                     textAlign: "center",
                   }}
                 >
-                  {current.question}
+                  {t(`quiz.${current.id}.q` as StringKey)}
                 </Text>
                 {current.sub ? (
                   <Text
@@ -8170,7 +8187,7 @@ function PreQuizModal({
                       marginTop: 6,
                     }}
                   >
-                    {current.sub}
+                    {t(`quiz.${current.id}.sub` as StringKey)}
                   </Text>
                 ) : null}
 
@@ -8223,7 +8240,7 @@ function PreQuizModal({
                             fontWeight: "700",
                           }}
                         >
-                          {opt.label}
+                          {t(`quiz.${current.id}.opt${i}` as StringKey)}
                         </Text>
                       </Press>
                     );
@@ -8240,7 +8257,7 @@ function PreQuizModal({
                       fontSize: 12,
                     }}
                   >
-                    ← Back
+                    {t("quiz.back")}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -8258,7 +8275,7 @@ function PreQuizModal({
                     marginTop: 8,
                   }}
                 >
-                  YOUR ESTIMATED FOOTPRINT
+                  {t("quiz.your_footprint")}
                 </Text>
                 <Text
                   style={{
@@ -8273,7 +8290,7 @@ function PreQuizModal({
                 <Text
                   style={{ color: C.textSoft, fontSize: 13, fontWeight: "600" }}
                 >
-                  gallons per year
+                  {t("quiz.gal_per_year")}
                 </Text>
 
                 <View
@@ -8295,7 +8312,7 @@ function PreQuizModal({
                       textAlign: "center",
                     }}
                   >
-                    {pctOfAvg}% of CA average — {verdict.label}
+                    {t("quiz.pct_of_ca", { pct: pctOfAvg, verdict: verdict.label })}
                   </Text>
                 </View>
               </View>
@@ -8310,10 +8327,13 @@ function PreQuizModal({
                   marginBottom: 8,
                 }}
               >
-                BREAKDOWN
+                {t("quiz.breakdown")}
               </Text>
               {result.breakdown.map((b) => {
                 const pct = result.total > 0 ? (b.gal / result.total) * 100 : 0;
+                const catName = QUIZ_CAT_KEY[b.cat]
+                  ? t(QUIZ_CAT_KEY[b.cat].name)
+                  : b.cat;
                 return (
                   <View key={b.cat} style={{ marginBottom: 10 }}>
                     <View
@@ -8330,7 +8350,7 @@ function PreQuizModal({
                           fontWeight: "700",
                         }}
                       >
-                        {b.emoji} {b.cat}
+                        {b.emoji} {catName}
                       </Text>
                       <Text
                         style={{
@@ -8339,8 +8359,10 @@ function PreQuizModal({
                           fontWeight: "800",
                         }}
                       >
-                        {Math.round(b.gal).toLocaleString()} gal/yr ·{" "}
-                        {Math.round(pct)}%
+                        {t("quiz.gal_yr", {
+                          gal: Math.round(b.gal).toLocaleString(),
+                          pct: Math.round(pct),
+                        })}
                       </Text>
                     </View>
                     <View
@@ -8374,50 +8396,55 @@ function PreQuizModal({
                   marginBottom: 8,
                 }}
               >
-                TOP TIPS FOR YOU
+                {t("quiz.top_tips")}
               </Text>
-              {result.breakdown.slice(0, 3).map((b, i) => (
-                <View
-                  key={i}
-                  style={[
-                    st.glassCard,
-                    {
-                      marginBottom: 8,
-                      padding: 12,
-                      borderColor: C.gold + "55",
-                    },
-                  ]}
-                >
+              {result.breakdown.slice(0, 3).map((b, i) => {
+                const catKeys = QUIZ_CAT_KEY[b.cat];
+                const catName = catKeys ? t(catKeys.name) : b.cat;
+                const tipText = catKeys ? t(catKeys.tip) : QUIZ_TIPS[b.cat];
+                return (
                   <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 4,
-                    }}
+                    key={i}
+                    style={[
+                      st.glassCard,
+                      {
+                        marginBottom: 8,
+                        padding: 12,
+                        borderColor: C.gold + "55",
+                      },
+                    ]}
                   >
-                    <Text style={{ fontSize: 18 }}>{b.emoji}</Text>
-                    <Text
+                    <View
                       style={{
-                        color: C.gold,
-                        fontSize: 12,
-                        fontWeight: "900",
-                        letterSpacing: 1,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 8,
+                        marginBottom: 4,
                       }}
                     >
-                      {b.cat.toUpperCase()} · biggest impact
+                      <Text style={{ fontSize: 18 }}>{b.emoji}</Text>
+                      <Text
+                        style={{
+                          color: C.gold,
+                          fontSize: 12,
+                          fontWeight: "900",
+                          letterSpacing: 1,
+                        }}
+                      >
+                        {t("quiz.biggest_impact", { cat: catName.toUpperCase() })}
+                      </Text>
+                    </View>
+                    <Text
+                      style={{ color: C.textSoft, fontSize: 13, lineHeight: 19 }}
+                    >
+                      {tipText}
                     </Text>
                   </View>
-                  <Text
-                    style={{ color: C.textSoft, fontSize: 13, lineHeight: 19 }}
-                  >
-                    {QUIZ_TIPS[b.cat]}
-                  </Text>
-                </View>
-              ))}
+                );
+              })}
 
               <Press onPress={finish} style={[st.btn, { marginTop: 16 }]}>
-                <Text style={st.btnText}>Continue to App →</Text>
+                <Text style={st.btnText}>{t("quiz.continue")}</Text>
               </Press>
               <TouchableOpacity
                 onPress={() => setShowResult(false)}
@@ -8426,7 +8453,7 @@ function PreQuizModal({
                 <Text
                   style={{ color: C.muted, textAlign: "center", fontSize: 12 }}
                 >
-                  ← Review answers
+                  {t("quiz.review_answers")}
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -8445,6 +8472,8 @@ function OnboardingModal({
   visible: boolean;
   onDone: (p: Partial<Profile>) => void;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [household, setHousehold] = useState(1);
@@ -8480,16 +8509,13 @@ function OnboardingModal({
               >
                 💧
               </Text>
-              <Text style={st.onboardTitle}>Welcome to H2O to You</Text>
-              <Text style={st.onboardSub}>
-                Your personal water guardian for California. Track usage, build
-                streaks, and help fight the drought — one drop at a time.
-              </Text>
+              <Text style={st.onboardTitle}>{t("onb.welcome_title")}</Text>
+              <Text style={st.onboardSub}>{t("onb.welcome_intro")}</Text>
               <Press
                 onPress={() => setStep(1)}
                 style={[st.btn, { marginTop: 20 }]}
               >
-                <Text style={st.btnText}>Get Started</Text>
+                <Text style={st.btnText}>{t("onb.get_started")}</Text>
               </Press>
             </>
           )}
@@ -8500,15 +8526,13 @@ function OnboardingModal({
               >
                 👋
               </Text>
-              <Text style={st.onboardTitle}>What's your name?</Text>
-              <Text style={st.onboardSub}>
-                So we can greet you properly. (You can skip this.)
-              </Text>
+              <Text style={st.onboardTitle}>{t("onb.name_q")}</Text>
+              <Text style={st.onboardSub}>{t("onb.name_sub")}</Text>
               <TextInput
                 style={[st.input, { marginTop: 16 }]}
                 value={name}
                 onChangeText={setName}
-                placeholder="Enter your first name"
+                placeholder={t("onb.name_placeholder")}
                 placeholderTextColor={C.muted}
                 maxLength={24}
                 autoFocus
@@ -8521,10 +8545,10 @@ function OnboardingModal({
                   }}
                   style={[st.btn, { flex: 1, backgroundColor: C.surface2 }]}
                 >
-                  <Text style={[st.btnText, { color: C.text }]}>Skip</Text>
+                  <Text style={[st.btnText, { color: C.text }]}>{t("btn.skip")}</Text>
                 </Press>
                 <Press onPress={() => setStep(2)} style={[st.btn, { flex: 1 }]}>
-                  <Text style={st.btnText}>Continue</Text>
+                  <Text style={st.btnText}>{t("btn.continue")}</Text>
                 </Press>
               </View>
             </>
@@ -8536,10 +8560,8 @@ function OnboardingModal({
               >
                 🏡
               </Text>
-              <Text style={st.onboardTitle}>How many in your household?</Text>
-              <Text style={st.onboardSub}>
-                This helps us suggest a smart goal.
-              </Text>
+              <Text style={st.onboardTitle}>{t("onb.household_q")}</Text>
+              <Text style={st.onboardSub}>{t("onb.household_sub")}</Text>
               <View
                 style={{
                   flexDirection: "row",
@@ -8568,7 +8590,7 @@ function OnboardingModal({
                 ))}
               </View>
               <Press onPress={() => setStep(3)} style={st.btn}>
-                <Text style={st.btnText}>Continue</Text>
+                <Text style={st.btnText}>{t("btn.continue")}</Text>
               </Press>
             </>
           )}
@@ -8579,10 +8601,8 @@ function OnboardingModal({
               >
                 🎯
               </Text>
-              <Text style={st.onboardTitle}>Set your daily goal</Text>
-              <Text style={st.onboardSub}>
-                CA average is 196 gal/day. The state mandate is 55 gal/person.
-              </Text>
+              <Text style={st.onboardTitle}>{t("onb.goal_q")}</Text>
+              <Text style={st.onboardSub}>{t("onb.goal_sub")}</Text>
               <View
                 style={{
                   flexDirection: "row",
@@ -8617,7 +8637,7 @@ function OnboardingModal({
                 style={[st.btn, submitting && { opacity: 0.6 }]}
               >
                 <Text style={st.btnText}>
-                  {submitting ? "Saving…" : "Start Saving Water"}
+                  {submitting ? t("onb.saving") : t("onb.start_saving")}
                 </Text>
               </Press>
             </>
