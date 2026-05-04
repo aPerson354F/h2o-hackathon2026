@@ -1013,6 +1013,55 @@ export const STRINGS = {
   "cam.tab.pollution": "Pollution",
   "cam.tab.footprint": "Footprint",
   "cam.tab.landscape": "Landscape",
+
+  // drought monitor category impact descriptions
+  "drought.cat.d0_label": "Abnormally Dry",
+  "drought.cat.d0_impact": "Going-into-drought conditions: short-term dryness slows planting and crop emergence; some lingering water deficits.",
+  "drought.cat.d1_label": "Moderate Drought",
+  "drought.cat.d1_impact": "Some damage to crops and pastures; streams, reservoirs, or wells low; voluntary water-use restrictions requested.",
+  "drought.cat.d2_label": "Severe Drought",
+  "drought.cat.d2_impact": "Crop or pasture losses likely; water shortages common; watering restrictions imposed; fire-season risk elevated.",
+  "drought.cat.d3_label": "Extreme Drought",
+  "drought.cat.d3_impact": "Major crop and pasture losses; widespread water shortages; mandatory cuts to urban and agricultural users.",
+  "drought.cat.d4_label": "Exceptional Drought",
+  "drought.cat.d4_impact": "Exceptional, widespread crop/pasture losses; rivers and wells run dry; emergency water hauling; rationing in effect.",
+
+  // water quality regions
+  "wqr.north_coast.notes": "Excellent. Protected redwood watersheds, low industrial pressure.",
+  "wqr.sf_bay.notes": "Good. Hetch Hetchy supply is pristine. Some legacy mercury and PFAS in groundwater.",
+  "wqr.sierra.notes": "Pristine snowmelt. The cleanest large water source in the state.",
+  "wqr.sj_county.notes": "Mixed. City water meets standards; rural wells have nitrate contamination from agriculture.",
+  "wqr.central_valley.notes": "Severe nitrate, arsenic, and pesticide contamination from decades of intensive farming.",
+  "wqr.central_coast.notes": "Generally clean. Some seawater intrusion in coastal aquifers near Salinas.",
+  "wqr.la_basin.notes": "Treated to high standards but >70% imported. Local groundwater hit by industrial legacy.",
+  "wqr.sd.notes": "85% imported. Carlsbad desal plant adds local supply. Some PFAS concerns.",
+  "wqr.mojave.notes": "Heavily reliant on Colorado River. Local groundwater has uranium and chromium-6.",
+
+  // drought regions
+  "dr.far_north.notes": "Klamath River flows below long-term medians. Yurok and Karuk tribes report a third straight subpar Chinook run. Trinity diversions are reducing local supply.",
+  "dr.shasta_reg.notes": "Shasta Lake at 58% — recovering from the 2022 lows after a 110% April-1 snowpack and the wet 2023 atmospheric-river year. The Dec {date} snowpack reading of {sn}% is a thin start to the new water year.",
+  "dr.sierra_n.notes": "Headwaters of the Feather and Yuba. Snowpack was decent in Jan, but a March warm-rain event drove an early melt — Oroville inflow surged 25,000 cfs in 48 hours, forcing flood-control releases that drained drought storage.",
+  "dr.sierra_c.notes": "Mokelumne, Stanislaus, Tuolumne, Merced headwaters. The single most consequential watershed for San Joaquin County — when this snowpack melts too fast, every downstream reservoir is forced to release water rather than store it.",
+  "dr.sjv_north.notes": "Stockton/Lodi/Manteca corridor. Surface deliveries cut for the third straight year; growers pumping aggressively from already-overdrafted aquifers. Land subsidence near Corcoran exceeded 1 ft in 2024.",
+  "dr.sjv_south.notes": "Tulare Lake basin — once dry farmland, briefly reflooded in 2023 by atmospheric rivers, now back to extreme deficit. ~1,200 domestic wells went dry in Tulare and Kings counties between 2022 and 2025.",
+  "dr.central_co.notes": "Salinas Valley aquifer continues to lose ground to seawater intrusion. Monterey desal plant approval accelerated to backstop the Carmel River cutback.",
+  "dr.la_inland.notes": "Imported water from the Colorado is constrained; local groundwater banks (Chino, Raymond, San Fernando) being drawn down. MWD declared a Stage 2 supply alert in late 2025.",
+  "dr.mojave_r.notes": "Almost entirely dependent on the Colorado River Aqueduct. Groundwater in Indian Wells Valley has dropped >100 ft since 1950. The most water-stressed populated region in California.",
+  "dr.sd_co.notes": "Buffered by the Carlsbad desalination plant (~10% of county supply) and aggressive recycled-water build-out. Pure Water San Diego targets 50% local supply by 2035.",
+
+  // aqueduct status (short labels shown in lists)
+  "aq.ca_aqueduct.status": "Reduced — running ~58% of design due to drought + Delta export limits",
+  "aq.colorado.status": "Critical — supply tied to Lake Mead, near \"dead pool\" elevation",
+  "aq.hetch_hetchy.status": "Stable — gravity-fed, low climate exposure",
+  "aq.la_aqueduct.status": "Diminishing — Owens Valley dust mitigation diverts ~30% of flow",
+  "aq.delta_mendota.status": "Heavy duty — runs near capacity most years",
+  "aq.friant_kern.status": "Compromised — middle reach has lost 60% of capacity to subsidence",
+  "aq.all_american.status": "Critical — sole supply for Imperial Valley agriculture",
+  "aq.coachella.status": "Stable — concrete-lined since 2006 to cut seepage",
+  "aq.south_bay.status": "Stable — Silicon Valley supply line",
+  "aq.north_bay.status": "Stable — newest SWP branch",
+  "aq.madera.status": "Stable — short, gravity-fed",
+  "aq.mokelumne_aq.status": "Stable — three parallel lines for redundancy",
 } as const;
 
 export type StringKey = keyof typeof STRINGS;

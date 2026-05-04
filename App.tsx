@@ -12532,7 +12532,7 @@ function MapScreen() {
                         flex: 1,
                       }}
                     >
-                      {a.status}
+                      {t(`aq.${a.id}.status` as StringKey)}
                     </Text>
                   </View>
                   {active && (
@@ -12821,7 +12821,7 @@ function MapScreen() {
                         lineHeight: 18,
                       }}
                     >
-                      {r.notes}
+                      {t(`wqr.${r.id}.notes` as StringKey)}
                     </Text>
                   )}
                 </View>
@@ -12856,6 +12856,8 @@ function MapScreen() {
               </Text>
               {(["D0", "D1", "D2", "D3", "D4"] as const).map((k) => {
                 const c = DROUGHT_CATEGORIES[k];
+                const labelKey = `drought.cat.${k.toLowerCase()}_label` as StringKey;
+                const impactKey = `drought.cat.${k.toLowerCase()}_impact` as StringKey;
                 return (
                   <View
                     key={k}
@@ -12894,12 +12896,12 @@ function MapScreen() {
                           fontWeight: "800",
                         }}
                       >
-                        {c.label}
+                        {t(labelKey)}
                       </Text>
                       <Text
                         style={{ color: C.muted, fontSize: 10, lineHeight: 14 }}
                       >
-                        {c.impact}
+                        {t(impactKey)}
                       </Text>
                     </View>
                   </View>
@@ -12969,7 +12971,7 @@ function MapScreen() {
                           fontWeight: "800",
                         }}
                       >
-                        {cat.label}
+                        {t(`drought.cat.${r.category.toLowerCase()}_label` as StringKey)}
                       </Text>
                     </View>
                     {active && (
@@ -12981,7 +12983,9 @@ function MapScreen() {
                           lineHeight: 18,
                         }}
                       >
-                        {r.notes}
+                        {r.id === "shasta_reg"
+                          ? t("dr.shasta_reg.notes", { date: LATEST.date, sn: LATEST.snowpack })
+                          : t(`dr.${r.id}.notes` as StringKey)}
                       </Text>
                     )}
                   </View>
