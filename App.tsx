@@ -15902,10 +15902,14 @@ const st = StyleSheet.create({
   },
   quickAction: {
     flex: 1,
+    flexBasis: 0,
+    minWidth: 0,
+    minHeight: 104,
     backgroundColor: C.card,
     borderRadius: 16,
     padding: 12,
     alignItems: "center",
+    justifyContent: "flex-start",
     borderWidth: 1,
     borderColor: C.border,
     ...SHADOW,
@@ -15923,8 +15927,17 @@ const st = StyleSheet.create({
     fontSize: 9,
     fontWeight: "700",
     letterSpacing: 1,
+    textAlign: "center",
+    width: "100%",
   },
-  quickValue: { color: C.text, fontSize: 12, fontWeight: "700", marginTop: 2 },
+  quickValue: {
+    color: C.text,
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 2,
+    textAlign: "center",
+    width: "100%",
+  },
 
   // Stats
   statRow: {
