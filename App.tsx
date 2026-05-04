@@ -11436,27 +11436,27 @@ function MapScreen() {
           contentContainerStyle={st.tabBarScrollContent}
         >
           {[
-            { id: "outlook", label: "Outlook", icon: "telescope" },
+            { id: "outlook", label: t("map.outlook"), icon: "telescope" },
             { id: "aqueducts", label: t("map.aqueducts"), icon: "git-branch" },
             { id: "reservoirs", label: t("map.reservoirs"), icon: "water" },
             { id: "quality", label: t("map.quality"), icon: "shield-checkmark" },
-            { id: "drought", label: "Drought", icon: "flame" },
-          ].map((t) => (
+            { id: "drought", label: t("map.drought"), icon: "flame" },
+          ].map((tabItem) => (
             <Press
-              key={t.id}
+              key={tabItem.id}
               onPress={() => {
-                setMode(t.id as any);
+                setMode(tabItem.id as any);
                 setSelected(null);
               }}
-              style={[st.tabBtn, mode === t.id && st.tabBtnActive]}
+              style={[st.tabBtn, mode === tabItem.id && st.tabBtnActive]}
             >
               <Ionicons
-                name={t.icon as any}
+                name={tabItem.icon as any}
                 size={14}
-                color={mode === t.id ? C.bg : C.muted}
+                color={mode === tabItem.id ? C.bg : C.muted}
               />
-              <Text style={[st.tabBtnText, mode === t.id && { color: C.bg }]}>
-                {t.label}
+              <Text style={[st.tabBtnText, mode === tabItem.id && { color: C.bg }]}>
+                {tabItem.label}
               </Text>
             </Press>
           ))}
@@ -11831,10 +11831,10 @@ function MapScreen() {
 
           <Text style={{ color: C.muted, fontSize: 9, marginTop: 4 }}>
             {mode === "reservoirs"
-              ? "Marker size = capacity · fill = current %"
+              ? t("map.legend_marker")
               : mode === "drought"
-                ? "Color = USDM severity · D0 (mild) → D4 (exceptional)"
-                : "Tap a feature below to highlight"}
+                ? t("map.legend_color")
+                : t("map.legend_tap")}
           </Text>
         </View>
 
@@ -11845,9 +11845,9 @@ function MapScreen() {
             const sn = classifySnowpack(LATEST.snowpack);
             const p = classifyPrecip(LATEST.precip);
             const tiles = [
-              { icon: "🏞️", label: "Reservoir", value: LATEST.reservoir, c: r },
-              { icon: "❄️", label: "Snowpack", value: LATEST.snowpack, c: sn },
-              { icon: "🌧️", label: "Precip", value: LATEST.precip, c: p },
+              { icon: "🏞️", label: t("map.tile_reservoir"), value: LATEST.reservoir, c: r },
+              { icon: "❄️", label: t("map.tile_snowpack"), value: LATEST.snowpack, c: sn },
+              { icon: "🌧️", label: t("map.tile_precip"), value: LATEST.precip, c: p },
             ];
             return (
               <View
@@ -11872,10 +11872,10 @@ function MapScreen() {
                       letterSpacing: 1,
                     }}
                   >
-                    📊 STATEWIDE · {LATEST.date}
+                    {t("map.statewide_date", { date: LATEST.date })}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 10 }}>
-                    10-yr dataset
+                    {t("map.dataset_10y")}
                   </Text>
                 </View>
                 <View style={{ flexDirection: "row", gap: 8 }}>
@@ -11939,8 +11939,7 @@ function MapScreen() {
                     fontStyle: "italic",
                   }}
                 >
-                  Snowpack benchmarked to April-1 statewide peak. Precip and
-                  reservoir % are vs. long-term average.
+                  {t("map.benchmark_short")}
                 </Text>
               </View>
             );
@@ -11971,12 +11970,10 @@ function MapScreen() {
                     marginBottom: 4,
                   }}
                 >
-                  📈 RESERVOIR % — LAST 24 MONTHS
+                  {t("map.reservoir_24mo")}
                 </Text>
                 <Text style={{ color: C.muted, fontSize: 11, marginBottom: 8 }}>
-                  Statewide composite. Watch the {`>`}25-pt swings between dry
-                  winters and atmospheric-river years — that volatility is what
-                  stresses dam operators.
+                  {t("map.reservoir_24mo_blurb")}
                 </Text>
                 <LineChart
                   data={{
@@ -12044,7 +12041,7 @@ function MapScreen() {
                 letterSpacing: 1,
               }}
             >
-              SAN JOAQUIN COUNTY ALERT
+              {t("map.sj_alert")}
             </Text>
           </View>
           <Text
@@ -12157,7 +12154,7 @@ function MapScreen() {
                         marginBottom: 4,
                       }}
                     >
-                      🔭 SUPPLY OUTLOOK · {LATEST.date}
+                      {t("forecast.supply_outlook", { date: LATEST.date })}
                     </Text>
                     <Text
                       style={{
@@ -12201,7 +12198,7 @@ function MapScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      🧭 NEAREST HISTORICAL ANALOG
+                      {t("forecast.nearest_analog")}
                     </Text>
                     <View
                       style={{
@@ -12221,7 +12218,7 @@ function MapScreen() {
                         {a.analogDate || "—"}
                       </Text>
                       <Text style={{ color: C.muted, fontSize: 11 }}>
-                        closest match across snowpack · precip · reservoir
+                        {t("forecast.closest_match")}
                       </Text>
                     </View>
                     {a.reservoirDelta6mo != null && (
@@ -12233,16 +12230,7 @@ function MapScreen() {
                           marginBottom: 8,
                         }}
                       >
-                        In that year, reservoir storage moved{" "}
-                        <Text style={{ color: arrowColor, fontWeight: "800" }}>
-                          {arrow}
-                          {Math.abs(a.reservoirDelta6mo)} pts
-                        </Text>{" "}
-                        over the next 6 months — landing at{" "}
-                        <Text style={{ color: arrowColor, fontWeight: "800" }}>
-                          {a.nextReservoirAt6mo}%
-                        </Text>
-                        . If history repeats, that is the base case.
+                        {t("forecast.analog_history", { arrow, delta: Math.abs(a.reservoirDelta6mo), final: a.nextReservoirAt6mo ?? "—" })}
                       </Text>
                     )}
                     {projData.length >= 2 && (
@@ -12303,18 +12291,17 @@ function MapScreen() {
                         marginBottom: 4,
                       }}
                     >
-                      📊 10-YEAR RECORD · 2016 → 2025
+                      {t("forecast.10y_record")}
                     </Text>
                     <Text
                       style={{ color: C.muted, fontSize: 11, marginBottom: 8 }}
                     >
-                      Reservoir vs. snowpack vs. precipitation. Watch how
-                      snowpack leads reservoir on a 6-month lag.
+                      {t("forecast.10y_blurb")}
                     </Text>
                     <LineChart
                       data={{
                         labels: overlayLabels,
-                        legend: ["Reservoir", "Snowpack", "Precip"],
+                        legend: [t("forecast.legend.reservoir"), t("forecast.legend.snowpack"), t("forecast.legend.precip")],
                         datasets: [
                           {
                             data: last10y.map((x) => x.reservoir),
@@ -12374,7 +12361,7 @@ function MapScreen() {
                         marginBottom: 8,
                       }}
                     >
-                      ✅ WHAT TO DO · {p.label.toUpperCase()}
+                      {t("forecast.what_to_do", { label: p.label.toUpperCase() })}
                     </Text>
                     {actions.map((line, i) => (
                       <View
@@ -12416,9 +12403,7 @@ function MapScreen() {
                         fontStyle: "italic",
                       }}
                     >
-                      Recommendations derived from the {LATEST.date} observation
-                      and the {a.analogDate || "—"} analog year. Not a forecast
-                      in the meteorological sense — a planning baseline.
+                      {t("forecast.recommendations_note", { date: LATEST.date, analog: a.analogDate || "—" })}
                     </Text>
                   </View>
                 </FadeInUp>
@@ -12428,14 +12413,14 @@ function MapScreen() {
 
         <Text style={s.section}>
           {mode === "outlook"
-            ? "FORECAST METHODOLOGY"
+            ? t("forecast.section.methodology")
             : mode === "aqueducts"
-              ? "AQUEDUCTS · ARTERIES OF THE STATE"
+              ? t("forecast.section.aqueducts")
               : mode === "reservoirs"
-                ? "RESERVOIRS · CURRENT STORAGE"
+                ? t("forecast.section.reservoirs")
                 : mode === "quality"
-                  ? "WATER QUALITY REGIONS"
-                  : "DROUGHT SEVERITY · 2025–26 OUTLOOK"}
+                  ? t("forecast.section.quality")
+                  : t("forecast.section.drought")}
         </Text>
 
         {mode === "outlook" && (
@@ -12453,16 +12438,9 @@ function MapScreen() {
               }}
             >
               <Text style={{ color: C.white, fontWeight: "800" }}>
-                Analog forecasting.
+                {t("forecast.method_lead")}
               </Text>{" "}
-              We compare the latest observation against every same-month
-              observation in the prior 9 years (snowpack, precipitation, and
-              reservoir % treated as a 3-D vector). The closest historical match
-              by Euclidean distance is the analog. We then read what actually
-              happened in the 6 months after that analog — that becomes the
-              base-case projection. This method is favored by water agencies
-              when the underlying physics is too noisy for traditional models —
-              it is honest about its source (the past) and easy to audit.
+              {t("forecast.method_body")}
             </Text>
             <Text
               style={{
@@ -12472,11 +12450,7 @@ function MapScreen() {
                 lineHeight: 16,
               }}
             >
-              Long-run averages (10y, statewide): reservoir {AVG_RES.toFixed(0)}
-              % · snowpack {AVG_SNOW.toFixed(0)}%. The persona toggle reframes
-              the same data for who is reading it — an operator cares about
-              carryover, a grower cares about snowpack, a citizen cares about
-              household action.
+              {t("forecast.method_avgs", { res: AVG_RES.toFixed(0), sn: AVG_SNOW.toFixed(0) })}
             </Text>
           </View>
         )}
@@ -12878,7 +12852,7 @@ function MapScreen() {
                   marginBottom: 8,
                 }}
               >
-                🔥 U.S. DROUGHT MONITOR SCALE
+                {t("drought.usdm_scale")}
               </Text>
               {(["D0", "D1", "D2", "D3", "D4"] as const).map((k) => {
                 const c = DROUGHT_CATEGORIES[k];
@@ -13053,7 +13027,7 @@ function MapScreen() {
                   letterSpacing: 1,
                 }}
               >
-                SJ COUNTY · DAM-FAILURE RISK BRIEFING
+                {t("drought.sj_briefing")}
               </Text>
             </View>
 
@@ -13065,12 +13039,7 @@ function MapScreen() {
                 marginBottom: 12,
               }}
             >
-              The dams that protect Stockton, Lodi, Manteca, and the surrounding
-              farmland were built between 1929 and 1979 — when winter
-              precipitation arrived as snow and melted slowly from May through
-              July. The climate they were designed for no longer exists. Today,
-              more storms arrive as warm rain on existing snow, releasing the
-              entire winter{"'"}s water in days instead of months.
+              {t("drought.sj_intro")}
             </Text>
 
             <Text
@@ -13082,7 +13051,7 @@ function MapScreen() {
                 marginBottom: 6,
               }}
             >
-              WHY THIS BREAKS THE SYSTEM
+              {t("drought.why_breaks")}
             </Text>
             <Text
               style={{
@@ -13092,13 +13061,7 @@ function MapScreen() {
                 marginBottom: 12,
               }}
             >
-              Reservoirs are required to keep empty space in winter for
-              flood-control safety. When a "rain-on-snow" event hits — like the
-              Pineapple Express atmospheric rivers of 2017 and 2023 — operators
-              must release water faster than it can be used downstream. Years of
-              drought storage are flushed into the Delta and out to the ocean in
-              a single week. Then the rain stops, and the basin goes right back
-              into deficit.
+              {t("drought.why_body")}
             </Text>
 
             <Text
@@ -13110,7 +13073,7 @@ function MapScreen() {
                 marginBottom: 6,
               }}
             >
-              LOCAL DAMS UNDER STRESS
+              {t("drought.local_dams")}
             </Text>
             {SJ_RESERVOIR_RISKS.map((d, i) => (
               <View
@@ -13135,7 +13098,7 @@ function MapScreen() {
                     marginBottom: 3,
                   }}
                 >
-                  {d.river} · operated by {d.op}
+                  {t("drought.dam_op_by", { river: d.river, op: d.op })}
                 </Text>
                 <Text
                   style={{
@@ -13174,14 +13137,10 @@ function MapScreen() {
                   marginBottom: 4,
                 }}
               >
-                WHAT YOU CAN DO
+                {t("drought.what_you_can_do")}
               </Text>
               <Text style={{ color: C.textSoft, fontSize: 11, lineHeight: 16 }}>
-                Conservation is what gives operators flexibility. Every gallon a
-                household saves in summer is a gallon they don{"'"}t have to
-                release prematurely from storage in winter. Watch San Joaquin
-                County{"'"}s {'"Stage 2"'} notices, fix leaks (a running toilet
-                wastes 200 gal/day), and track rapid storage swings on this map.
+                {t("drought.what_you_body")}
               </Text>
             </View>
           </View>
@@ -13197,16 +13156,26 @@ function MapScreen() {
               marginBottom: 6,
             }}
           >
-            ℹ️ ABOUT THIS LAYER
+            {t("map.about_layer")}
           </Text>
           <Text style={{ color: C.textSoft, fontSize: 13, lineHeight: 20 }}>
             {mode === "aqueducts"
-              ? "California's four major aqueducts move ~7 million acre-feet of water per year — over hundreds of miles of canals, tunnels, siphons, and lifts. Built mostly between 1913 and 1973, they are running below design capacity nearly every year now due to drought, environmental flow requirements, and Colorado River cuts. The animated dots show flow direction; tap any line for full operator and status detail."
+              ? t("map.about_aqueducts")
               : mode === "reservoirs"
-                ? 'Reservoir levels are 2025 CDEC snapshots. Marker size scales with capacity; the inner fill shows current %. Color flags status: green ≥70%, gold 50–69%, red <50%. The "SJ" tag marks reservoirs that directly serve San Joaquin County or sit on its watershed. Acre-foot = volume that covers 1 acre to 1 ft depth ≈ 326,000 gallons ≈ a year of indoor water for ~3 households.'
+                ? t("map.about_reservoirs")
                 : mode === "quality"
-                  ? "Quality scores synthesize EPA SDWIS records, local utility consumer confidence reports, and infrastructure-age data: contaminant levels (nitrate, arsenic, PFAS, lead), treatment quality, and pipe integrity. A high grade does not exclude private-well risk in rural areas. Always test private wells annually."
-                  : `Drought severity follows the U.S. Drought Monitor (USDM) scale, updated weekly by NOAA, USDA, and the National Drought Mitigation Center. Statewide snapshot for ${LATEST.date}: reservoirs at ${LATEST.reservoir}% (${classifyReservoir(LATEST.reservoir).label}), snowpack at ${LATEST.snowpack}% of the April-1 norm (${classifySnowpack(LATEST.snowpack).label}), precipitation at ${LATEST.precip}% of average (${classifyPrecip(LATEST.precip).label}). The April 1, 2025 peak snowpack came in at ${LAST_APR1.snowpack}% — a ${classifySnowpack(LAST_APR1.snowpack).label.toLowerCase()} year — but Exceptional (D4) pockets persist in the Mojave and southern San Joaquin Valley because regional groundwater overdraft does not refill from a single wet season.`}
+                  ? t("map.about_quality")
+                  : t("map.about_drought", {
+                      date: LATEST.date,
+                      res: LATEST.reservoir,
+                      rl: t(classifyReservoir(LATEST.reservoir).labelKey),
+                      sn: LATEST.snowpack,
+                      snl: t(classifySnowpack(LATEST.snowpack).labelKey),
+                      pr: LATEST.precip,
+                      pl: t(classifyPrecip(LATEST.precip).labelKey),
+                      apr1: LAST_APR1.snowpack,
+                      apr1l: t(classifySnowpack(LAST_APR1.snowpack).labelKey).toLowerCase(),
+                    })}
           </Text>
         </View>
       </ScrollView>
@@ -13238,23 +13207,23 @@ function CameraScreen() {
           contentContainerStyle={st.tabBarScrollContent}
         >
           {[
-            { id: "strip", label: "Test Strip", icon: "flask" },
-            { id: "pollution", label: "Pollution", icon: "trash" },
-            { id: "footprint", label: "Footprint", icon: "cube" },
-            { id: "landscape", label: "Landscape", icon: "leaf" },
-          ].map((t) => (
+            { id: "strip", label: t("cam.tab.strip"), icon: "flask" },
+            { id: "pollution", label: t("cam.tab.pollution"), icon: "trash" },
+            { id: "footprint", label: t("cam.tab.footprint"), icon: "cube" },
+            { id: "landscape", label: t("cam.tab.landscape"), icon: "leaf" },
+          ].map((tabItem) => (
             <Press
-              key={t.id}
-              onPress={() => setMode(t.id as any)}
-              style={[st.tabBtn, mode === t.id && st.tabBtnActive]}
+              key={tabItem.id}
+              onPress={() => setMode(tabItem.id as any)}
+              style={[st.tabBtn, mode === tabItem.id && st.tabBtnActive]}
             >
               <Ionicons
-                name={t.icon as any}
+                name={tabItem.icon as any}
                 size={14}
-                color={mode === t.id ? C.bg : C.muted}
+                color={mode === tabItem.id ? C.bg : C.muted}
               />
-              <Text style={[st.tabBtnText, mode === t.id && { color: C.bg }]}>
-                {t.label}
+              <Text style={[st.tabBtnText, mode === tabItem.id && { color: C.bg }]}>
+                {tabItem.label}
               </Text>
             </Press>
           ))}
@@ -14114,7 +14083,7 @@ function FootprintView() {
     if (parsed && parsed.name && parsed.gallons >= 0) {
       showResult(parsed);
     } else {
-      setError("Could not analyze image. Try a clearer, closer photo.");
+      setError(t("cam.no_analyze_closer"));
     }
     setScanning(false);
   };
@@ -14183,10 +14152,10 @@ function FootprintView() {
           scanning={scanning}
           hint={
             scanning
-              ? "CALCULATING FOOTPRINT…"
+              ? t("cam.calculating_footprint")
               : item
-                ? "AR OVERLAY ACTIVE"
-                : 'TAP "TAKE PHOTO" BELOW'
+                ? t("cam.ar_overlay_active")
+                : t("cam.tap_take_photo")
           }
         >
           {!imageUri && item ? (
@@ -14581,7 +14550,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
         showResult(parsed);
       } else {
         setError(
-          "Could not analyze the photo. Try a clearer, wider shot of the yard.",
+          t("cam.no_analyze_yard"),
         );
       }
     } catch {
