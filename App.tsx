@@ -13804,12 +13804,12 @@ function PollutionView() {
     setScanning(true);
     setTimeout(() => {
       setItem({
-        name: p.name,
+        name: t(`pol.${p.id}.name` as StringKey),
         emoji: p.emoji,
         biodegradable: p.biodegradable,
-        decay: p.decay,
-        impact: p.impact,
-        source: p.source,
+        decay: t(`pol.${p.id}.decay` as StringKey),
+        impact: t(`pol.${p.id}.impact` as StringKey),
+        source: t(`pol.${p.id}.source` as StringKey),
         confidence: 100,
       });
       setScanning(false);
@@ -13896,13 +13896,15 @@ function PollutionView() {
           gap: 8,
         }}
       >
-        {POLLUTION_TYPES.map((p) => (
+        {POLLUTION_TYPES.map((p) => {
+          const pName = t(`pol.${p.id}.name` as StringKey);
+          return (
           <Press
             key={p.id}
             onPress={() => tap(p)}
             style={[
               st.gallery,
-              item?.name === p.name && {
+              item?.name === pName && {
                 borderColor: C.accent,
                 backgroundColor: C.accent + "12",
               },
@@ -13918,10 +13920,11 @@ function PollutionView() {
                 fontWeight: "600",
               }}
             >
-              {p.name}
+              {pName}
             </Text>
           </Press>
-        ))}
+          );
+        })}
       </View>
 
       {item && !scanning && (
@@ -13965,7 +13968,7 @@ function PollutionView() {
                       fontWeight: "800",
                     }}
                   >
-                    {item.biodegradable ? "BIODEGRADABLE" : "SYNTHETIC"}
+                    {item.biodegradable ? t("pol.biodegradable") : t("pol.synthetic")}
                   </Text>
                 </View>
                 <View
@@ -13977,7 +13980,7 @@ function PollutionView() {
                   <Text
                     style={{ color: C.amber, fontSize: 10, fontWeight: "800" }}
                   >
-                    DECAYS IN {item.decay.toUpperCase()}
+                    {t("pol.decays_in", { decay: item.decay.toUpperCase() })}
                   </Text>
                 </View>
                 {item.confidence ? (
@@ -13997,7 +14000,7 @@ function PollutionView() {
                         fontWeight: "800",
                       }}
                     >
-                      {item.confidence}% CONFIDENCE
+                      {t("pol.confidence_pct", { pct: item.confidence })}
                     </Text>
                   </View>
                 ) : null}
@@ -14014,7 +14017,7 @@ function PollutionView() {
               marginTop: 4,
             }}
           >
-            ENVIRONMENTAL IMPACT
+            {t("pol.env_impact")}
           </Text>
           <Text
             style={{
@@ -14036,7 +14039,7 @@ function PollutionView() {
               letterSpacing: 1,
             }}
           >
-            LIKELY SOURCE
+            {t("pol.likely_source")}
           </Text>
           <Text
             style={{
@@ -14139,10 +14142,10 @@ function FootprintView() {
     setScanning(true);
     setTimeout(() => {
       showResult({
-        name: it.name,
+        name: t(`foot.${it.id}.name` as StringKey),
         emoji: it.emoji,
         gallons: it.gallons,
-        breakdown: it.breakdown,
+        breakdown: t(`foot.${it.id}.body` as StringKey),
         confidence: 100,
       });
       setScanning(false);
@@ -14323,13 +14326,15 @@ function FootprintView() {
           gap: 8,
         }}
       >
-        {FOOTPRINT_ITEMS.map((it) => (
+        {FOOTPRINT_ITEMS.map((it) => {
+          const itName = t(`foot.${it.id}.name` as StringKey);
+          return (
           <Press
             key={it.id}
             onPress={() => tap(it)}
             style={[
               st.gallery,
-              item?.name === it.name && {
+              item?.name === itName && {
                 borderColor: C.purple,
                 backgroundColor: C.purple + "12",
               },
@@ -14345,7 +14350,7 @@ function FootprintView() {
                 fontWeight: "600",
               }}
             >
-              {it.name}
+              {itName}
             </Text>
             <Text
               style={{
@@ -14358,7 +14363,8 @@ function FootprintView() {
               {fmtVol(it.gallons, profile.units, it.gallons < 5 ? 1 : 0)}
             </Text>
           </Press>
-        ))}
+          );
+        })}
       </View>
 
       {item && !scanning && item.gallons > 0 && (
