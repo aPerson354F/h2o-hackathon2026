@@ -402,6 +402,15 @@
     "onb.goal_sub": "CA average is 196 gal/day. The state mandate is 55 gal/person.",
     "onb.saving": "Saving…",
     "onb.start_saving": "Start Saving Water",
+    "stat.activity_header": "🔥 ACTIVITY · LAST 12 WEEKS",
+    "stat.active_days": "{active}/{total} active",
+    "stat.saved_gal_vs_ca": "Saved {gal} gal vs CA avg",
+    "stat.less": "less",
+    "stat.more": "more",
+    "modal.water_cycle": "Water Cycle",
+    "sim.subtitle": "How water reaches your tap",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️ San Joaquin Co.",
     "quiz.cat.showers": "Showers",
     "quiz.cat.toilet": "Toilet",
     "quiz.cat.faucet": "Faucet",
@@ -985,7 +994,16 @@
     "quiz.tip.baths": "5 分钟低流量淋浴大约使用 9 加仑，而整个浴缸则需要 36 加仑 — 每次更换可立即节省 27 加仑。",
     "quiz.tip.pool_spa": "一个简单的泳池盖就能将蒸发量减少一半——在加利福尼亚州的旱季，每年可节省 5,000 多加仑。经常检查是否有泄漏；即使是很小的一个也会浪费数千个。",
     "quiz.tip.car_wash": "商业洗车场回收 70% 以上的水——一次家庭软管洗车场使用的水超过 5 次商业洗车场。",
-    "quiz.tip.pet_care": "在户外一块干渴的草地上给宠物洗澡——径流可以兼作灌溉。自动关闭软管喷嘴可另外节省 20% 的成本。"
+    "quiz.tip.pet_care": "在户外一块干渴的草地上给宠物洗澡——径流可以兼作灌溉。自动关闭软管喷嘴可另外节省 20% 的成本。",
+    "stat.activity_header": "🔥 活动 · 过去 12 周",
+    "stat.active_days": "{active}/{total} 活跃",
+    "stat.saved_gal_vs_ca": "已保存 {gal} 加仑 vs CA 平均值",
+    "stat.less": "较少的",
+    "stat.more": "更多的",
+    "modal.water_cycle": "水循环",
+    "sim.subtitle": "水如何到达水龙头",
+    "sim.scope_state": "🌎 加利福尼亚州",
+    "sim.scope_local": "🏘️ 圣华金公司"
   },
   "hi": {
     "tab.home": "होम",
@@ -1479,7 +1497,16 @@
     "quiz.tip.baths": "5-मिनट का कम प्रवाह वाला शॉवर एक पूर्ण टब के लिए ~9 गैलन बनाम 36 गैलन का उपयोग करता है - प्रति स्वैप पर तत्काल 27-गैलन की बचत।",
     "quiz.tip.pool_spa": "एक साधारण पूल कवर वाष्पीकरण को आधा कर देता है - कैलिफोर्निया के शुष्क मौसम में 5,000+ गैलन/वर्ष की बचत होती है। हमेशा लीक की जाँच करें; एक छोटा सा भी हजारों बर्बाद कर देता है।",
     "quiz.tip.car_wash": "वाणिज्यिक कार वॉश अपने पानी का 70% से अधिक पुनर्चक्रण करते हैं - एक घरेलू होज़ वॉश 5 से अधिक व्यावसायिक यात्राओं का उपयोग करता है।",
-    "quiz.tip.pet_care": "पालतू जानवरों को बाहर घास के प्यासे टुकड़े पर नहलाएं - अपवाह सिंचाई के रूप में दोगुना हो जाता है। एक सेल्फ-शटऑफ होज़ नोजल अन्य 20% बचाता है।"
+    "quiz.tip.pet_care": "पालतू जानवरों को बाहर घास के प्यासे टुकड़े पर नहलाएं - अपवाह सिंचाई के रूप में दोगुना हो जाता है। एक सेल्फ-शटऑफ होज़ नोजल अन्य 20% बचाता है।",
+    "stat.activity_header": "🔥 गतिविधि · पिछले 12 सप्ताह",
+    "stat.active_days": "{active}/{total} सक्रिय",
+    "stat.saved_gal_vs_ca": "सहेजा गया {gal} गैलन बनाम CA औसत",
+    "stat.less": "कम",
+    "stat.more": "अधिक",
+    "modal.water_cycle": "जल चक्र",
+    "sim.subtitle": "आपके नल तक पानी कैसे पहुंचता है",
+    "sim.scope_state": "🌎 कैलिफोर्निया",
+    "sim.scope_local": "🏘️ सैन जोकिन कंपनी."
   },
   "es": {
     "tab.home": "Inicio",
@@ -1973,7 +2000,16 @@
     "quiz.tip.baths": "Una ducha de bajo flujo de 5 minutos utiliza ~9 gal frente a 36 gal para una bañera llena: ahorro instantáneo de 27 gal por cambio.",
     "quiz.tip.pool_spa": "Una simple cubierta para piscina reduce la evaporación a la mitad: se ahorran más de 5000 galones por año en la estación seca de California. Siempre revise si hay fugas; incluso uno pequeño desperdicia miles.",
     "quiz.tip.car_wash": "Los lavados de autos comerciales reciclan más del 70% de su agua: un solo lavado con manguera en casa utiliza más de 5 visitas comerciales.",
-    "quiz.tip.pet_care": "Bañe a las mascotas al aire libre, en un trozo de césped sediento; el escurrimiento también sirve como riego. Una boquilla de manguera con cierre automático ahorra otro 20 %."
+    "quiz.tip.pet_care": "Bañe a las mascotas al aire libre, en un trozo de césped sediento; el escurrimiento también sirve como riego. Una boquilla de manguera con cierre automático ahorra otro 20 %.",
+    "stat.activity_header": "🔥 ACTIVIDAD · ÚLTIMAS 12 SEMANAS",
+    "stat.active_days": "{active}/{total} activo",
+    "stat.saved_gal_vs_ca": "Guardado {gal} gal frente al promedio de CA",
+    "stat.less": "menos",
+    "stat.more": "más",
+    "modal.water_cycle": "Ciclo del agua",
+    "sim.subtitle": "Cómo llega el agua a tu grifo",
+    "sim.scope_state": "🌎California",
+    "sim.scope_local": "🏘️San Joaquín Co."
   },
   "fr": {
     "tab.home": "Accueil",
@@ -2467,7 +2503,16 @@
     "quiz.tip.baths": "Une douche à faible débit de 5 minutes utilise environ 9 gallons contre 36 gallons pour une baignoire pleine – une économie instantanée de 27 gallons par échange.",
     "quiz.tip.pool_spa": "Une simple couverture de piscine réduit l'évaporation de moitié : plus de 5 000 gallons/an économisés pendant la saison sèche en Californie. Vérifiez toujours les fuites ; même un petit en gaspille des milliers.",
     "quiz.tip.car_wash": "Les lave-autos commerciaux recyclent plus de 70 % de leur eau – un seul lavage au tuyau domestique nécessite plus de 5 visites commerciales.",
-    "quiz.tip.pet_care": "Baignez vos animaux de compagnie à l’extérieur sur une parcelle d’herbe assoiffée – le ruissellement sert également d’irrigation. Un embout de tuyau à arrêt automatique permet d'économiser 20 % supplémentaires."
+    "quiz.tip.pet_care": "Baignez vos animaux de compagnie à l’extérieur sur une parcelle d’herbe assoiffée – le ruissellement sert également d’irrigation. Un embout de tuyau à arrêt automatique permet d'économiser 20 % supplémentaires.",
+    "stat.activity_header": "🔥 ACTIVITÉ · 12 DERNIÈRES SEMAINES",
+    "stat.active_days": "{active}/{total} actif",
+    "stat.saved_gal_vs_ca": "{gal} gal économisé par rapport à la moyenne CA",
+    "stat.less": "moins",
+    "stat.more": "plus",
+    "modal.water_cycle": "Cycle de l'eau",
+    "sim.subtitle": "Comment l'eau arrive à votre robinet",
+    "sim.scope_state": "🌎 Californie",
+    "sim.scope_local": "🏘️ Cie San Joaquín."
   },
   "ar": {
     "tab.home": "الصفحة الرئيسية",
@@ -2961,7 +3006,16 @@
     "quiz.tip.baths": "يستخدم الدش منخفض التدفق لمدة 5 دقائق حوالي 9 جالونًا مقابل 36 جالونًا لحوض كامل - مما يوفر فورًا 27 جالونًا لكل تبديل.",
     "quiz.tip.pool_spa": "غطاء بسيط لحمام السباحة يقلل التبخر إلى النصف - يتم توفير أكثر من 5000 جالون سنويًا في موسم الجفاف في كاليفورنيا. تحقق دائمًا من وجود تسربات؛ حتى واحدة صغيرة تهدر الآلاف.",
     "quiz.tip.car_wash": "تقوم مغاسل السيارات التجارية بإعادة تدوير ما يزيد عن 70% من مياهها — حيث يستخدم خرطوم غسيل منزلي واحد أكثر من 5 زيارات تجارية.",
-    "quiz.tip.pet_care": "قم باستحمام الحيوانات الأليفة في الهواء الطلق على قطعة من العشب العطشى - حيث يتضاعف الجريان السطحي كالري. توفر فوهة خرطوم الإغلاق الذاتي 20% أخرى."
+    "quiz.tip.pet_care": "قم باستحمام الحيوانات الأليفة في الهواء الطلق على قطعة من العشب العطشى - حيث يتضاعف الجريان السطحي كالري. توفر فوهة خرطوم الإغلاق الذاتي 20% أخرى.",
+    "stat.activity_header": "🔥 النشاط · آخر 12 أسبوعًا",
+    "stat.active_days": "{active}/{total} نشط",
+    "stat.saved_gal_vs_ca": "تم الحفظ {gal} جالون مقابل متوسط ​​CA",
+    "stat.less": "أقل",
+    "stat.more": "أكثر",
+    "modal.water_cycle": "دورة المياه",
+    "sim.subtitle": "كيف يصل الماء إلى الصنبور الخاص بك",
+    "sim.scope_state": "🌎كاليفورنيا",
+    "sim.scope_local": "🏘️ شركة سان جواكين."
   },
   "bn": {
     "tab.home": "হোম",
@@ -3455,7 +3509,16 @@
     "quiz.tip.baths": "একটি 5-মিনিটের কম-প্রবাহের ঝরনা একটি সম্পূর্ণ টবের জন্য ~9 গ্যাল বনাম 36 গ্যাল ব্যবহার করে — প্রতি সোয়াপ প্রতি তাত্ক্ষণিক 27-গাল সঞ্চয়।",
     "quiz.tip.pool_spa": "একটি সাধারণ পুল কভার বাষ্পীভবনকে অর্ধেকে কমিয়ে দেয় — ক্যালিফোর্নিয়ার শুষ্ক মৌসুমে 5,000+ গ্যাল/বছর সংরক্ষণ করা হয়। সর্বদা ফাঁসের জন্য পরীক্ষা করুন; এমনকি একটি ছোট হাজার হাজার নষ্ট করে।",
     "quiz.tip.car_wash": "বাণিজ্যিক গাড়ি ধোয়া তাদের 70%+ জল পুনর্ব্যবহার করে — একটি একক বাড়ির পায়ের পাতার মোজাবিশেষ ধোয়া 5 টিরও বেশি বাণিজ্যিক ভিজিট ব্যবহার করে।",
-    "quiz.tip.pet_care": "ঘাসের তৃষ্ণার্ত প্যাচের বাইরে পোষা প্রাণীকে স্নান করুন — জলাবদ্ধতা সেচ হিসাবে দ্বিগুণ হয়। একটি স্ব-শাটঅফ পায়ের পাতার মোজাবিশেষ অগ্রভাগ আরও 20% সংরক্ষণ করে।"
+    "quiz.tip.pet_care": "ঘাসের তৃষ্ণার্ত প্যাচের বাইরে পোষা প্রাণীকে স্নান করুন — জলাবদ্ধতা সেচ হিসাবে দ্বিগুণ হয়। একটি স্ব-শাটঅফ পায়ের পাতার মোজাবিশেষ অগ্রভাগ আরও 20% সংরক্ষণ করে।",
+    "stat.activity_header": "🔥 কার্যকলাপ · গত 12 সপ্তাহ",
+    "stat.active_days": "{active}/{total} সক্রিয়",
+    "stat.saved_gal_vs_ca": "সংরক্ষিত {gal} gal বনাম CA গড়",
+    "stat.less": "কম",
+    "stat.more": "আরো",
+    "modal.water_cycle": "জল চক্র",
+    "sim.subtitle": "কীভাবে জল আপনার কলে পৌঁছায়",
+    "sim.scope_state": "🌎 ক্যালিফোর্নিয়া",
+    "sim.scope_local": "🏘️ সান জোয়াকিন কো."
   },
   "ru": {
     "tab.home": "Дом",
@@ -3949,7 +4012,16 @@
     "quiz.tip.baths": "На 5-минутный душ с низким расходом расходуется около 9 галлонов против 36 галлонов на полную ванну — мгновенная экономия 27 галлонов на одну замену.",
     "quiz.tip.pool_spa": "Простое покрытие для бассейна сокращает испарение вдвое — в засушливый сезон в Калифорнии экономится более 5000 галлонов в год. Всегда проверяйте наличие утечек; даже маленький тратит тысячи.",
     "quiz.tip.car_wash": "Коммерческие автомойки перерабатывают более 70% используемой воды: на одну мойку дома требуется более 5 коммерческих посещений.",
-    "quiz.tip.pet_care": "Купайте домашних животных на открытом воздухе, на мокром участке травы — стоки служат также для орошения. Самозапирающийся шланговый патрубок экономит еще 20%."
+    "quiz.tip.pet_care": "Купайте домашних животных на открытом воздухе, на мокром участке травы — стоки служат также для орошения. Самозапирающийся шланговый патрубок экономит еще 20%.",
+    "stat.activity_header": "🔥 АКТИВНОСТЬ · ПОСЛЕДНИЕ 12 НЕДЕЛЬ",
+    "stat.active_days": "{active}/{total} активен",
+    "stat.saved_gal_vs_ca": "Сэкономлено {gal} галлонов по сравнению со средним показателем в Калифорнии.",
+    "stat.less": "меньше",
+    "stat.more": "более",
+    "modal.water_cycle": "Водный цикл",
+    "sim.subtitle": "Как вода попадает в ваш кран",
+    "sim.scope_state": "🌎Калифорния",
+    "sim.scope_local": "🏘️ Компания Сан-Хоакин."
   },
   "pt": {
     "tab.home": "Início",
@@ -4443,7 +4515,16 @@
     "quiz.tip.baths": "Um chuveiro de baixo fluxo de 5 minutos usa aproximadamente 9 galões contra 36 galões para uma banheira cheia – economia instantânea de 27 galões por troca.",
     "quiz.tip.pool_spa": "Uma simples cobertura de piscina reduz a evaporação pela metade – mais de 5.000 galões/ano economizados na estação seca da Califórnia. Sempre verifique se há vazamentos; mesmo um pequeno desperdiça milhares.",
     "quiz.tip.car_wash": "As lavagens de carros comerciais reciclam mais de 70% de sua água – uma única lavagem doméstica com mangueira utiliza mais de 5 visitas comerciais.",
-    "quiz.tip.pet_care": "Dê banho em animais de estimação ao ar livre em um pedaço de grama sedento - o escoamento também funciona como irrigação. Um bico de mangueira com desligamento automático economiza outros 20%."
+    "quiz.tip.pet_care": "Dê banho em animais de estimação ao ar livre em um pedaço de grama sedento - o escoamento também funciona como irrigação. Um bico de mangueira com desligamento automático economiza outros 20%.",
+    "stat.activity_header": "🔥 ATIVIDADE · ÚLTIMAS 12 SEMANAS",
+    "stat.active_days": "{active}/{total} ativo",
+    "stat.saved_gal_vs_ca": "Salvo {gal} gal vs média CA",
+    "stat.less": "menos",
+    "stat.more": "mais",
+    "modal.water_cycle": "Ciclo da Água",
+    "sim.subtitle": "Como a água chega à sua torneira",
+    "sim.scope_state": "🌎 Califórnia",
+    "sim.scope_local": "🏘️São Joaquim Co."
   },
   "ur": {
     "tab.home": "ہوم",
@@ -4937,7 +5018,16 @@
     "quiz.tip.baths": "ایک 5 منٹ کا کم بہاؤ والا شاور پورے ٹب کے لیے ~ 9 گیل بمقابلہ 36 گیل استعمال کرتا ہے — فی سویپ میں فوری 27 گیل کی بچت۔",
     "quiz.tip.pool_spa": "ایک سادہ پول کور بخارات کو نصف میں کم کرتا ہے — کیلیفورنیا کے خشک موسم میں 5,000+ لڑکی/سال کی بچت۔ ہمیشہ لیک کے لیے چیک کریں؛ ایک چھوٹا سا بھی ہزاروں ضائع کرتا ہے۔",
     "quiz.tip.car_wash": "کمرشل کار واش اپنے 70%+ پانی کو ریسائیکل کرتے ہیں — ایک ہی ہوم ہوز واش 5 سے زیادہ کمرشل وزٹ استعمال کرتا ہے۔",
-    "quiz.tip.pet_care": "پالتو جانوروں کو باہر گھاس کے پیاسے ٹکڑوں پر نہلائیں - پانی کا بہاؤ آبپاشی کے طور پر دوگنا ہوجاتا ہے۔ سیلف شٹ آف ہوز نوزل ​​مزید 20 فیصد بچاتا ہے۔"
+    "quiz.tip.pet_care": "پالتو جانوروں کو باہر گھاس کے پیاسے ٹکڑوں پر نہلائیں - پانی کا بہاؤ آبپاشی کے طور پر دوگنا ہوجاتا ہے۔ سیلف شٹ آف ہوز نوزل ​​مزید 20 فیصد بچاتا ہے۔",
+    "stat.activity_header": "🔥 سرگرمی · پچھلے 12 ہفتے",
+    "stat.active_days": "{active}/{total} فعال",
+    "stat.saved_gal_vs_ca": "محفوظ کیا گیا {gal} gal بمقابلہ CA اوسط",
+    "stat.less": "کم",
+    "stat.more": "مزید",
+    "modal.water_cycle": "واٹر سائیکل",
+    "sim.subtitle": "پانی آپ کے نل تک کیسے پہنچتا ہے۔",
+    "sim.scope_state": "🌎 کیلیفورنیا",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "id": {
     "tab.home": "Beranda",
@@ -5431,7 +5521,16 @@
     "quiz.tip.baths": "Mandi air beraliran rendah selama 5 menit menggunakan ~9 gal vs 36 gal untuk bak mandi penuh — penghematan instan sebesar 27 gal per pertukaran.",
     "quiz.tip.pool_spa": "Penutup kolam yang sederhana mengurangi separuh penguapan — menghemat 5.000+ galon/tahun di musim kemarau California. Selalu periksa kebocoran; bahkan yang kecil pun menghabiskan ribuan.",
     "quiz.tip.car_wash": "Pencucian mobil komersial mendaur ulang 70%+ airnya — satu kali pencucian selang rumah memerlukan lebih dari 5 kunjungan komersial.",
-    "quiz.tip.pet_care": "Mandikan hewan peliharaan di luar ruangan di sepetak rumput yang haus — limpasan air juga berfungsi sebagai irigasi. Nozel selang yang dapat dimatikan sendiri menghemat 20% lagi."
+    "quiz.tip.pet_care": "Mandikan hewan peliharaan di luar ruangan di sepetak rumput yang haus — limpasan air juga berfungsi sebagai irigasi. Nozel selang yang dapat dimatikan sendiri menghemat 20% lagi.",
+    "stat.activity_header": "🔥 AKTIVITAS · 12 MINGGU TERAKHIR",
+    "stat.active_days": "{active}/{total} aktif",
+    "stat.saved_gal_vs_ca": "Disimpan {gal} gal vs rata-rata CA",
+    "stat.less": "lebih sedikit",
+    "stat.more": "lagi",
+    "modal.water_cycle": "Siklus Air",
+    "sim.subtitle": "Bagaimana air mencapai keran Anda",
+    "sim.scope_state": "🌎 Kalifornia",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "de": {
     "tab.home": "Startseite",
@@ -5925,7 +6024,16 @@
     "quiz.tip.baths": "Eine 5-minütige Dusche mit geringem Durchfluss verbraucht etwa 9 Gallonen gegenüber 36 Gallonen für eine volle Wanne – sofortige Ersparnis von 27 Gallonen pro Austausch.",
     "quiz.tip.pool_spa": "Eine einfache Poolabdeckung halbiert die Verdunstung – in der Trockenzeit in Kalifornien werden mehr als 5.000 Gallonen pro Jahr eingespart. Überprüfen Sie immer, ob Lecks vorhanden sind. Selbst ein kleiner Betrag verschwendet Tausende.",
     "quiz.tip.car_wash": "Gewerbliche Autowaschanlagen recyceln mehr als 70 % ihres Wassers – eine einzige Schlauchwäsche zu Hause erfordert mehr als fünf Besuche im gewerblichen Bereich.",
-    "quiz.tip.pet_care": "Baden Sie Ihre Haustiere draußen auf einem durstigen Rasenstück – der Abfluss dient gleichzeitig als Bewässerung. Eine selbstabstellende Schlauchtülle spart weitere 20 %."
+    "quiz.tip.pet_care": "Baden Sie Ihre Haustiere draußen auf einem durstigen Rasenstück – der Abfluss dient gleichzeitig als Bewässerung. Eine selbstabstellende Schlauchtülle spart weitere 20 %.",
+    "stat.activity_header": "🔥 AKTIVITÄT · LETZTE 12 WOCHEN",
+    "stat.active_days": "{active}/{total} aktiv",
+    "stat.saved_gal_vs_ca": "Durchschnittlich {gal} Gallonen im Vergleich zu CA eingespart",
+    "stat.less": "weniger",
+    "stat.more": "mehr",
+    "modal.water_cycle": "Wasserkreislauf",
+    "sim.subtitle": "So gelangt das Wasser in Ihren Wasserhahn",
+    "sim.scope_state": "🌎 Kalifornien",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "ja": {
     "tab.home": "ホーム",
@@ -6419,7 +6527,16 @@
     "quiz.tip.baths": "5 分間の低流量シャワーでは最大 9 ガロンを使用しますが、浴槽いっぱいに使用すると 36 ガロンになります。交換ごとに即座に 27 ガロンの節約になります。",
     "quiz.tip.pool_spa": "シンプルなプールカバーは蒸発量を半分に削減し、カリフォルニアの乾季には年間 5,000 ガロン以上を節約できます。常に漏れがないか確認してください。たとえ小さなものでも何千もの無駄になります。",
     "quiz.tip.car_wash": "商用洗車機は水の 70% 以上をリサイクルしており、家庭でのホース洗浄を 1 回行うのに 5 回以上の出張が必要になります。",
-    "quiz.tip.pet_care": "屋外ののどが渇いた草むらでペットを水浴びさせましょう。流出水は灌漑の役割も果たします。自動遮断ホースノズルにより、さらに 20% 節約できます。"
+    "quiz.tip.pet_care": "屋外ののどが渇いた草むらでペットを水浴びさせましょう。流出水は灌漑の役割も果たします。自動遮断ホースノズルにより、さらに 20% 節約できます。",
+    "stat.activity_header": "🔥 アクティビティ · 過去 12 週間",
+    "stat.active_days": "{active}/{total} がアクティブです",
+    "stat.saved_gal_vs_ca": "{gal} ガル vs CA 平均を保存しました",
+    "stat.less": "少ない",
+    "stat.more": "もっと",
+    "modal.water_cycle": "水の循環",
+    "sim.subtitle": "水が蛇口に届くまでの仕組み",
+    "sim.scope_state": "🌎 カリフォルニア",
+    "sim.scope_local": "🏘️サンホアキン社"
   },
   "sw": {
     "tab.home": "Nyumbani",
@@ -6913,7 +7030,16 @@
     "quiz.tip.baths": "Bafu ya maji ya chini kwa chini ya dakika 5 hutumia ~ gal 9 vs gal 36 kwa beseni kamili - akiba ya gali 27 papo hapo kwa kila ubadilishaji.",
     "quiz.tip.pool_spa": "Jalada rahisi la bwawa hupunguza uvukizi kwa nusu - gal 5,000+/mwaka huhifadhiwa katika msimu wa kiangazi wa California. angalia kila mara kwa uvujaji; hata mdogo hupoteza maelfu.",
     "quiz.tip.car_wash": "Waosha magari ya biashara husafisha 70%+ ya maji yao - bomba moja la kuosha hose hutumia zaidi ya ziara 5 za kibiashara.",
-    "quiz.tip.pet_care": "Ogesha wanyama kipenzi nje kwenye sehemu yenye kiu ya nyasi - mtiririko wa maji huongezeka maradufu kama umwagiliaji. Pua ya hose ya kujifunga huokoa 20% nyingine."
+    "quiz.tip.pet_care": "Ogesha wanyama kipenzi nje kwenye sehemu yenye kiu ya nyasi - mtiririko wa maji huongezeka maradufu kama umwagiliaji. Pua ya hose ya kujifunga huokoa 20% nyingine.",
+    "stat.activity_header": "🔥 SHUGHULI · WIKI 12 ILIYOPITA",
+    "stat.active_days": "{active}/{total} inatumika",
+    "stat.saved_gal_vs_ca": "Imehifadhiwa {gal} gal dhidi ya CA wastani",
+    "stat.less": "kidogo",
+    "stat.more": "zaidi",
+    "modal.water_cycle": "Mzunguko wa Maji",
+    "sim.subtitle": "Jinsi maji hufika kwenye bomba lako",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "mr": {
     "tab.home": "होम",
@@ -7407,7 +7533,16 @@
     "quiz.tip.baths": "5 मिनिटांचा लो-फ्लो शॉवर पूर्ण टबसाठी ~9 गॅल वि 36 गॅल वापरतो — प्रति स्वॅपसाठी त्वरित 27-गॅल बचत.",
     "quiz.tip.pool_spa": "एक साधे पूल कव्हर बाष्पीभवन अर्ध्यावर कमी करते — कॅलिफोर्नियाच्या कोरड्या हंगामात 5,000+ गॅल/वर्ष वाचवले. नेहमी लीक तपासा; एक लहान सुद्धा हजारो वाया घालवतो.",
     "quiz.tip.car_wash": "व्यावसायिक कार वॉश त्यांच्या 70%+ पाण्याचा पुनर्वापर करतात — एकल होम होज वॉश 5 पेक्षा जास्त व्यावसायिक भेटी वापरतात.",
-    "quiz.tip.pet_care": "गवताच्या तहानलेल्या पॅचवर पाळीव प्राण्यांना घराबाहेर आंघोळ करा - पाणी सिंचन म्हणून दुप्पट होते. सेल्फ-शटऑफ होज नोजल आणखी 20% वाचवते."
+    "quiz.tip.pet_care": "गवताच्या तहानलेल्या पॅचवर पाळीव प्राण्यांना घराबाहेर आंघोळ करा - पाणी सिंचन म्हणून दुप्पट होते. सेल्फ-शटऑफ होज नोजल आणखी 20% वाचवते.",
+    "stat.activity_header": "🔥 क्रियाकलाप · शेवटचे १२ आठवडे",
+    "stat.active_days": "{active}/{total} सक्रिय",
+    "stat.saved_gal_vs_ca": "जतन केले {gal} gal vs CA सरासरी",
+    "stat.less": "कमी",
+    "stat.more": "अधिक",
+    "modal.water_cycle": "पाणी सायकल",
+    "sim.subtitle": "पाणी तुमच्या नळापर्यंत कसे पोहोचते",
+    "sim.scope_state": "🌎 कॅलिफोर्निया",
+    "sim.scope_local": "🏘️ सॅन जोक्विन कं."
   },
   "te": {
     "tab.home": "హోం",
@@ -7901,7 +8036,16 @@
     "quiz.tip.baths": "ఒక 5-నిమిషాల తక్కువ-ప్రవాహ షవర్ ఒక పూర్తి టబ్ కోసం ~9 gal vs 36 gal ఉపయోగిస్తుంది — ప్రతి స్వాప్‌కి తక్షణ 27-గ్యాలన్ ఆదా అవుతుంది.",
     "quiz.tip.pool_spa": "ఒక సాధారణ పూల్ కవర్ బాష్పీభవనాన్ని సగానికి తగ్గిస్తుంది — 5,000+ గాల్/సంవత్సరం కాలిఫోర్నియా పొడి సీజన్‌లో ఆదా అవుతుంది. లీక్‌ల కోసం ఎల్లప్పుడూ తనిఖీ చేయండి; చిన్నది కూడా వేలల్లో వృధా చేస్తుంది.",
     "quiz.tip.car_wash": "కమర్షియల్ కార్ వాష్‌లు వాటి నీటిలో 70%+ రీసైకిల్ చేస్తాయి - ఒక ఇంటి హోస్ వాష్ 5 కంటే ఎక్కువ వాణిజ్య సందర్శనలను ఉపయోగిస్తుంది.",
-    "quiz.tip.pet_care": "దాహంతో ఉన్న గడ్డిపై పెంపుడు జంతువులను ఆరుబయట స్నానం చేయండి - నీటి పారుదల రెట్టింపు అవుతుంది. స్వీయ-షటాఫ్ గొట్టం నాజిల్ మరో 20% ఆదా చేస్తుంది."
+    "quiz.tip.pet_care": "దాహంతో ఉన్న గడ్డిపై పెంపుడు జంతువులను ఆరుబయట స్నానం చేయండి - నీటి పారుదల రెట్టింపు అవుతుంది. స్వీయ-షటాఫ్ గొట్టం నాజిల్ మరో 20% ఆదా చేస్తుంది.",
+    "stat.activity_header": "🔥 కార్యాచరణ · గత 12 వారాలు",
+    "stat.active_days": "{active}/{total} సక్రియంగా ఉంది",
+    "stat.saved_gal_vs_ca": "సేవ్ చేయబడింది {gal} gal vs CA సగటు",
+    "stat.less": "తక్కువ",
+    "stat.more": "మరింత",
+    "modal.water_cycle": "నీటి చక్రం",
+    "sim.subtitle": "మీ కుళాయికి నీరు ఎలా చేరుతుంది",
+    "sim.scope_state": "🌎 కాలిఫోర్నియా",
+    "sim.scope_local": "🏘️ శాన్ జోక్విన్ కో."
   },
   "tr": {
     "tab.home": "Ana Sayfa",
@@ -8395,7 +8539,16 @@
     "quiz.tip.baths": "5 dakikalık düşük akışlı duş, dolu bir küvet için ~9 gal'e karşılık 36 galon kullanır; değiştirme başına anında 27 galon tasarruf sağlar.",
     "quiz.tip.pool_spa": "Basit bir havuz örtüsü buharlaşmayı yarı yarıya azaltır; Kaliforniya'nın kurak mevsiminde yılda 5.000'den fazla galon tasarruf sağlar. Her zaman sızıntı olup olmadığını kontrol edin; küçüğü bile binlercesini israf eder.",
     "quiz.tip.car_wash": "Ticari araba yıkama tesisleri, sularının %70'inden fazlasını geri dönüştürür; tek bir ev hortumu yıkama işlemi, 5'ten fazla ticari ziyaret gerektirir.",
-    "quiz.tip.pet_care": "Evcil hayvanları açık havada susuz bir çimenlik alanda yıkayın; akıntı sulama olarak ikiye katlanır. Kendiliğinden kapanan hortum başlığı %20 daha tasarruf sağlar."
+    "quiz.tip.pet_care": "Evcil hayvanları açık havada susuz bir çimenlik alanda yıkayın; akıntı sulama olarak ikiye katlanır. Kendiliğinden kapanan hortum başlığı %20 daha tasarruf sağlar.",
+    "stat.activity_header": "🔥 AKTİVİTE · SON 12 HAFTA",
+    "stat.active_days": "{active}/{total} etkin",
+    "stat.saved_gal_vs_ca": "CA ortalamasına kıyasla {gal} gal kaydedildi",
+    "stat.less": "az",
+    "stat.more": "Daha",
+    "modal.water_cycle": "Su Döngüsü",
+    "sim.subtitle": "Musluğunuza su nasıl ulaşır?",
+    "sim.scope_state": "🌎 Kaliforniya",
+    "sim.scope_local": "🏘️San Joaquin Şirketi."
   },
   "ta": {
     "tab.home": "முதன்பக்கம்",
@@ -8889,7 +9042,16 @@
     "quiz.tip.baths": "5-நிமிட குறைந்த-பாய்ச்சல் ஷவர் ஒரு முழு தொட்டிக்கு ~9 கேஎல் vs 36 கேஎல் பயன்படுத்துகிறது - ஒரு இடமாற்றுக்கு உடனடி 27-கால் சேமிப்பு.",
     "quiz.tip.pool_spa": "ஒரு எளிய பூல் கவர் ஆவியாவதை பாதியாக குறைக்கிறது - 5,000+ கேலன்/ஆண்டு கலிஃபோர்னியாவின் வறட்சி காலத்தில் சேமிக்கப்படுகிறது. கசிவுகளை எப்போதும் சரிபார்க்கவும்; சிறியது கூட ஆயிரக்கணக்கில் வீணாகிறது.",
     "quiz.tip.car_wash": "வணிக கார் கழுவும் 70%+ தண்ணீரை மறுசுழற்சி செய்கிறது - ஒரு ஹோம் ஹோஸ் வாஷ் 5 க்கும் மேற்பட்ட வணிக வருகைகளைப் பயன்படுத்துகிறது.",
-    "quiz.tip.pet_care": "தாகமுள்ள புல்வெளியில் செல்லப்பிராணிகளை குளிப்பாட்டவும் - நீர்ப்பாசனம் இரட்டிப்பாகும். ஒரு சுய-அடைப்பு குழாய் முனை மற்றொரு 20% சேமிக்கிறது."
+    "quiz.tip.pet_care": "தாகமுள்ள புல்வெளியில் செல்லப்பிராணிகளை குளிப்பாட்டவும் - நீர்ப்பாசனம் இரட்டிப்பாகும். ஒரு சுய-அடைப்பு குழாய் முனை மற்றொரு 20% சேமிக்கிறது.",
+    "stat.activity_header": "🔥 செயல்பாடு · கடந்த 12 வாரங்கள்",
+    "stat.active_days": "{active}/{total} செயலில் உள்ளது",
+    "stat.saved_gal_vs_ca": "சேமிக்கப்பட்டது {gal} gal vs CA சராசரி",
+    "stat.less": "குறைவாக",
+    "stat.more": "மேலும்",
+    "modal.water_cycle": "நீர் சுழற்சி",
+    "sim.subtitle": "உங்கள் குழாயில் தண்ணீர் எப்படி வருகிறது",
+    "sim.scope_state": "🌎 கலிபோர்னியா",
+    "sim.scope_local": "🏘️ சான் ஜோக்வின் கோ."
   },
   "vi": {
     "tab.home": "Trang chủ",
@@ -9383,7 +9545,16 @@
     "quiz.tip.baths": "Vòi sen dòng chảy thấp trong 5 phút sử dụng ~9 gal so với 36 gal cho một bồn tắm đầy — tiết kiệm ngay lập tức 27 gal cho mỗi lần thay đổi.",
     "quiz.tip.pool_spa": "Một tấm che hồ bơi đơn giản giúp giảm lượng bốc hơi đi một nửa - hơn 5.000 gal/năm được tiết kiệm trong mùa khô ở California. Luôn kiểm tra rò rỉ; ngay cả một cái nhỏ cũng lãng phí hàng ngàn.",
     "quiz.tip.car_wash": "Các tiệm rửa xe thương mại tái chế hơn 70% lượng nước — một lần rửa bằng vòi tại nhà sẽ sử dụng hơn 5 lần rửa xe thương mại.",
-    "quiz.tip.pet_care": "Tắm cho thú cưng ngoài trời trên một bãi cỏ đang khát nước - dòng nước chảy ra sẽ tăng gấp đôi lượng nước tưới. Vòi vòi tự ngắt giúp tiết kiệm thêm 20%."
+    "quiz.tip.pet_care": "Tắm cho thú cưng ngoài trời trên một bãi cỏ đang khát nước - dòng nước chảy ra sẽ tăng gấp đôi lượng nước tưới. Vòi vòi tự ngắt giúp tiết kiệm thêm 20%.",
+    "stat.activity_header": "🔥 HOẠT ĐỘNG · 12 TUẦN QUA",
+    "stat.active_days": "{active}/{total} đang hoạt động",
+    "stat.saved_gal_vs_ca": "Đã lưu {gal} gal so với CA trung bình",
+    "stat.less": "ít hơn",
+    "stat.more": "hơn",
+    "modal.water_cycle": "Chu trình nước",
+    "sim.subtitle": "Nước đến vòi của bạn như thế nào",
+    "sim.scope_state": "🌎California",
+    "sim.scope_local": "🏘️ Công ty San Joaquin"
   },
   "ko": {
     "tab.home": "홈",
@@ -9877,7 +10048,16 @@
     "quiz.tip.baths": "5분 저유량 샤워는 최대 9갤런을 사용하지만 풀 욕조의 경우 36갤런을 사용합니다. 교환당 즉시 27갤런을 절약할 수 있습니다.",
     "quiz.tip.pool_spa": "간단한 수영장 덮개는 증발량을 절반으로 줄입니다. 캘리포니아 건기에는 연간 5,000갤런 이상을 절약할 수 있습니다. 항상 누출 여부를 확인하십시오. 작은 것조차도 수천을 낭비합니다.",
     "quiz.tip.car_wash": "상업용 세차장은 물의 70% 이상을 재활용합니다. 단일 가정용 호스 세척에는 5번 이상의 상업용 방문이 필요합니다.",
-    "quiz.tip.pet_care": "야외의 목마른 풀밭에서 애완동물을 목욕시키십시오. 흐르는 물은 관개용수로도 사용됩니다. 자체 차단 호스 노즐을 사용하면 20%를 더 절약할 수 있습니다."
+    "quiz.tip.pet_care": "야외의 목마른 풀밭에서 애완동물을 목욕시키십시오. 흐르는 물은 관개용수로도 사용됩니다. 자체 차단 호스 노즐을 사용하면 20%를 더 절약할 수 있습니다.",
+    "stat.activity_header": "🔥 활동 · 지난 12주",
+    "stat.active_days": "{active}/{total} 활성",
+    "stat.saved_gal_vs_ca": "CA 평균 대비 {gal} 갤 저장됨",
+    "stat.less": "더 적은",
+    "stat.more": "더",
+    "modal.water_cycle": "물의 순환",
+    "sim.subtitle": "물이 수도꼭지에 도달하는 방법",
+    "sim.scope_state": "🌎 캘리포니아",
+    "sim.scope_local": "🏘️ 샌 호아킨 주식회사"
   },
   "fa": {
     "tab.home": "خانه",
@@ -10371,7 +10551,16 @@
     "quiz.tip.baths": "یک دوش 5 دقیقه‌ای با جریان کم حدود 9 لیتر در مقابل 36 لیتر برای یک وان کامل مصرف می‌کند — 27 گالری صرفه‌جویی فوری در هر تعویض.",
     "quiz.tip.pool_spa": "یک روکش ساده استخر تبخیر را به نصف کاهش می‌دهد - بیش از 5000 لیتر در سال در فصل خشک کالیفرنیا صرفه‌جویی می‌شود. همیشه نشت را بررسی کنید. حتی یک کوچک هزاران را هدر می دهد.",
     "quiz.tip.car_wash": "کارواش‌های تجاری بیش از 70 درصد آب خود را بازیافت می‌کنند - یک شستشوی شیلنگ خانگی از بیش از 5 بازدید تجاری استفاده می‌کند.",
-    "quiz.tip.pet_care": "حیوانات خانگی را در فضای باز روی یک تکه علف تشنه حمام کنید - رواناب به عنوان آبیاری دو برابر می شود. نازل شلنگ خود خاموش 20 درصد دیگر صرفه جویی می کند."
+    "quiz.tip.pet_care": "حیوانات خانگی را در فضای باز روی یک تکه علف تشنه حمام کنید - رواناب به عنوان آبیاری دو برابر می شود. نازل شلنگ خود خاموش 20 درصد دیگر صرفه جویی می کند.",
+    "stat.activity_header": "🔥 فعالیت · 12 هفته گذشته",
+    "stat.active_days": "{active}/{total} فعال است",
+    "stat.saved_gal_vs_ca": "ذخیره شده {gal} gal در مقابل میانگین CA",
+    "stat.less": "کمتر",
+    "stat.more": "بیشتر",
+    "modal.water_cycle": "چرخه آب",
+    "sim.subtitle": "چگونه آب به شیر شما می رسد",
+    "sim.scope_state": "🌎 کالیفرنیا",
+    "sim.scope_local": "🏘️ شرکت سان خواکین"
   },
   "it": {
     "tab.home": "Home",
@@ -10865,7 +11054,16 @@
     "quiz.tip.baths": "Una doccia a basso flusso di 5 minuti utilizza circa 9 galloni contro 36 galloni per una vasca piena: un risparmio istantaneo di 27 galloni per scambio.",
     "quiz.tip.pool_spa": "Una semplice copertura per piscina dimezza l'evaporazione: oltre 5.000 litri/anno risparmiati nella stagione secca della California. Verificare sempre la presenza di perdite; anche uno piccolo ne spreca migliaia.",
     "quiz.tip.car_wash": "Gli autolavaggi commerciali riciclano più del 70% dell'acqua: un singolo lavaggio domestico con un tubo utilizza più di 5 visite commerciali.",
-    "quiz.tip.pet_care": "Fai il bagno agli animali all'aperto su un pezzo di erba assetata: il deflusso funge anche da irrigazione. Un ugello per tubo flessibile a chiusura automatica consente di risparmiare un altro 20%."
+    "quiz.tip.pet_care": "Fai il bagno agli animali all'aperto su un pezzo di erba assetata: il deflusso funge anche da irrigazione. Un ugello per tubo flessibile a chiusura automatica consente di risparmiare un altro 20%.",
+    "stat.activity_header": "🔥 ATTIVITÀ · ULTIME 12 SETTIMANE",
+    "stat.active_days": "{active}/{total} attivo",
+    "stat.saved_gal_vs_ca": "Salvate {gal} gal rispetto alla media CA",
+    "stat.less": "meno",
+    "stat.more": "Di più",
+    "modal.water_cycle": "Ciclo dell'acqua",
+    "sim.subtitle": "Come l'acqua arriva al tuo rubinetto",
+    "sim.scope_state": "🌎California",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "th": {
     "tab.home": "หน้าหลัก",
@@ -11359,7 +11557,16 @@
     "quiz.tip.baths": "ฝักบัวน้ำไหลต่ำ 5 นาทีใช้ ~9 แกลลอนต่อ 36 แกลลอนสำหรับอ่างเต็ม — ประหยัดได้ 27 แกลลอนทันทีต่อการแลกเปลี่ยน",
     "quiz.tip.pool_spa": "ที่คลุมสระน้ำแบบเรียบง่ายลดการระเหยได้ครึ่งหนึ่ง — ประหยัดได้ 5,000+ แกลลอน/ปีในฤดูแล้งของรัฐแคลิฟอร์เนีย ตรวจสอบรอยรั่วเสมอ แม้แต่อันเล็กๆ ก็สิ้นเปลืองเงินเป็นพัน",
     "quiz.tip.car_wash": "การล้างรถเพื่อการพาณิชย์รีไซเคิลน้ำได้มากกว่า 70% — การล้างสายยางในบ้านเพียงครั้งเดียวใช้การเข้าชมเชิงพาณิชย์มากกว่า 5 ครั้ง",
-    "quiz.tip.pet_care": "อาบน้ำสัตว์เลี้ยงกลางแจ้งบนสนามหญ้าที่กระหายน้ำ - น้ำที่ไหลบ่าจะเพิ่มเป็นสองเท่าของการชลประทาน หัวฉีดท่อแบบปิดเองช่วยประหยัดอีก 20%"
+    "quiz.tip.pet_care": "อาบน้ำสัตว์เลี้ยงกลางแจ้งบนสนามหญ้าที่กระหายน้ำ - น้ำที่ไหลบ่าจะเพิ่มเป็นสองเท่าของการชลประทาน หัวฉีดท่อแบบปิดเองช่วยประหยัดอีก 20%",
+    "stat.activity_header": "🔥 กิจกรรม · 12 สัปดาห์ที่ผ่านมา",
+    "stat.active_days": "{active}/{total} ใช้งานอยู่",
+    "stat.saved_gal_vs_ca": "บันทึก {gal} gal เทียบกับ CA เฉลี่ย",
+    "stat.less": "น้อย",
+    "stat.more": "มากกว่า",
+    "modal.water_cycle": "วัฏจักรของน้ำ",
+    "sim.subtitle": "น้ำเข้าถึงก๊อกน้ำของคุณได้อย่างไร",
+    "sim.scope_state": "🌍แคลิฟอร์เนีย",
+    "sim.scope_local": "🏘️ บริษัท ซาน ฮัวควิน"
   },
   "gu": {
     "tab.home": "ઘર",
@@ -11853,7 +12060,16 @@
     "quiz.tip.baths": "5-મિનિટનો લો-ફ્લો શાવર સંપૂર્ણ ટબ માટે ~9 gal vs 36 gal નો ઉપયોગ કરે છે - સ્વેપ દીઠ ત્વરિત 27-gal બચત.",
     "quiz.tip.pool_spa": "એક સાદું પૂલ કવર બાષ્પીભવનને અડધા ભાગમાં ઘટાડે છે — કેલિફોર્નિયાની સૂકી સિઝનમાં 5,000+ ગલ/વર્ષ સાચવવામાં આવે છે. હંમેશા લિક માટે તપાસો; એક નાનો પણ હજારો બગાડે છે.",
     "quiz.tip.car_wash": "કોમર્શિયલ કાર વોશ તેમના 70%+ પાણીને રિસાયકલ કરે છે — એક જ હોમ હોસ વોશ 5 કરતાં વધુ કોમર્શિયલ મુલાકાતોનો ઉપયોગ કરે છે.",
-    "quiz.tip.pet_care": "ઘાસના તરસ્યા પેચ પર પાલતુ પ્રાણીઓને બહાર સ્નાન કરો - પાણીનો પ્રવાહ સિંચાઈ તરીકે બમણી થાય છે. સ્વ-શટઓફ નળી નોઝલ અન્ય 20% બચાવે છે."
+    "quiz.tip.pet_care": "ઘાસના તરસ્યા પેચ પર પાલતુ પ્રાણીઓને બહાર સ્નાન કરો - પાણીનો પ્રવાહ સિંચાઈ તરીકે બમણી થાય છે. સ્વ-શટઓફ નળી નોઝલ અન્ય 20% બચાવે છે.",
+    "stat.activity_header": "🔥 પ્રવૃત્તિ · છેલ્લા 12 અઠવાડિયા",
+    "stat.active_days": "{active}/{total} સક્રિય",
+    "stat.saved_gal_vs_ca": "સાચવેલ {gal} gal vs CA સરેરાશ",
+    "stat.less": "ઓછું",
+    "stat.more": "વધુ",
+    "modal.water_cycle": "જળ ચક્ર",
+    "sim.subtitle": "પાણી તમારા નળ સુધી કેવી રીતે પહોંચે છે",
+    "sim.scope_state": "🌎 કેલિફોર્નિયા",
+    "sim.scope_local": "🏘️ સાન જોક્વિન કો."
   },
   "pl": {
     "tab.home": "Dom",
@@ -12347,7 +12563,16 @@
     "quiz.tip.baths": "5-minutowy prysznic o niskim przepływie zużywa ~9 galonów w porównaniu z 36 galonami w przypadku pełnej wanny — natychmiastowe oszczędności wynoszące 27 galonów na wymianę.",
     "quiz.tip.pool_spa": "Prosta przykrycie basenu zmniejsza parowanie o połowę — ponad 5000 galonów rocznie zaoszczędzonych w porze suchej w Kalifornii. Zawsze sprawdzaj, czy nie ma wycieków; nawet mały marnuje tysiące.",
     "quiz.tip.car_wash": "Komercyjne myjnie samochodowe poddają recyklingowi ponad 70% wody — na jedno mycie węża w domu potrzeba ponad 5 wizyt handlowych.",
-    "quiz.tip.pet_care": "Kąpaj zwierzęta na świeżym powietrzu na spragnionym skrawku trawy — spływająca woda służy również do nawadniania. Samoodcinająca się końcówka węża pozwala zaoszczędzić kolejne 20%."
+    "quiz.tip.pet_care": "Kąpaj zwierzęta na świeżym powietrzu na spragnionym skrawku trawy — spływająca woda służy również do nawadniania. Samoodcinająca się końcówka węża pozwala zaoszczędzić kolejne 20%.",
+    "stat.activity_header": "🔥 AKTYWNOŚĆ · OSTATNIE 12 TYGODNI",
+    "stat.active_days": "{active}/{total} aktywne",
+    "stat.saved_gal_vs_ca": "Zaoszczędzono {gal} gal w porównaniu ze śr. CA",
+    "stat.less": "mniej",
+    "stat.more": "więcej",
+    "modal.water_cycle": "Cykl wodny",
+    "sim.subtitle": "Jak woda dociera do Twojego kranu",
+    "sim.scope_state": "🌎 Kalifornia",
+    "sim.scope_local": "🏘️San Joaquin Co."
   },
   "uk": {
     "tab.home": "додому",
@@ -12841,7 +13066,16 @@
     "quiz.tip.baths": "5-хвилинний душ із низьким потоком споживає ~9 галлонів проти 36 галлонів для повної ванни — миттєва економія 27 галлонів за заміну.",
     "quiz.tip.pool_spa": "Просте покриття для басейну скорочує випаровування вдвічі — економить понад 5000 галлонів на рік під час сухого сезону в Каліфорнії. Завжди перевіряйте наявність витоків; навіть маленький марнує тисячі.",
     "quiz.tip.car_wash": "Комерційні автомийки переробляють понад 70% води — одне домашнє миття шланга потребує більше 5 комерційних відвідувань.",
-    "quiz.tip.pet_care": "Викупайте домашніх тварин на відкритому повітрі на траві, що викликає спрагу, — стік подвоюється як зрошення. Шлангова насадка, що самозакривається, економить ще 20%."
+    "quiz.tip.pet_care": "Викупайте домашніх тварин на відкритому повітрі на траві, що викликає спрагу, — стік подвоюється як зрошення. Шлангова насадка, що самозакривається, економить ще 20%.",
+    "stat.activity_header": "🔥 ДІЯЛЬНІСТЬ · ОСТАННІ 12 ТИЖНІВ",
+    "stat.active_days": "{active}/{total} активний",
+    "stat.saved_gal_vs_ca": "Заощаджено {gal} галлонів порівняно з CA у середньому",
+    "stat.less": "менше",
+    "stat.more": "більше",
+    "modal.water_cycle": "Кругообіг води",
+    "sim.subtitle": "Як вода потрапляє у ваш кран",
+    "sim.scope_state": "🌎 Каліфорнія",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "ro": {
     "tab.home": "Acasă",
@@ -13335,7 +13569,16 @@
     "quiz.tip.baths": "Un duș cu debit redus de 5 minute folosește ~9 gal vs 36 gal pentru o cadă plină - economii instantanee de 27 gal per schimb.",
     "quiz.tip.pool_spa": "O simplă acoperire pentru piscină reduce evaporarea la jumătate - 5.000+ gal/an economisiți în sezonul uscat din California. Verificați întotdeauna dacă există scurgeri; chiar și unul mic risipește mii.",
     "quiz.tip.car_wash": "Spălătoriile comerciale auto reciclează peste 70% din apa lor - o singură spălătorie de furtun acasă utilizează mai mult de 5 vizite comerciale.",
-    "quiz.tip.pet_care": "Scăldați animalele de companie în aer liber pe un petic de iarbă însetat - scurgerea se dublează ca irigare. O duză pentru furtun cu auto-închidere economisește încă 20%."
+    "quiz.tip.pet_care": "Scăldați animalele de companie în aer liber pe un petic de iarbă însetat - scurgerea se dublează ca irigare. O duză pentru furtun cu auto-închidere economisește încă 20%.",
+    "stat.activity_header": "🔥 ACTIVITATE · ULTIMELE 12 SĂPTĂMINI",
+    "stat.active_days": "{active}/{total} activ",
+    "stat.saved_gal_vs_ca": "Salvat {gal} gal vs. medie CA",
+    "stat.less": "Mai puțin",
+    "stat.more": "Mai mult",
+    "modal.water_cycle": "Ciclul apei",
+    "sim.subtitle": "Cum ajunge apa la robinet",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "nl": {
     "tab.home": "Thuis",
@@ -13829,7 +14072,16 @@
     "quiz.tip.baths": "Een douche met een laag debiet van 5 minuten verbruikt ~9 gallon versus 36 gallon voor een vol bad - onmiddellijke besparing van 27 gallon per swap.",
     "quiz.tip.pool_spa": "Een eenvoudige zwembadafdekking halveert de verdamping: een besparing van meer dan 5.000 gal/jaar in het droge seizoen van Californië. Controleer altijd op lekkage; zelfs een kleintje verspilt duizenden.",
     "quiz.tip.car_wash": "Commerciële autowasstraten recyclen meer dan 70% van hun water; voor één enkele slangwasbeurt zijn meer dan vijf commerciële bezoeken nodig.",
-    "quiz.tip.pet_care": "Baad huisdieren buiten op een dorstig stukje gras; de afvoer fungeert ook als irrigatie. Een zelfsluitende slangtule bespaart nog eens 20%."
+    "quiz.tip.pet_care": "Baad huisdieren buiten op een dorstig stukje gras; de afvoer fungeert ook als irrigatie. Een zelfsluitende slangtule bespaart nog eens 20%.",
+    "stat.activity_header": "🔥ACTIVITEIT · LAATSTE 12 WEKEN",
+    "stat.active_days": "{active}/{total} actief",
+    "stat.saved_gal_vs_ca": "Opgeslagen {gal} gal vs. CA-gemiddelde",
+    "stat.less": "minder",
+    "stat.more": "meer",
+    "modal.water_cycle": "Watercyclus",
+    "sim.subtitle": "Hoe water uw kraan bereikt",
+    "sim.scope_state": "🌎 Californië",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "ms": {
     "tab.home": "Rumah",
@@ -14323,7 +14575,16 @@
     "quiz.tip.baths": "Pancuran mandian aliran rendah selama 5 minit menggunakan ~9 gal vs 36 gal untuk tab penuh — penjimatan 27-gal segera setiap pertukaran.",
     "quiz.tip.pool_spa": "Penutup kolam ringkas mengurangkan sejatan separuh — 5,000+ gal/tahun disimpan pada musim kemarau California. Sentiasa periksa kebocoran; yang kecil pun membazir beribu.",
     "quiz.tip.car_wash": "Cuci kereta komersial mengitar semula 70%+ air mereka — satu cucian hos rumah menggunakan lebih daripada 5 lawatan komersial.",
-    "quiz.tip.pet_care": "Mandikan haiwan peliharaan di luar rumah di atas rumput yang dahaga - air larian berfungsi sebagai pengairan. Muncung hos tutup sendiri menjimatkan 20% lagi."
+    "quiz.tip.pet_care": "Mandikan haiwan peliharaan di luar rumah di atas rumput yang dahaga - air larian berfungsi sebagai pengairan. Muncung hos tutup sendiri menjimatkan 20% lagi.",
+    "stat.activity_header": "🔥 AKTIVITI · 12 MINGGU LEPAS",
+    "stat.active_days": "{active}/{total} aktif",
+    "stat.saved_gal_vs_ca": "Disimpan {gal} gal vs CA purata",
+    "stat.less": "kurang",
+    "stat.more": "lebih",
+    "modal.water_cycle": "Kitaran Air",
+    "sim.subtitle": "Cara air sampai ke paip anda",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "fil": {
     "tab.home": "Bahay",
@@ -14817,7 +15078,16 @@
     "quiz.tip.baths": "Ang 5-min na low-flow shower ay gumagamit ng ~9 gal vs 36 gal para sa isang full tub — instant na 27-gal na pagtitipid sa bawat swap.",
     "quiz.tip.pool_spa": "Ang isang simpleng takip ng pool ay nagbabawas sa pagsingaw sa kalahati — 5,000+ gal/taon ang natipid sa tagtuyot ng California. Palaging suriin kung may mga tagas; kahit isang maliit ay nagsasayang ng libu-libo.",
     "quiz.tip.car_wash": "Ang mga komersyal na car wash ay nagre-recycle ng 70%+ ng kanilang tubig — isang solong hose wash sa bahay ay gumagamit ng higit sa 5 komersyal na pagbisita.",
-    "quiz.tip.pet_care": "Paliguan ang mga alagang hayop sa labas sa isang uhaw na damuhan — ang runoff ay dumuble bilang irigasyon. Ang isang self-shutoff hose nozzle ay nakakatipid ng isa pang 20%."
+    "quiz.tip.pet_care": "Paliguan ang mga alagang hayop sa labas sa isang uhaw na damuhan — ang runoff ay dumuble bilang irigasyon. Ang isang self-shutoff hose nozzle ay nakakatipid ng isa pang 20%.",
+    "stat.activity_header": "🔥 GAWAIN · LAST 12 WEEKS",
+    "stat.active_days": "{active}/{total} aktibo",
+    "stat.saved_gal_vs_ca": "Na-save ang {gal} gal vs CA avg",
+    "stat.less": "mas kaunti",
+    "stat.more": "higit pa",
+    "modal.water_cycle": "Ikot ng Tubig",
+    "sim.subtitle": "Paano umabot ang tubig sa iyong gripo",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "my": {
     "tab.home": "အိမ်",
@@ -15311,7 +15581,16 @@
     "quiz.tip.baths": "5 မိနစ်အနိမ့်ရေချိုးခန်းတစ်ခုသည် ရေစည်အပြည့်အတွက် ~9 gal နှင့် 36 gal ကိုအသုံးပြုသည် — လဲလှယ်မှုတစ်ခုလျှင် 27-gal ချက်ချင်းသက်သာသည်။",
     "quiz.tip.pool_spa": "ရိုးရှင်းသော ရေကူးကန်အဖုံးသည် အငွေ့ပျံမှုကို ထက်ဝက်အတွင်း လျှော့ချပေးသည် — ကယ်လီဖိုးနီးယား၏ ခြောက်သွေ့ရာသီတွင် တစ်နှစ်လျှင် 5,000+ ဂါလန် သိမ်းဆည်းထားသည်။ ယိုစိမ့်မှုရှိမရှိ အမြဲစစ်ဆေးပါ။ သေးသေးလေးတောင် ထောင်နဲ့ချီပြီး ဆုံးရှုံးတယ်။",
     "quiz.tip.car_wash": "လုပ်ငန်းသုံးကားရေဆေးများသည် ၎င်းတို့၏ရေ၏ 70%+ ကို ပြန်လည်အသုံးပြုသည် — အိမ်သုံးရေဆေးတစ်ခုသည် လုပ်ငန်းသုံးလည်ပတ်မှု 5 ခုထက်မနည်းအသုံးပြုသည်။",
-    "quiz.tip.pet_care": "ရေငတ်နေသော မြက်ခင်းပြင်ပေါ်တွင် အိမ်မွေးတိရစ္ဆာန်များကို ရေချိုးပါ - ရေသည် ဆည်ရေအဖြစ် နှစ်ဆတိုးလာသည်။ Self-shutoff hose nozzle သည် နောက်ထပ် 20% သက်သာစေသည်။"
+    "quiz.tip.pet_care": "ရေငတ်နေသော မြက်ခင်းပြင်ပေါ်တွင် အိမ်မွေးတိရစ္ဆာန်များကို ရေချိုးပါ - ရေသည် ဆည်ရေအဖြစ် နှစ်ဆတိုးလာသည်။ Self-shutoff hose nozzle သည် နောက်ထပ် 20% သက်သာစေသည်။",
+    "stat.activity_header": "🔥 လှုပ်ရှားမှု · နောက်ဆုံး 12 ပတ်",
+    "stat.active_days": "{active}/{total} တက်ကြွနေပါသည်။",
+    "stat.saved_gal_vs_ca": "သိမ်းထားသည် {gal} gal နှင့် CA ပျမ်းမျှ",
+    "stat.less": "နည်းသော",
+    "stat.more": "နောက်ထပ်",
+    "modal.water_cycle": "ရေသံသရာ",
+    "sim.subtitle": "ရေက သင့်ပိုက်ကို ဘယ်လိုရောက်သွားလဲ။",
+    "sim.scope_state": "🌎 ကယ်လီဖိုးနီးယား",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "am": {
     "tab.home": "ቤት",
@@ -15805,7 +16084,16 @@
     "quiz.tip.baths": "ባለ 5-ደቂቃ ዝቅተኛ ወራጅ ሻወር ~9 gal vs 36 gal ለሙሉ ገንዳ ይጠቀማል - ፈጣን 27-ጋል ቁጠባ በአንድ ስዋፕ።",
     "quiz.tip.pool_spa": "ቀላል የገንዳ ሽፋን ትነትን በግማሽ ይቀንሳል - 5,000+ ጋሊ በዓመት በካሊፎርኒያ ደረቅ ወቅት ተረፈ። ሁልጊዜ ፍሳሾችን ያረጋግጡ; ትንሽ እንኳን ሺዎችን ታጠፋለች።",
     "quiz.tip.car_wash": "የንግድ መኪና ማጠቢያዎች 70%+ ውሃን እንደገና ጥቅም ላይ ማዋል - ነጠላ የቤት ውስጥ ቱቦ ማጠቢያ ከ 5 በላይ የንግድ ጉብኝቶችን ይጠቀማል.",
-    "quiz.tip.pet_care": "የቤት እንስሳትን ከቤት ውጭ በተጠማው የሣር ክምር ላይ ይታጠቡ - ፍሳሹ እንደ መስኖ በእጥፍ ይጨምራል። የራስ ማጥፊያ ቱቦ አፍንጫ ሌላ 20% ይቆጥባል።"
+    "quiz.tip.pet_care": "የቤት እንስሳትን ከቤት ውጭ በተጠማው የሣር ክምር ላይ ይታጠቡ - ፍሳሹ እንደ መስኖ በእጥፍ ይጨምራል። የራስ ማጥፊያ ቱቦ አፍንጫ ሌላ 20% ይቆጥባል።",
+    "stat.activity_header": "🔥 ተግባር · ያለፉት 12 ሳምንታት",
+    "stat.active_days": "{active}/{total} ገቢር ነው።",
+    "stat.saved_gal_vs_ca": "ተቀምጧል {gal} gal vs CA አማካይ",
+    "stat.less": "ያነሰ",
+    "stat.more": "ተጨማሪ",
+    "modal.water_cycle": "የውሃ ዑደት",
+    "sim.subtitle": "ውሃ ወደ ቧንቧዎ እንዴት እንደሚደርስ",
+    "sim.scope_state": "🌎 ካሊፎርኒያ",
+    "sim.scope_local": "🏘️ ሳን ጆአኩዊን ኩባንያ"
   },
   "ha": {
     "tab.home": "Gida",
@@ -16299,7 +16587,16 @@
     "quiz.tip.baths": "Shawa mai ƙarancin-minti 5 yana amfani da ~ 9 gal vs 36 gal don cikakken baho - ajiyar 27-gal nan take a kowane musanyawa.",
     "quiz.tip.pool_spa": "Sauƙaƙan murfin tafkin yana yanke ƙanƙara a cikin rabin - 5,000+ gal / shekara da aka ajiye a lokacin rani na California. Koyaushe bincika yatsuniya; ko da karami yana bata dubbai.",
     "quiz.tip.car_wash": "Wanke motar kasuwanci ta sake fa'ida 70%+ na ruwansu - wankin bututun gida guda ɗaya yana amfani da ziyarar kasuwanci sama da 5.",
-    "quiz.tip.pet_care": "Yi wa dabbobin gida wanka a waje a kan ciyawar ƙishirwa - ruwan gudu ya ninka kamar ban ruwa. Bututun bututun rufewa da kansa yana adana wani kashi 20%."
+    "quiz.tip.pet_care": "Yi wa dabbobin gida wanka a waje a kan ciyawar ƙishirwa - ruwan gudu ya ninka kamar ban ruwa. Bututun bututun rufewa da kansa yana adana wani kashi 20%.",
+    "stat.activity_header": "🔥 AYYUKA · SATI 12 DA SUKA BAYA",
+    "stat.active_days": "{active}/{total} aiki",
+    "stat.saved_gal_vs_ca": "Ajiye {gal} gal vs CA matsakaici",
+    "stat.less": "Kadan",
+    "stat.more": "Kara",
+    "modal.water_cycle": "Zagayen Ruwa",
+    "sim.subtitle": "Yadda ruwa ke kaiwa famfo",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "yo": {
     "tab.home": "Ile",
@@ -16793,7 +17090,16 @@
     "quiz.tip.baths": "Iwe iwẹ sisan-kekere 5-min nlo ~9 gal vs 36 gal fun iwẹ kikun - awọn ifowopamọ 27-gal lẹsẹkẹsẹ fun swap.",
     "quiz.tip.pool_spa": "Ideri adagun-odo ti o rọrun ge evaporation ni idaji - 5,000+ gal / ọdun ti o fipamọ ni akoko gbigbẹ California. Ṣayẹwo nigbagbogbo fun awọn n jo; kódà kékeré kan ńfi ẹgbẹẹgbẹ̀rún ṣòfò.",
     "quiz.tip.car_wash": "Awọn fifọ ọkọ ayọkẹlẹ ti iṣowo tunlo 70%+ ti omi wọn - fifọ okun ile kan lo diẹ sii ju awọn abẹwo iṣowo 5 lọ.",
-    "quiz.tip.pet_care": "Wẹ awọn ohun ọsin ni ita lori patch ti koriko ti ongbẹ - ayangbehin naa ṣe ilọpo meji bi irigeson. Opo okun ti o tiipa ti ara ẹni fi 20% miiran pamọ."
+    "quiz.tip.pet_care": "Wẹ awọn ohun ọsin ni ita lori patch ti koriko ti ongbẹ - ayangbehin naa ṣe ilọpo meji bi irigeson. Opo okun ti o tiipa ti ara ẹni fi 20% miiran pamọ.",
+    "stat.activity_header": "🔥 ISE · OSE 12 TO koja",
+    "stat.active_days": "{active}/{total} nṣiṣẹ",
+    "stat.saved_gal_vs_ca": "Ti fipamọ {gal} gal vs CA apapọ",
+    "stat.less": "Ti o kere",
+    "stat.more": "siwaju sii",
+    "modal.water_cycle": "Omi Ayika",
+    "sim.subtitle": "Bawo ni omi ṣe de ọdọ tẹ ni kia kia rẹ",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "ig": {
     "tab.home": "Ụlọ",
@@ -17287,7 +17593,16 @@
     "quiz.tip.baths": "Igwe ịsa ahụ dị obere nkeji 5 na-eji ~ 9 gal vs 36 gal maka tub zuru ezu - nchekwa 27-gal ozugbo kwa swap.",
     "quiz.tip.pool_spa": "Ihe mkpuchi ọdọ mmiri dị mfe na-egbutu evaporation na ọkara - 5,000 gal / afọ echekwara na oge ọkọchị California. Lelee mgbe niile maka ntapu; ọbụlagodi nke nta na-emebi ọtụtụ puku mmadụ.",
     "quiz.tip.car_wash": "Ụgbọ ala azụmahịa na-asagharị 70%+ nke mmiri ha - otu ịsacha ụlọ na-eji ihe karịrị nleta azụmahịa ise.",
-    "quiz.tip.pet_care": "Na-asa anụ ụlọ n'èzí n'elu ahịhịa ahịhịa nke akpịrị na-akpọ nkụ - mmiri na-agbapụta okpukpu abụọ ka mmiri. Igwe ikuku na-emechi onwe ya na-echekwa 20% ọzọ."
+    "quiz.tip.pet_care": "Na-asa anụ ụlọ n'èzí n'elu ahịhịa ahịhịa nke akpịrị na-akpọ nkụ - mmiri na-agbapụta okpukpu abụọ ka mmiri. Igwe ikuku na-emechi onwe ya na-echekwa 20% ọzọ.",
+    "stat.activity_header": "🔥 Ọrụ · izu iri na abụọ gara aga",
+    "stat.active_days": "{active}/{total} nọ n'ọrụ",
+    "stat.saved_gal_vs_ca": "Echekwara {gal} gal vs CA n'ozuzu",
+    "stat.less": "Mpekarị",
+    "stat.more": "Ọzọ",
+    "modal.water_cycle": "Usoro mmiri",
+    "sim.subtitle": "Kedu ka mmiri si erute mgbata gị",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️San Joaquin Co., Ltd."
   },
   "ne": {
     "tab.home": "घर",
@@ -17781,7 +18096,16 @@
     "quiz.tip.baths": "5-मिनेट कम-फ्लो शावरले पूर्ण टबको लागि ~9 ग्याल बनाम 36 ग्याल प्रयोग गर्दछ — प्रति स्वैप तत्काल 27-ग्याल बचत।",
     "quiz.tip.pool_spa": "एउटा साधारण पोखरी कभरले वाष्पीकरणलाई आधामा घटाउँछ — क्यालिफोर्नियाको सुख्खा मौसममा ५,०००+ ग्याल/वर्ष बचत हुन्छ। सधैं चुहावट लागि जाँच; एउटा सानोले पनि हजारौं बर्बाद गर्छ।",
     "quiz.tip.car_wash": "व्यावसायिक कार धुनेहरूले तिनीहरूको पानीको 70%+ रिसाइकल गर्दछ — एउटा घरको नली धुनेले 5 भन्दा बढी व्यावसायिक भ्रमणहरू प्रयोग गर्दछ।",
-    "quiz.tip.pet_care": "घरपालुवा जनावरहरूलाई बाहिर घाँसको तिर्खाएको प्याचमा नुहाउनुहोस् - सिंचाईको रूपमा बहाव दोब्बर हुन्छ। सेल्फ-शटअफ नली नोजलले अर्को २०% बचत गर्छ।"
+    "quiz.tip.pet_care": "घरपालुवा जनावरहरूलाई बाहिर घाँसको तिर्खाएको प्याचमा नुहाउनुहोस् - सिंचाईको रूपमा बहाव दोब्बर हुन्छ। सेल्फ-शटअफ नली नोजलले अर्को २०% बचत गर्छ।",
+    "stat.activity_header": "🔥 गतिविधि · पछिल्लो १२ हप्ता",
+    "stat.active_days": "{active}/{total} सक्रिय",
+    "stat.saved_gal_vs_ca": "बचत गरिएको {gal} gal vs CA औसत",
+    "stat.less": "कम",
+    "stat.more": "थप",
+    "modal.water_cycle": "पानी चक्र",
+    "sim.subtitle": "कसरी पानी तपाईंको धारामा पुग्छ",
+    "sim.scope_state": "🌎 क्यालिफोर्निया",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "si": {
     "tab.home": "නිවස",
@@ -18275,7 +18599,16 @@
     "quiz.tip.baths": "මිනිත්තු 5 ක අඩු ප්‍රවාහ ස්නානයක් සම්පූර්ණ ටබ් එකක් සඳහා ~9 gal vs 36 gal භාවිතා කරයි - හුවමාරුවකට ක්ෂණික-ගල් 27 ඉතුරුම්.",
     "quiz.tip.pool_spa": "සරල තටාක ආවරණයක් වාෂ්පීකරණය අඩකින් කපා දමයි - කැලිෆෝනියාවේ වියළි සමයේදී වසරකට ගැල් 5,000+ ඉතිරි වේ. සෑම විටම කාන්දුවීම් සඳහා පරීක්ෂා කරන්න; කුඩා එකක් පවා දහස් ගණනක් නාස්ති කරයි.",
     "quiz.tip.car_wash": "වාණිජ කාර් වොෂ් ඔවුන්ගේ ජලයෙන් 70%+ ප්‍රතිචක්‍රීකරණය කරයි - තනි හෝස් හෝස් වොෂ් වාණිජ චාරිකා 5කට වඩා භාවිතා කරයි.",
-    "quiz.tip.pet_care": "පිපාසයෙන් පෙළෙන තණකොළ මත සුරතල් සතුන් එළිමහනේ ස්නානය කරන්න - ගලා යාම වාරිමාර්ග ලෙස දෙගුණ කරයි. ස්වයං-වසා දැමීමේ හෝස් තුණ්ඩයක් තවත් 20% ක් ඉතිරි කරයි."
+    "quiz.tip.pet_care": "පිපාසයෙන් පෙළෙන තණකොළ මත සුරතල් සතුන් එළිමහනේ ස්නානය කරන්න - ගලා යාම වාරිමාර්ග ලෙස දෙගුණ කරයි. ස්වයං-වසා දැමීමේ හෝස් තුණ්ඩයක් තවත් 20% ක් ඉතිරි කරයි.",
+    "stat.activity_header": "🔥 ක්‍රියාකාරකම් · පසුගිය සති 12",
+    "stat.active_days": "{active}/{total} සක්‍රීය",
+    "stat.saved_gal_vs_ca": "සුරකින ලද {gal} gal එදිරිව CA සාමාන්‍යය",
+    "stat.less": "අඩු",
+    "stat.more": "තව",
+    "modal.water_cycle": "ජල චක්රය",
+    "sim.subtitle": "ඔබේ ටැප් එකට ජලය ලැබෙන ආකාරය",
+    "sim.scope_state": "🌎 කැලිෆෝනියාව",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "km": {
     "tab.home": "ផ្ទះ",
@@ -18769,7 +19102,16 @@
     "quiz.tip.baths": "ផ្កាឈូកដែលមានលំហូរទាបរយៈពេល 5 នាទីប្រើ ~ 9 gal ទល់នឹង 36 gal សម្រាប់អាងពេញលេញ — ការសន្សំ 27-gal ភ្លាមៗក្នុងមួយការផ្លាស់ប្តូរ។",
     "quiz.tip.pool_spa": "គម្របអាងសាមញ្ញកាត់បន្ថយការហួតជាពាក់កណ្តាល — 5,000+ ហ្គាល/ឆ្នាំត្រូវបានរក្សាទុកក្នុងរដូវប្រាំងរបស់រដ្ឋកាលីហ្វ័រញ៉ា។ ពិនិត្យមើលការលេចធ្លាយជានិច្ច; សូម្បីតែតូចមួយក៏ខ្ជះខ្ជាយរាប់ពាន់ដែរ។",
     "quiz.tip.car_wash": "ការលាងរថយន្តពាណិជ្ជកម្មកែច្នៃឡើងវិញ 70%+ នៃទឹករបស់ពួកគេ — ការលាងបំពង់ផ្ទះតែមួយប្រើការចូលមើលពាណិជ្ជកម្មច្រើនជាង 5 ដង។",
-    "quiz.tip.pet_care": "ងូតទឹកសត្វចិញ្ចឹមនៅខាងក្រៅនៅលើស្មៅស្រេក—ទឹកហូរកើនឡើងទ្វេដងដូចប្រព័ន្ធធារាសាស្រ្ត។ ក្បាលទុយោបិទដោយខ្លួនឯង សន្សំបាន 20% ទៀត។"
+    "quiz.tip.pet_care": "ងូតទឹកសត្វចិញ្ចឹមនៅខាងក្រៅនៅលើស្មៅស្រេក—ទឹកហូរកើនឡើងទ្វេដងដូចប្រព័ន្ធធារាសាស្រ្ត។ ក្បាលទុយោបិទដោយខ្លួនឯង សន្សំបាន 20% ទៀត។",
+    "stat.activity_header": "🔥 សកម្មភាព · 12 សប្តាហ៍ចុងក្រោយ",
+    "stat.active_days": "{active}/{total} សកម្ម",
+    "stat.saved_gal_vs_ca": "បានរក្សាទុក {gal} gal vs CA ជាមធ្យម",
+    "stat.less": "តិច",
+    "stat.more": "ច្រើនទៀត",
+    "modal.water_cycle": "វដ្តទឹក។",
+    "sim.subtitle": "របៀបដែលទឹកទៅដល់ម៉ាស៊ីនរបស់អ្នក។",
+    "sim.scope_state": "🌎 កាលីហ្វ័រញ៉ា",
+    "sim.scope_local": "🏘️ ក្រុមហ៊ុន San Joaquin Co."
   },
   "lo": {
     "tab.home": "ບ້ານ",
@@ -19263,7 +19605,16 @@
     "quiz.tip.baths": "ອາບນໍ້າໄຫຼຕໍ່າ 5 ນາທີໃຊ້ ~9 gal vs 36 gal ສໍາລັບອ່າງເຕັມ — ປະຫຍັດ 27-gal ທັນທີຕໍ່ swap.",
     "quiz.tip.pool_spa": "ການປົກຫຸ້ມຂອງສະລອຍນ້ຳແບບງ່າຍໆຈະຕັດການລະເຫີຍອອກເປັນເຄິ່ງໜຶ່ງ — 5,000+ gal/ປີ ທີ່ບັນທຶກໄວ້ໃນລະດູແລ້ງຂອງຄາລິຟໍເນຍ. ສະເຫມີກວດເບິ່ງການຮົ່ວໄຫຼ; ແມ້ແຕ່ໂຕນ້ອຍໆກໍ່ເສຍເງິນຫຼາຍພັນຄົນ.",
     "quiz.tip.car_wash": "ການລ້າງລົດເພື່ອການຄ້າ 70%+ ຂອງນ້ໍາຂອງພວກເຂົາ - ການລ້າງທໍ່ເຮືອນດຽວໃຊ້ຫຼາຍກວ່າ 5 ການຢ້ຽມຢາມທາງການຄ້າ.",
-    "quiz.tip.pet_care": "ອາບນ້ຳສັດລ້ຽງຢູ່ຂ້າງນອກເທິງຫຍ້າທີ່ຫິວນ້ຳ — ນ້ຳໄຫຼເພີ່ມຂຶ້ນສອງເທົ່າເມື່ອຊົນລະປະທານ. ທໍ່ທໍ່ປິດຕົນເອງຊ່ວຍປະຫຍັດໄດ້ອີກ 20%."
+    "quiz.tip.pet_care": "ອາບນ້ຳສັດລ້ຽງຢູ່ຂ້າງນອກເທິງຫຍ້າທີ່ຫິວນ້ຳ — ນ້ຳໄຫຼເພີ່ມຂຶ້ນສອງເທົ່າເມື່ອຊົນລະປະທານ. ທໍ່ທໍ່ປິດຕົນເອງຊ່ວຍປະຫຍັດໄດ້ອີກ 20%.",
+    "stat.activity_header": "🔥 ກິດຈະກໍາ · 12 ອາທິດທີ່ຜ່ານມາ",
+    "stat.active_days": "{active}/{total} ເຄື່ອນໄຫວຢູ່",
+    "stat.saved_gal_vs_ca": "ບັນທຶກ {gal} gal vs CA avg",
+    "stat.less": "ຫນ້ອຍ",
+    "stat.more": "ເພີ່ມເຕີມ",
+    "modal.water_cycle": "ວົງຈອນນ້ໍາ",
+    "sim.subtitle": "ນໍ້າຮອດທໍ່ຂອງເຈົ້າແນວໃດ",
+    "sim.scope_state": "🌎 ຄາລິຟໍເນຍ",
+    "sim.scope_local": "🏘️ ບໍລິສັດ San Joaquin"
   },
   "mn": {
     "tab.home": "Гэр",
@@ -19757,7 +20108,16 @@
     "quiz.tip.baths": "5 минутын бага урсгалтай шүршүүрт бүтэн ваннд ~9 галл ба 36 галл зарцуулдаг бөгөөд нэг солиход шууд 27 галл хэмнэнэ.",
     "quiz.tip.pool_spa": "Энгийн усан сангийн бүрээс нь ууршилтыг хоёр дахин бууруулдаг - Калифорнийн хуурай улиралд жилд 5,000 галл. Үргэлж гоожиж байгаа эсэхийг шалгах; өчүүхэн ч гэсэн хэдэн мянгаараа үрдэг.",
     "quiz.tip.car_wash": "Арилжааны машин угаалгын газрууд усныхаа 70 гаруй хувийг дахин боловсруулдаг. Гэрийн нэг хоолой угаахад 5-аас дээш удаа угаалга хийдэг.",
-    "quiz.tip.pet_care": "Гэрийн тэжээвэр амьтдыг гадаа өвсөн дээр угаана - урсац нь усалгааны үүрэг гүйцэтгэдэг. Өөрөө хаагддаг хоолойн цорго нь өөр 20% хэмнэнэ."
+    "quiz.tip.pet_care": "Гэрийн тэжээвэр амьтдыг гадаа өвсөн дээр угаана - урсац нь усалгааны үүрэг гүйцэтгэдэг. Өөрөө хаагддаг хоолойн цорго нь өөр 20% хэмнэнэ.",
+    "stat.activity_header": "🔥 ҮЙЛ АЖИЛЛАГАА · СҮҮЛИЙН 12 ДОЛООН ХОНОГ",
+    "stat.active_days": "{active}/{total} идэвхтэй",
+    "stat.saved_gal_vs_ca": "{gal} гал болон CA дундаж хэмнэв",
+    "stat.less": "бага",
+    "stat.more": "илүү",
+    "modal.water_cycle": "Усны эргэлт",
+    "sim.subtitle": "Ус таны цорго руу хэрхэн хүрдэг",
+    "sim.scope_state": "🌎 Калифорниа",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "ka": {
     "tab.home": "მთავარი",
@@ -20251,7 +20611,16 @@
     "quiz.tip.baths": "5-წუთიანი დაბალი დინების შხაპი იყენებს ~ 9 გალ 36 გალარს სრული აბაზანისთვის — მყისიერი 27-გალარი დანაზოგი თითო გაცვლაზე.",
     "quiz.tip.pool_spa": "აუზის მარტივი საფარი ამცირებს აორთქლებას ორჯერ - 5000+ გალი/წელიწადში დაზოგილი კალიფორნიის მშრალ სეზონში. ყოველთვის შეამოწმეთ გაჟონვა; პატარაც კი ათასს ხარჯავს.",
     "quiz.tip.car_wash": "კომერციული ავტოსამრეცხაოები ამუშავებენ წყლის 70%-ზე მეტს — სახლის შლანგის ერთჯერადი რეცხვა 5-ზე მეტ კომერციულ ვიზიტს იყენებს.",
-    "quiz.tip.pet_care": "დაიბანეთ შინაური ცხოველები გარეთ, მწყურვალ ბალახზე - ჩამონადენი ორმაგდება სარწყავად. თვითგამორთვის შლანგის საქშენი ზოგავს კიდევ 20%-ს."
+    "quiz.tip.pet_care": "დაიბანეთ შინაური ცხოველები გარეთ, მწყურვალ ბალახზე - ჩამონადენი ორმაგდება სარწყავად. თვითგამორთვის შლანგის საქშენი ზოგავს კიდევ 20%-ს.",
+    "stat.activity_header": "🔥 აქტივობა · ბოლო 12 კვირა",
+    "stat.active_days": "{active}/{total} აქტიური",
+    "stat.saved_gal_vs_ca": "შენახულია {gal} გალი vs CA საშ",
+    "stat.less": "ნაკლები",
+    "stat.more": "მეტი",
+    "modal.water_cycle": "წყლის ციკლი",
+    "sim.subtitle": "როგორ აღწევს წყალი თქვენს ონკანში",
+    "sim.scope_state": "🌎 კალიფორნია",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "hy": {
     "tab.home": "Տուն",
@@ -20745,7 +21114,16 @@
     "quiz.tip.baths": "5 րոպե ցածր հոսքի ցնցուղը օգտագործում է ~ 9 գալ ընդդեմ 36 գալարի լիքը լոգարանի համար՝ 27 գալարի ակնթարթային խնայողություն մեկ փոխանակման համար:",
     "quiz.tip.pool_spa": "Լողավազանի պարզ ծածկույթը կիսով չափ կրճատում է գոլորշիացումը՝ տարեկան 5000+ գալարի խնայողություն Կալիֆորնիայի չոր սեզոնում: Միշտ ստուգեք արտահոսքի համար; նույնիսկ փոքրը հազարներ է վատնում:",
     "quiz.tip.car_wash": "Առևտրային ավտոլվացման կետերը վերամշակում են իրենց ջրի 70%-ը. մեկ տնային գուլպաների լվացման համար օգտագործվում է ավելի քան 5 առևտրային այցելություն:",
-    "quiz.tip.pet_care": "Լողացրեք ընտանի կենդանիներին դրսում ծարավ խոտի վրա. արտահոսքը կրկնապատկվում է որպես ոռոգում: Ինքնանջատվող գուլպաների վարդակը խնայում է ևս 20%:"
+    "quiz.tip.pet_care": "Լողացրեք ընտանի կենդանիներին դրսում ծարավ խոտի վրա. արտահոսքը կրկնապատկվում է որպես ոռոգում: Ինքնանջատվող գուլպաների վարդակը խնայում է ևս 20%:",
+    "stat.activity_header": "🔥 ԳՈՐԾՈՒՆԵՈՒԹՅՈՒՆ · ՎԵՐՋԻՆ 12 ՇԱԲԱԹՆԵՐԸ",
+    "stat.active_days": "{active}/{total} ակտիվ",
+    "stat.saved_gal_vs_ca": "Պահված {gal} գալ ընդդեմ CA միջին",
+    "stat.less": "ավելի քիչ",
+    "stat.more": "ավելին",
+    "modal.water_cycle": "Ջրի ցիկլ",
+    "sim.subtitle": "Ինչպես է ջուրը հասնում ձեր ծորակին",
+    "sim.scope_state": "🌎 Կալիֆորնիա",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "el": {
     "tab.home": "Σπίτι",
@@ -21239,7 +21617,16 @@
     "quiz.tip.baths": "Ένα ντους χαμηλής ροής 5 λεπτών χρησιμοποιεί ~9 gal έναντι 36 gal για μια γεμάτη μπανιέρα — στιγμιαία εξοικονόμηση 27 gal ανά ανταλλαγή.",
     "quiz.tip.pool_spa": "Ένα απλό κάλυμμα πισίνας μειώνει την εξάτμιση στο μισό — εξοικονομούνται 5.000+ γαλόνια/έτος την ξηρή περίοδο της Καλιφόρνια. Ελέγχετε πάντα για διαρροές. ακόμα και ένα μικρό σπαταλά χιλιάδες.",
     "quiz.tip.car_wash": "Τα επαγγελματικά πλυντήρια αυτοκινήτων ανακυκλώνουν το 70%+ του νερού τους — ένα απλό πλύσιμο σωλήνων στο σπίτι χρησιμοποιεί περισσότερες από 5 εμπορικές επισκέψεις.",
-    "quiz.tip.pet_care": "Λούστε τα κατοικίδια ζώα σε εξωτερικούς χώρους σε ένα διψασμένο κομμάτι γρασίδι - η απορροή διπλασιάζεται ως άρδευση. Ένα ακροφύσιο εύκαμπτου σωλήνα αυτόματης απενεργοποίησης εξοικονομεί άλλο 20%."
+    "quiz.tip.pet_care": "Λούστε τα κατοικίδια ζώα σε εξωτερικούς χώρους σε ένα διψασμένο κομμάτι γρασίδι - η απορροή διπλασιάζεται ως άρδευση. Ένα ακροφύσιο εύκαμπτου σωλήνα αυτόματης απενεργοποίησης εξοικονομεί άλλο 20%.",
+    "stat.activity_header": "🔥 ΔΡΑΣΤΗΡΙΟΤΗΤΑ · ΤΕΛΕΥΤΑΙΕΣ 12 ΕΒΔΟΜΑΔΕΣ",
+    "stat.active_days": "{active}/{total} ενεργό",
+    "stat.saved_gal_vs_ca": "Αποθηκευμένα {gal} gal έναντι μέσου όρου CA",
+    "stat.less": "μείον",
+    "stat.more": "περισσότερο",
+    "modal.water_cycle": "Κύκλος νερού",
+    "sim.subtitle": "Πώς φτάνει το νερό στη βρύση σας",
+    "sim.scope_state": "🌎 Καλιφόρνια",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "cs": {
     "tab.home": "Domov",
@@ -21733,7 +22120,16 @@
     "quiz.tip.baths": "5minutová sprcha s nízkým průtokem spotřebuje ~9 gal oproti 36 gal na plnou vanu – okamžitá úspora 27 gal na výměnu.",
     "quiz.tip.pool_spa": "Jednoduchý kryt bazénu snižuje odpařování na polovinu – 5 000+ gal/rok ušetřených v období sucha v Kalifornii. Vždy zkontrolujte těsnost; i malý utrácí tisíce.",
     "quiz.tip.car_wash": "Komerční myčky aut recyklují více než 70 % své vody – na jedno mytí hadice v domácnosti se spotřebuje více než 5 komerčních návštěv.",
-    "quiz.tip.pet_care": "Koupat domácí mazlíčky venku na žíznivém travnatém plácku – odtok slouží jako zavlažování. Samouzavírací hadicová tryska ušetří dalších 20 %."
+    "quiz.tip.pet_care": "Koupat domácí mazlíčky venku na žíznivém travnatém plácku – odtok slouží jako zavlažování. Samouzavírací hadicová tryska ušetří dalších 20 %.",
+    "stat.activity_header": "🔥 AKTIVITA · POSLEDNÍCH 12 TÝDNŮ",
+    "stat.active_days": "{active}/{total} aktivní",
+    "stat.saved_gal_vs_ca": "Ušetřeno {gal} gal vs. CA prům",
+    "stat.less": "méně",
+    "stat.more": "více",
+    "modal.water_cycle": "Vodní cyklus",
+    "sim.subtitle": "Jak se voda dostává do vašeho kohoutku",
+    "sim.scope_state": "🌎 Kalifornie",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "hu": {
     "tab.home": "Otthon",
@@ -22227,7 +22623,16 @@
     "quiz.tip.baths": "Az 5 perces, alacsony vízfolyású zuhany ~9 galériát használ, szemben a 36 galériás káddal – azonnali 27 gallon megtakarítás cserénként.",
     "quiz.tip.pool_spa": "Egy egyszerű medencefedés felére csökkenti a párolgást – évente több mint 5000 gallont takarít meg a kaliforniai száraz évszakban. Mindig ellenőrizze a szivárgást; egy kicsi is ezreket pazarol.",
     "quiz.tip.car_wash": "A kereskedelmi autómosók a víz több mint 70%-át újrahasznosítják – egyetlen otthoni tömlőmosás több mint 5 kereskedelmi látogatást igényel.",
-    "quiz.tip.pet_care": "Fürdesse meg háziállatait a szabadban egy szomjas füves helyen – a lefolyás öntözésként is szolgál. Az önelzáró tömlőfúvóka további 20%-ot takarít meg."
+    "quiz.tip.pet_care": "Fürdesse meg háziállatait a szabadban egy szomjas füves helyen – a lefolyás öntözésként is szolgál. Az önelzáró tömlőfúvóka további 20%-ot takarít meg.",
+    "stat.activity_header": "🔥 TEVÉKENYSÉG · ELMÚLT 12 HÉT",
+    "stat.active_days": "{active}/{total} aktív",
+    "stat.saved_gal_vs_ca": "Mentett {gal} gal vs CA átl",
+    "stat.less": "kevesebb",
+    "stat.more": "több",
+    "modal.water_cycle": "Vízciklus",
+    "sim.subtitle": "Hogyan éri el a víz a csapot",
+    "sim.scope_state": "🌎 Kalifornia",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "sv": {
     "tab.home": "Hem",
@@ -22721,7 +23126,16 @@
     "quiz.tip.baths": "En 5-minuters lågflödesdusch använder ~9 gal vs 36 gal för ett fullt badkar - omedelbara 27-gal besparingar per byte.",
     "quiz.tip.pool_spa": "Ett enkelt poolskydd halverar avdunstningen - 5 000+ gal/år sparas under Kaliforniens torrperiod. Kontrollera alltid för läckor; även en liten slösar bort tusentals.",
     "quiz.tip.car_wash": "Kommersiella biltvättar återvinner 70 %+ av sitt vatten – en enda hemmaslangtvätt använder mer än 5 kommersiella besök.",
-    "quiz.tip.pet_care": "Bada husdjur utomhus på ett törstigt gräs - avrinningen fungerar också som bevattning. Ett självavstängande slangmunstycke sparar ytterligare 20 %."
+    "quiz.tip.pet_care": "Bada husdjur utomhus på ett törstigt gräs - avrinningen fungerar också som bevattning. Ett självavstängande slangmunstycke sparar ytterligare 20 %.",
+    "stat.activity_header": "🔥 AKTIVITET · SENASTE 12 VECKOR",
+    "stat.active_days": "{active}/{total} aktiv",
+    "stat.saved_gal_vs_ca": "Sparade {gal} gal vs CA avg",
+    "stat.less": "mindre",
+    "stat.more": "mer",
+    "modal.water_cycle": "Vattenkretslopp",
+    "sim.subtitle": "Hur vattnet når din kran",
+    "sim.scope_state": "🌎 Kalifornien",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "fi": {
     "tab.home": "Kotiin",
@@ -23215,7 +23629,16 @@
     "quiz.tip.baths": "5 minuutin matalavirtaussuihku kuluttaa noin 9 gallia verrattuna 36 galleriin täyteen kylpyammeeseen – välitön 27 gallerian säästö vaihtoa kohden.",
     "quiz.tip.pool_spa": "Yksinkertainen uima-altaan kansi puolittaa haihtumisen – yli 5 000 gallia vuodessa Kalifornian kuivana aikana. Tarkista aina vuodot; pienikin hukkaa tuhansia.",
     "quiz.tip.car_wash": "Kaupalliset autopesut kierrättävät yli 70 % vedestään – yksittäinen kotiletkupesu vaatii yli 5 kaupallista käyntiä.",
-    "quiz.tip.pet_care": "Ui lemmikkejä ulkona janoisella ruohopaikalla – valuma toimii kasteluna. Itsesulkeutuva letkusuutin säästää vielä 20 %."
+    "quiz.tip.pet_care": "Ui lemmikkejä ulkona janoisella ruohopaikalla – valuma toimii kasteluna. Itsesulkeutuva letkusuutin säästää vielä 20 %.",
+    "stat.activity_header": "🔥 AKTIIVISUUS · VIIMEISET 12 VIIKKOA",
+    "stat.active_days": "{active}/{total} aktiivinen",
+    "stat.saved_gal_vs_ca": "Tallennettu {gal} gal vs CA avg",
+    "stat.less": "Vähemmän",
+    "stat.more": "lisää",
+    "modal.water_cycle": "Vesikierto",
+    "sim.subtitle": "Miten vesi pääsee hanaan",
+    "sim.scope_state": "🌎 Kalifornia",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "no": {
     "tab.home": "Hjem",
@@ -23709,7 +24132,16 @@
     "quiz.tip.baths": "En 5-minutters lavstrømsdusj bruker ~9 gal vs 36 gal for et fullt badekar - umiddelbare 27-gal besparelser per bytte.",
     "quiz.tip.pool_spa": "Et enkelt bassengdeksel halverer fordampningen - 5000+ gal/år spart i Californias tørre sesong. Sjekk alltid for lekkasjer; selv en liten kaster bort tusenvis.",
     "quiz.tip.car_wash": "Kommersielle bilvaskerier resirkulerer 70 %+ av vannet sitt – én enkelt hjemmeslangevask bruker mer enn 5 kommersielle besøk.",
-    "quiz.tip.pet_care": "Bad kjæledyr utendørs på en tørst gressflekk - avrenningen fungerer også som vanning. Et selvstengende slangemunnstykke sparer ytterligere 20 %."
+    "quiz.tip.pet_care": "Bad kjæledyr utendørs på en tørst gressflekk - avrenningen fungerer også som vanning. Et selvstengende slangemunnstykke sparer ytterligere 20 %.",
+    "stat.activity_header": "🔥 AKTIVITET · SISTE 12 UKER",
+    "stat.active_days": "{active}/{total} aktiv",
+    "stat.saved_gal_vs_ca": "Lagret {gal} gal vs CA gj.sn",
+    "stat.less": "mindre",
+    "stat.more": "flere",
+    "modal.water_cycle": "Vann syklus",
+    "sim.subtitle": "Hvordan vannet når springen din",
+    "sim.scope_state": "🌎 California",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "he": {
     "tab.home": "בַּיִת",
@@ -24203,7 +24635,16 @@
     "quiz.tip.baths": "מקלחת עם זרימה נמוכה של 5 דקות משתמשת ב-9 ג'ל מול 36 ג'ל עבור אמבטיה מלאה - חיסכון מיידי של 27 גל' להחלפה.",
     "quiz.tip.pool_spa": "כיסוי בריכה פשוט חותך את האידוי בחצי - 5,000+ גל לשנה נחסך בעונה היבשה של קליפורניה. בדוק תמיד אם יש דליפות; אפילו קטן מבזבז אלפים.",
     "quiz.tip.car_wash": "שטיפת מכוניות מסחריות ממחזרות 70%+ מהמים שלהן - שטיפת צינור ביתית אחת מצריכה יותר מ-5 ביקורים מסחריים.",
-    "quiz.tip.pet_care": "לרחוץ חיות מחמד בחוץ על חלקת דשא צמא - הנגר משמש כהשקיה. פיית צינור לכיבוי עצמי חוסכת עוד 20%."
+    "quiz.tip.pet_care": "לרחוץ חיות מחמד בחוץ על חלקת דשא צמא - הנגר משמש כהשקיה. פיית צינור לכיבוי עצמי חוסכת עוד 20%.",
+    "stat.activity_header": "🔥 פעילות · 12 השבועות האחרונים",
+    "stat.active_days": "{active}/{total} פעיל",
+    "stat.saved_gal_vs_ca": "נשמר {gal} גל לעומת ממוצע CA",
+    "stat.less": "פָּחוֹת",
+    "stat.more": "יוֹתֵר",
+    "modal.water_cycle": "מחזור מים",
+    "sim.subtitle": "איך המים מגיעים לברז שלך",
+    "sim.scope_state": "🌎 קליפורניה",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   },
   "da": {
     "tab.home": "Hjem",
@@ -24697,6 +25138,15 @@
     "quiz.tip.baths": "En 5-minutters lavstrømsbruser bruger ~9 gal vs 36 gal for et fuldt badekar - øjeblikkelige 27-gal besparelser pr. swap.",
     "quiz.tip.pool_spa": "Et simpelt pooldæksel halverer fordampningen - 5.000+ gal/år sparet i Californiens tørre sæson. Kontroller altid for utætheder; selv en lille spilder tusindvis.",
     "quiz.tip.car_wash": "Kommercielle bilvaskeanlæg genbruger 70 %+ af deres vand - en enkelt hjemmeslangevask bruger mere end 5 kommercielle besøg.",
-    "quiz.tip.pet_care": "Bad kæledyr udendørs på en tørstig plet græs - afstrømningen fungerer også som kunstvanding. En selvlukkende slangedyse sparer yderligere 20 %."
+    "quiz.tip.pet_care": "Bad kæledyr udendørs på en tørstig plet græs - afstrømningen fungerer også som kunstvanding. En selvlukkende slangedyse sparer yderligere 20 %.",
+    "stat.activity_header": "🔥 ACTIVITY · LAST 12 WEEKS",
+    "stat.active_days": "{active}/{total} aktiv",
+    "stat.saved_gal_vs_ca": "Saved {gal} gal vs CA avg",
+    "stat.less": "mindre",
+    "stat.more": "mere",
+    "modal.water_cycle": "Vandets kredsløb",
+    "sim.subtitle": "How water reaches your tap",
+    "sim.scope_state": "🌎 Californien",
+    "sim.scope_local": "🏘️ San Joaquin Co."
   }
 }

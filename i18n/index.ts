@@ -494,6 +494,19 @@ export const STRINGS = {
   "onb.saving": "Saving…",
   "onb.start_saving": "Start Saving Water",
 
+  // stats heatmap
+  "stat.activity_header": "🔥 ACTIVITY · LAST 12 WEEKS",
+  "stat.active_days": "{active}/{total} active",
+  "stat.saved_gal_vs_ca": "Saved {gal} gal vs CA avg",
+  "stat.less": "less",
+  "stat.more": "more",
+
+  // water cycle / simulation
+  "modal.water_cycle": "Water Cycle",
+  "sim.subtitle": "How water reaches your tap",
+  "sim.scope_state": "🌎 California",
+  "sim.scope_local": "🏘️ San Joaquin Co.",
+
   // quiz breakdown categories
   "quiz.cat.showers": "Showers",
   "quiz.cat.toilet": "Toilet",

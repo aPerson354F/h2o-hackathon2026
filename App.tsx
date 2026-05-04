@@ -4734,6 +4734,8 @@ function heatmapColor(saved: number, total: number, max: number): string {
 }
 
 function ActivityHeatmap() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [grid, setGrid] = useState<
     { date: string; total: number; saved: number }[]
   >([]);
@@ -4810,10 +4812,10 @@ function ActivityHeatmap() {
             letterSpacing: 1,
           }}
         >
-          🔥 ACTIVITY · LAST 12 WEEKS
+          {t("stat.activity_header")}
         </Text>
         <Text style={{ color: C.muted, fontSize: 10 }}>
-          {activeDays}/{HM_DAYS} active
+          {t("stat.active_days", { active: activeDays, total: HM_DAYS })}
         </Text>
       </View>
       <Svg width={width} height={height}>
@@ -4842,10 +4844,10 @@ function ActivityHeatmap() {
         }}
       >
         <Text style={{ color: C.textSoft, fontSize: 11 }}>
-          Saved {totalSaved.toFixed(0)} gal vs CA avg
+          {t("stat.saved_gal_vs_ca", { gal: totalSaved.toFixed(0) })}
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <Text style={{ color: C.muted, fontSize: 10 }}>less</Text>
+          <Text style={{ color: C.muted, fontSize: 10 }}>{t("stat.less")}</Text>
           {HEATMAP_COLORS.map((bg, i) => (
             <View
               key={i}
@@ -4857,7 +4859,7 @@ function ActivityHeatmap() {
               }}
             />
           ))}
-          <Text style={{ color: C.muted, fontSize: 10 }}>more</Text>
+          <Text style={{ color: C.muted, fontSize: 10 }}>{t("stat.more")}</Text>
         </View>
       </View>
     </View>
@@ -8791,6 +8793,8 @@ function SimulationModal({
   visible: boolean;
   onClose: () => void;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const drop = useRef(new Animated.Value(0)).current;
   const [tick, setTick] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -8847,9 +8851,9 @@ function SimulationModal({
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text style={st.modalTitle}>Water Cycle</Text>
+              <Text style={st.modalTitle}>{t("modal.water_cycle")}</Text>
               <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-                How water reaches your tap
+                {t("sim.subtitle")}
               </Text>
             </View>
             <TouchableOpacity
@@ -8868,7 +8872,7 @@ function SimulationModal({
                 style={[st.segBtn, { flex: 1 }, scope === s && st.segBtnActive]}
               >
                 <Text style={[st.segText, scope === s && { color: C.bg }]}>
-                  {s === "state" ? "🌎 California" : "🏘️ San Joaquin Co."}
+                  {s === "state" ? t("sim.scope_state") : t("sim.scope_local")}
                 </Text>
               </Press>
             ))}
