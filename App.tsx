@@ -58,6 +58,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import { useT, LANGUAGES, type Lang } from "./i18n";
 
 const Tab = createBottomTabNavigator();
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -139,6 +140,12 @@ const SHADOW_HERO = Platform.select({
 const GROQ_PROXY_URL =
   process.env.EXPO_PUBLIC_GROQ_PROXY_URL ?? "http://localhost:3000/api/groq";
 
+function langDirective(lang?: Lang): string {
+  if (!lang || lang === "en") return "";
+  const name = LANGUAGES.find((l) => l.code === lang)?.name ?? lang;
+  return ` IMPORTANT: Respond ONLY in ${name}, regardless of what language the user writes in.`;
+}
+
 // ─── TYPES ─────────────────────────────────────────────
 type Notif = {
   id: string;
@@ -159,6 +166,7 @@ type Profile = {
   tipsEnabled: boolean;
   alertsEnabled: boolean;
   onboarded: boolean;
+  lang: Lang;
 };
 
 const DEFAULT_PROFILE: Profile = {
@@ -170,6 +178,7 @@ const DEFAULT_PROFILE: Profile = {
   tipsEnabled: true,
   alertsEnabled: true,
   onboarded: false,
+  lang: "en",
 };
 
 // ─── UNITS ─────────────────────────────────────────────
@@ -180,7 +189,11 @@ const fmtVol = (gallons: number, units: "gal" | "L", digits = 1) =>
     : `${galToL(gallons).toFixed(digits)} L`;
 
 // ─── GROQ HELPER ────────────────────────────────────────
-async function askGroq(system: string, user: string): Promise<string> {
+async function askGroq(
+  system: string,
+  user: string,
+  lang?: Lang,
+): Promise<string> {
   try {
     const res = await fetch(GROQ_PROXY_URL, {
       method: "POST",
@@ -190,7 +203,7 @@ async function askGroq(system: string, user: string): Promise<string> {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: system + langDirective(lang) },
           { role: "user", content: user },
         ],
         max_tokens: 600,
@@ -208,6 +221,7 @@ async function askGroqVision(
   system: string,
   prompt: string,
   base64: string,
+  lang?: Lang,
 ): Promise<string> {
   try {
     const res = await fetch(GROQ_PROXY_URL, {
@@ -218,7 +232,7 @@ async function askGroqVision(
       body: JSON.stringify({
         model: "meta-llama/llama-4-scout-17b-16e-instruct",
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: system + langDirective(lang) },
           {
             role: "user",
             content: [
@@ -246,14 +260,23 @@ async function askGroqVision(
 async function askGroqChat(
   messages: { role: string; content: string }[],
   maxTokens = 400,
+  lang?: Lang,
 ): Promise<string> {
   try {
+    const dir = langDirective(lang);
+    const localized =
+      dir && messages[0]?.role === "system"
+        ? [
+            { ...messages[0], content: messages[0].content + dir },
+            ...messages.slice(1),
+          ]
+        : messages;
     const res = await fetch(GROQ_PROXY_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
-        messages,
+        messages: localized,
         max_tokens: maxTokens,
       }),
     });
@@ -3484,6 +3507,7 @@ function AITipCard() {
     const reply = await askGroq(
       "You are a California water-conservation coach. Be friendly, concise, and specific.",
       `Give me ONE personalized water-saving tip for today. ${profile.name ? `My name is ${profile.name}.` : ""} My household has ${profile.household} people. My daily goal is ${profile.goal} gallons. Output 1 actionable sentence (under 35 words) with a relevant emoji.`,
+      profile.lang,
     );
     setTip(reply);
     setLoading(false);
@@ -5154,6 +5178,7 @@ function ConservationReportModal({
 // ─── STATS SCREEN ───────────────────────────────────────
 function StatsScreen() {
   const { profile } = useApp();
+  const t = useT(profile.lang);
   const [weekData, setWeekData] = useState([0, 0, 0, 0, 0, 0, 0]);
   const [refreshing, setRefreshing] = useState(false);
   const [labels, setLabels] = useState(["M", "T", "W", "T", "F", "S", "S"]);
@@ -5218,7 +5243,7 @@ function StatsScreen() {
   return (
     <SafeAreaView style={s.screen} edges={["top"]}>
       <GradientBg height={200} fromColor={C.purple} opacity={0.18} />
-      <ScreenHeader title="Statistics" subtitle="Your week at a glance" />
+      <ScreenHeader title={t("stats.title")} subtitle={t("stats.subtitle")} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -5775,6 +5800,8 @@ const TECH = [
 ];
 
 function LearnScreen() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [tab, setTab] = useState<"status" | "history" | "tech" | "tips">(
     "status",
   );
@@ -5786,6 +5813,7 @@ function LearnScreen() {
     const result = await askGroq(
       "You are a California water news reporter. Be factual, concise, and constructive.",
       `Give me a 3-bullet summary of California's current water situation as of ${LATEST.date}: statewide reservoirs at ${LATEST.reservoir}% capacity, Sierra snowpack at ${LATEST.snowpack}% of the April-1 norm, precipitation at ${LATEST.precip}% of average. Cover (1) what these numbers actually mean, (2) any active conservation mandates, and (3) what residents can do this week. Keep it under 150 words.`,
+      profile.lang,
     );
     setNews(result);
     setLoadingNews(false);
@@ -5794,7 +5822,7 @@ function LearnScreen() {
   return (
     <SafeAreaView style={s.screen} edges={["top"]}>
       <GradientBg height={220} fromColor={C.amber} opacity={0.18} />
-      <ScreenHeader title="Learn" subtitle="History, status, and how to help" />
+      <ScreenHeader title={t("learn.title")} subtitle={t("learn.subtitle")} />
 
       {/* TAB BAR — horizontal-scrollable so labels never clump */}
       <View style={st.tabBarScrollWrap}>
@@ -6308,6 +6336,8 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 function ChatScreen() {
   const insets = useSafeAreaInsets();
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
@@ -6320,11 +6350,11 @@ function ChatScreen() {
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   const QUICK = [
-    "How do I save water in the shower?",
-    "What's causing CA droughts?",
-    "Best drought-tolerant plants?",
-    "How much water does a lawn use?",
-    "Is bottled water bad for the planet?",
+    t("chat.suggest_shower"),
+    t("chat.suggest_drought"),
+    t("chat.suggest_plants"),
+    t("chat.suggest_lawn"),
+    t("chat.suggest_bottled"),
   ];
 
   const send = async (text: string) => {
@@ -6347,6 +6377,7 @@ function ChatScreen() {
         ...newMsgs,
       ],
       400,
+      profile.lang,
     );
     setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     setLoading(false);
@@ -6356,7 +6387,7 @@ function ChatScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
       <GradientBg height={150} fromColor={C.accent} opacity={0.18} />
-      <ScreenHeader title="AI Assistant" subtitle="Ask anything about water" />
+      <ScreenHeader title={t("chat.title")} subtitle={t("chat.subtitle")} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -6489,8 +6520,10 @@ function SettingsModal({
   onClose: () => void;
 }) {
   const { profile, setProfile, clearNotifs } = useApp();
+  const t = useT(profile.lang);
   const [draft, setDraft] = useState<Profile>(profile);
   const [showAbout, setShowAbout] = useState(false);
+  const [showLang, setShowLang] = useState(false);
 
   useEffect(() => {
     setDraft(profile);
@@ -6621,6 +6654,29 @@ function SettingsModal({
               gal/person/day indoor.
             </Text>
 
+            <Text style={st.formLabel}>{t("set.language")}</Text>
+            <Press
+              onPress={() => setShowLang(true)}
+              style={[
+                st.dangerBtn,
+                {
+                  backgroundColor: C.surface2,
+                  borderColor: C.border,
+                  marginBottom: 12,
+                  justifyContent: "space-between",
+                },
+              ]}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="language" size={16} color={C.accent} />
+                <Text style={{ color: C.text, fontWeight: "700", fontSize: 14 }}>
+                  {LANGUAGES.find((l) => l.code === draft.lang)?.native ??
+                    "English"}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={C.muted} />
+            </Press>
+
             {/* NOTIFICATIONS */}
             <Text style={st.settingHeader}>NOTIFICATIONS</Text>
             {[
@@ -6742,6 +6798,85 @@ function SettingsModal({
         </View>
       </KeyboardAvoidingView>
       <AboutModal visible={showAbout} onClose={() => setShowAbout(false)} />
+      <Modal
+        visible={showLang}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowLang(false)}
+      >
+        <View style={st.modalOverlay}>
+          <View style={[st.modalBox, { maxHeight: SH * 0.88 }]}>
+            <View style={st.modalHandle} />
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 14,
+              }}
+            >
+              <Text style={st.modalTitle}>{t("set.language")}</Text>
+              <TouchableOpacity
+                onPress={() => setShowLang(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close" size={22} color={C.muted} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {LANGUAGES.map((l) => {
+                const active = draft.lang === l.code;
+                return (
+                  <Press
+                    key={l.code}
+                    onPress={() => {
+                      setDraft({ ...draft, lang: l.code as Lang });
+                      setShowLang(false);
+                    }}
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      paddingVertical: 12,
+                      paddingHorizontal: 14,
+                      borderRadius: 12,
+                      marginBottom: 6,
+                      backgroundColor: active ? C.accent + "22" : C.surface2,
+                      borderWidth: 1,
+                      borderColor: active ? C.accent : C.border,
+                    }}
+                  >
+                    <View>
+                      <Text
+                        style={{
+                          color: C.text,
+                          fontWeight: "700",
+                          fontSize: 15,
+                        }}
+                      >
+                        {l.native}
+                      </Text>
+                      <Text
+                        style={{ color: C.muted, fontSize: 11, marginTop: 2 }}
+                      >
+                        {l.name}
+                      </Text>
+                    </View>
+                    {active && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color={C.accent}
+                      />
+                    )}
+                  </Press>
+                );
+              })}
+              <View style={{ height: 24 }} />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </Modal>
   );
 }
@@ -12811,6 +12946,8 @@ function MapScreen() {
 type CamMode = "strip" | "pollution" | "footprint" | "landscape";
 
 function CameraScreen() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [mode, setMode] = useState<CamMode>("strip");
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
@@ -12820,7 +12957,7 @@ function CameraScreen() {
   return (
     <SafeAreaView style={s.screen} edges={["top"]}>
       <GradientBg height={200} fromColor={C.emerald} opacity={0.18} />
-      <ScreenHeader title="Camera Tools" subtitle="AI-powered water analysis" />
+      <ScreenHeader title={t("cam.title")} subtitle={t("cam.subtitle")} />
 
       <View style={st.tabBarScrollWrap}>
         <ScrollView
@@ -14794,7 +14931,8 @@ function AchievementsModal({
 
 // ─── ROOT ────────────────────────────────────────────────
 function NavRoot() {
-  const { unreadCount, loaded } = useApp();
+  const { unreadCount, loaded, profile } = useApp();
+  const t = useT(profile.lang);
   const insets = useSafeAreaInsets();
   if (!loaded) {
     return (
@@ -14846,6 +14984,7 @@ function NavRoot() {
           name="Home"
           component={HomeScreen}
           options={{
+            tabBarLabel: t("tab.home"),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="home" color={color} size={size - 4} />
             ),
@@ -14861,6 +15000,7 @@ function NavRoot() {
           name="Log"
           component={LoggerScreen}
           options={{
+            tabBarLabel: t("tab.log"),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="water" color={color} size={size - 4} />
             ),
@@ -14870,6 +15010,7 @@ function NavRoot() {
           name="Map"
           component={MapScreen}
           options={{
+            tabBarLabel: t("tab.map"),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="map" color={color} size={size - 4} />
             ),
@@ -14879,6 +15020,7 @@ function NavRoot() {
           name="Camera"
           component={CameraScreen}
           options={{
+            tabBarLabel: t("tab.camera"),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="camera" color={color} size={size - 4} />
             ),
@@ -14888,6 +15030,7 @@ function NavRoot() {
           name="Stats"
           component={StatsScreen}
           options={{
+            tabBarLabel: t("tab.stats"),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="bar-chart" color={color} size={size - 4} />
             ),
@@ -14897,6 +15040,7 @@ function NavRoot() {
           name="Learn"
           component={LearnScreen}
           options={{
+            tabBarLabel: t("tab.learn"),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="book" color={color} size={size - 4} />
             ),
@@ -14906,6 +15050,7 @@ function NavRoot() {
           name="Chat"
           component={ChatScreen}
           options={{
+            tabBarLabel: t("tab.chat"),
             tabBarIcon: ({ color, size }) => (
               <Ionicons
                 name="chatbubble-ellipses"
