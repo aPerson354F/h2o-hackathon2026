@@ -14037,7 +14037,7 @@ function PollutionView() {
     const sys = `You are an environmental scientist analyzing waste items found in waterways. You must classify the visible item and assess its environmental impact. Output ONLY valid JSON.`;
     const prompt = `Analyze the waste item in this photo. Reply with strict JSON: {"name":"<short name>","emoji":"<single emoji>","biodegradable":<true|false>,"decay":"<estimated decay time, e.g. '450 years' or '2 weeks'>","impact":"<2-sentence environmental impact>","source":"<1-sentence likely human source>","confidence":<0-100>}. If the photo isn't a waste item, return {"name":"Not waste","emoji":"❓","biodegradable":false,"decay":"n/a","impact":"This image does not appear to show a waste item.","source":"n/a","confidence":0}.`;
 
-    const reply = await askGroqVision(sys, prompt, img.base64);
+    const reply = await askGroqVision(sys, prompt, img.base64, profile.lang);
     const parsed = tryParseJson<PollutionAnalysis>(reply);
     if (parsed && parsed.name) {
       setItem(parsed);
@@ -14376,7 +14376,7 @@ function FootprintView() {
     const sys = `You are a water-footprint expert. The user shows you an item, and you must estimate the total embedded freshwater used to produce it. Output ONLY valid JSON.`;
     const prompt = `Identify the main item in this photo and estimate its lifecycle water footprint. Reply with strict JSON: {"name":"<item name>","emoji":"<single emoji>","gallons":<number, total US gallons of freshwater used in production>,"breakdown":"<2-sentence explanation of where the water goes>","confidence":<0-100>}. If no clear item, return {"name":"Unknown","emoji":"❓","gallons":0,"breakdown":"Could not identify a clear item.","confidence":0}.`;
 
-    const reply = await askGroqVision(sys, prompt, img.base64);
+    const reply = await askGroqVision(sys, prompt, img.base64, profile.lang);
     const parsed = tryParseJson<FootprintAnalysis>(reply);
     if (parsed && parsed.name && parsed.gallons >= 0) {
       showResult(parsed);
@@ -14846,7 +14846,7 @@ function LandscapeAuditView() {
 Use realistic estimates based on California climate. Include 3-6 plants/features and 3-5 recommendations. If you can't identify a yard, return {"yard_size_sqft_est":0,"current_gallons_yr_est":0,"plants":[],"recommendations":[],"total_potential_savings_gal_yr":0,"summary":"Could not identify a clear outdoor space.","confidence":0}.`;
 
     try {
-      const reply = await askGroqVision(sys, prompt, img.base64);
+      const reply = await askGroqVision(sys, prompt, img.base64, profile.lang);
       const parsed = tryParseJson<LandscapeAnalysis>(reply);
       if (parsed && parsed.summary && parsed.plants) {
         showResult(parsed);
