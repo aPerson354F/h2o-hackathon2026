@@ -1242,6 +1242,36 @@ const STRINGS = {
   "label.note.res_concern": "Approaching emergency-response thresholds.",
 
   "home.share_message": "I'm using H2O to You to conserve water in California 💧 — saved {gal} gallons today and counting! Join me.",
+
+  "act.shower_5min": "Shower (5 min)",
+  "act.bath": "Bath",
+  "act.toilet_flush": "Toilet Flush",
+  "act.brushing_teeth": "Brushing Teeth",
+  "act.dishwasher": "Dishwasher",
+  "act.hand_wash_dishes": "Hand Wash Dishes",
+  "act.washing_machine": "Washing Machine",
+  "act.garden_watering": "Garden Watering",
+  "act.car_wash": "Car Wash",
+  "act.drinking_water": "Drinking Water",
+  "act.pool_refill": "Pool Refill",
+  "act.lawn_sprinkler_1h": "Lawn Sprinkler (1h)",
+
+  "wfn.sierra.label": "Sierra Snowpack",
+  "wfn.sierra.desc": "Source — 30% of CA water",
+  "wfn.shasta.label": "Shasta Lake",
+  "wfn.shasta.desc": "CA's largest reservoir",
+  "wfn.oroville.label": "Lake Oroville",
+  "wfn.oroville.desc": "Start of CA Aqueduct",
+  "wfn.delta.label": "Sacramento-SJ Delta",
+  "wfn.delta.desc": "Hub of CA water system",
+  "wfn.sj_valley.label": "San Joaquin Valley",
+  "wfn.sj_valley.desc": "40% of US fruit + nuts",
+  "wfn.sj_county.label": "San Joaquin County",
+  "wfn.sj_county.desc": "Home — 800k people",
+  "wfn.la.label": "Los Angeles",
+  "wfn.la.desc": "4M people, 70% imported",
+  "wfn.farms.label": "Central Valley Farms",
+  "wfn.farms.desc": "80% of CA water use",
 };
 
 const GOOGLE_CODE = {

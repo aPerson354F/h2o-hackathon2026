@@ -4394,6 +4394,26 @@ const ACTIVITIES = [
   { label: "Lawn Sprinkler (1h)", gallons: 300, icon: "💦", xp: 3 },
 ];
 
+const ACTIVITY_LABEL_KEY: Record<string, StringKey> = {
+  "Shower (5 min)": "act.shower_5min",
+  Bath: "act.bath",
+  "Toilet Flush": "act.toilet_flush",
+  "Brushing Teeth": "act.brushing_teeth",
+  Dishwasher: "act.dishwasher",
+  "Hand Wash Dishes": "act.hand_wash_dishes",
+  "Washing Machine": "act.washing_machine",
+  "Garden Watering": "act.garden_watering",
+  "Car Wash": "act.car_wash",
+  "Drinking Water": "act.drinking_water",
+  "Pool Refill": "act.pool_refill",
+  "Lawn Sprinkler (1h)": "act.lawn_sprinkler_1h",
+};
+
+const tActivityLabel = (
+  englishLabel: string,
+  t: (key: StringKey, params?: Record<string, string | number>) => string,
+) => (ACTIVITY_LABEL_KEY[englishLabel] ? t(ACTIVITY_LABEL_KEY[englishLabel]) : englishLabel);
+
 function LoggerScreen() {
   const { profile, refreshNotifs } = useApp();
   const t = useT(profile.lang);
@@ -4555,9 +4575,13 @@ function LoggerScreen() {
       t("alert.cancel"),
     );
 
-  const filtered = ACTIVITIES.filter((a) =>
-    a.label.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = ACTIVITIES.filter((a) => {
+    const q = search.toLowerCase();
+    return (
+      a.label.toLowerCase().includes(q) ||
+      tActivityLabel(a.label, t).toLowerCase().includes(q)
+    );
+  });
   const barPct = Math.min((total / profile.goal) * 100, 100);
   const barColor = barPct > 90 ? C.danger : barPct > 70 ? C.gold : C.accent;
 
@@ -4726,7 +4750,7 @@ function LoggerScreen() {
           {filtered.map((a) => (
             <Press key={a.label} onPress={() => addEntry(a)} style={st.actCard}>
               <Text style={{ fontSize: 26 }}>{a.icon}</Text>
-              <Text style={st.actLabel}>{a.label}</Text>
+              <Text style={st.actLabel}>{tActivityLabel(a.label, t)}</Text>
               <Text style={st.actGallons}>
                 {fmtVol(a.gallons, profile.units, a.gallons < 5 ? 1 : 0)}
               </Text>
@@ -4782,7 +4806,7 @@ function LoggerScreen() {
                     <Text
                       style={{ color: C.text, fontSize: 13, fontWeight: "600" }}
                     >
-                      {e.label}
+                      {tActivityLabel(e.label, t)}
                     </Text>
                     <Text style={{ color: C.muted, fontSize: 11 }}>
                       {e.time}
@@ -9353,7 +9377,7 @@ function SimulationModal({
                         fontWeight: "700",
                       }}
                     >
-                      {n.emoji} {n.label}
+                      {n.emoji} {t(`wfn.${n.id}.label` as StringKey)}
                     </Text>
                   </Press>
                 ))}
@@ -9379,7 +9403,7 @@ function SimulationModal({
                         fontWeight: "800",
                       }}
                     >
-                      {sel.label}
+                      {t(`wfn.${sel.id}.label` as StringKey)}
                     </Text>
                     <Text
                       style={{
