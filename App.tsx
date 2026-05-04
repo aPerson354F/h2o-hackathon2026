@@ -58,7 +58,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { useT, LANGUAGES, type Lang } from "./i18n";
+import { useT, LANGUAGES, type Lang, type StringKey } from "./i18n";
 
 const Tab = createBottomTabNavigator();
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -290,18 +290,27 @@ async function askGroqChat(
 }
 
 // ─── IMAGE PICKER HELPER ────────────────────────────────
+type TFn = (
+  key: StringKey,
+  params?: Record<string, string | number>,
+) => string;
 async function pickImage(
   useCamera: boolean,
+  t?: TFn,
 ): Promise<{ uri: string; base64: string } | null> {
   const perm = useCamera
     ? await ImagePicker.requestCameraPermissionsAsync()
     : await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (perm.status !== "granted") {
     Alert.alert(
-      "Permission needed",
+      t ? t("alert.permission_needed") : "Permission needed",
       useCamera
-        ? "Camera access is required to take photos."
-        : "Photo library access is required to pick images.",
+        ? t
+          ? t("alert.camera_permission_msg")
+          : "Camera access is required to take photos."
+        : t
+          ? t("alert.library_permission_msg")
+          : "Photo library access is required to pick images.",
     );
     return null;
   }
@@ -323,7 +332,11 @@ async function pickImage(
 // Cross-platform share. RN's Share.share isn't implemented on react-native-web
 // — it throws and the empty catch in callers hides the failure. Routes through
 // navigator.share when available, falls back to clipboard, then Alert.
-async function shareText(message: string, title: string = "H2O to You") {
+async function shareText(
+  message: string,
+  title: string = "H2O to You",
+  t?: TFn,
+) {
   try {
     if (Platform.OS === "web") {
       const navAny: any = typeof navigator !== "undefined" ? navigator : null;
@@ -331,7 +344,10 @@ async function shareText(message: string, title: string = "H2O to You") {
         await navAny.share({ title, text: message });
       } else if (navAny?.clipboard?.writeText) {
         await navAny.clipboard.writeText(message);
-        Alert.alert("Copied!", "Text copied to your clipboard.");
+        Alert.alert(
+          t ? t("alert.copied_title") : "Copied!",
+          t ? t("alert.copied_body") : "Text copied to your clipboard.",
+        );
       } else {
         Alert.alert(title, message);
       }
@@ -2928,7 +2944,8 @@ function AppProvider({ children }: { children: React.ReactNode }) {
 
 // ─── BADGE UNLOCK TOAST ────────────────────────────────
 function BadgeUnlockToast() {
-  const { recentUnlock, dismissUnlock } = useApp();
+  const { recentUnlock, dismissUnlock, profile } = useApp();
+  const t = useT(profile.lang);
   const slide = useRef(new Animated.Value(-200)).current;
   const insets = useSafeAreaInsets();
 
@@ -2991,7 +3008,7 @@ function BadgeUnlockToast() {
               letterSpacing: 1.4,
             }}
           >
-            ACHIEVEMENT UNLOCKED
+            {t("toast.achievement_unlocked_label")}
           </Text>
           <Text style={{ color: C.white, fontSize: 14, fontWeight: "800" }}>
             {recentUnlock.name}
@@ -4347,7 +4364,7 @@ function LoggerScreen() {
   const submitCustom = async () => {
     const g = parseFloat(customAmt);
     if (!g || g <= 0) {
-      Alert.alert("Invalid amount", "Enter a number greater than 0.");
+      Alert.alert(t("alert.invalid_amount_title"), t("alert.invalid_amount"));
       return;
     }
     await addEntry({
@@ -4490,7 +4507,7 @@ function LoggerScreen() {
               ${(Math.max(0, CA_DAILY_AVG - total) * 0.004).toFixed(2)}
             </Text>
             <Text style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>
-              Saved today
+              {t("log.saved_today")}
             </Text>
           </View>
           <View
@@ -4503,7 +4520,7 @@ function LoggerScreen() {
               {totalXp} XP
             </Text>
             <Text style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>
-              Total earned
+              {t("log.total_earned")}
             </Text>
           </View>
           <View
@@ -4516,7 +4533,7 @@ function LoggerScreen() {
               {log.length}
             </Text>
             <Text style={{ color: C.muted, fontSize: 10, marginTop: 2 }}>
-              Activities
+              {t("log.activities")}
             </Text>
           </View>
         </View>
@@ -4545,7 +4562,7 @@ function LoggerScreen() {
           </Press>
         </View>
 
-        <Text style={s.section}>LOG AN ACTIVITY</Text>
+        <Text style={s.section}>{t("log.log_activity")}</Text>
         <View style={st.actGrid}>
           {filtered.map((a) => (
             <Press key={a.label} onPress={() => addEntry(a)} style={st.actCard}>
@@ -4574,7 +4591,7 @@ function LoggerScreen() {
                 marginTop: 8,
               }}
             >
-              <Text style={s.sectionInline}>TODAY'S LOG</Text>
+              <Text style={s.sectionInline}>{t("log.todays_log")}</Text>
               <TouchableOpacity
                 onPress={clearLog}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -4582,7 +4599,7 @@ function LoggerScreen() {
                 <Text
                   style={{ color: C.danger, fontSize: 12, fontWeight: "600" }}
                 >
-                  Clear All
+                  {t("log.clear_all")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4651,36 +4668,36 @@ function LoggerScreen() {
         >
           <View style={st.modalBox}>
             <View style={st.modalHandle} />
-            <Text style={st.modalTitle}>Custom Entry</Text>
+            <Text style={st.modalTitle}>{t("modal.custom_entry")}</Text>
             <Text style={{ color: C.muted, fontSize: 13, marginBottom: 14 }}>
-              Log any other water use
+              {t("modal.log_other_water")}
             </Text>
-            <Text style={st.formLabel}>Activity name</Text>
+            <Text style={st.formLabel}>{t("form.activity_name")}</Text>
             <TextInput
               style={st.input}
               value={customLabel}
               onChangeText={setCustomLabel}
-              placeholder="e.g. Cooking pasta"
+              placeholder={t("log.activity_placeholder")}
               placeholderTextColor={C.muted}
             />
-            <Text style={st.formLabel}>Gallons used</Text>
+            <Text style={st.formLabel}>{t("form.gallons_used")}</Text>
             <TextInput
               style={st.input}
               value={customAmt}
               onChangeText={setCustomAmt}
               keyboardType="numeric"
-              placeholder="e.g. 3"
+              placeholder={t("log.amount_placeholder")}
               placeholderTextColor={C.muted}
             />
             <Press onPress={submitCustom} style={st.btn}>
-              <Text style={st.btnText}>Add Entry</Text>
+              <Text style={st.btnText}>{t("btn.add_entry")}</Text>
             </Press>
             <TouchableOpacity
               onPress={() => setShowCustom(false)}
               style={{ marginTop: 12 }}
             >
               <Text style={{ color: C.muted, textAlign: "center" }}>
-                Cancel
+                {t("btn.cancel")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -4938,6 +4955,7 @@ function ConservationReportModal({
   onClose: () => void;
 }) {
   const { profile } = useApp();
+  const t = useT(profile.lang);
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -4986,7 +5004,7 @@ function ConservationReportModal({
         const navAny: any = typeof navigator !== "undefined" ? navigator : null;
         if (navAny?.clipboard?.writeText) {
           await navAny.clipboard.writeText(json);
-          Alert.alert("Copied!", "Full export copied to your clipboard.");
+          Alert.alert(t("alert.copied_title"), t("alert.export_copied_msg"));
         }
       }
       return;
@@ -6575,17 +6593,17 @@ function SettingsModal({
 
   const resetData = () =>
     confirmAction(
-      "Reset all data?",
-      "This will erase your logs, XP, badges, streak, and preferences. This cannot be undone.",
+      t("alert.reset_all_title"),
+      t("alert.reset_all_msg"),
       async () => {
         const keys = await AsyncStorage.getAllKeys();
         await AsyncStorage.multiRemove(keys);
         await setProfile(DEFAULT_PROFILE);
         await clearNotifs();
         onClose();
-        Alert.alert("Reset complete", "Your data has been erased.");
+        Alert.alert(t("alert.reset_complete"), t("set.reset_done"));
       },
-      "Reset",
+      t("btn.reset"),
     );
 
   return (
@@ -6609,7 +6627,7 @@ function SettingsModal({
               marginBottom: 14,
             }}
           >
-            <Text style={st.modalTitle}>Settings</Text>
+            <Text style={st.modalTitle}>{t("modal.settings")}</Text>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -6619,17 +6637,17 @@ function SettingsModal({
           </View>
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* PROFILE */}
-            <Text style={st.settingHeader}>PROFILE</Text>
-            <Text style={st.formLabel}>Your name</Text>
+            <Text style={st.settingHeader}>{t("set.profile_header")}</Text>
+            <Text style={st.formLabel}>{t("form.your_name")}</Text>
             <TextInput
               style={st.input}
               value={draft.name}
-              onChangeText={(t) => setDraft({ ...draft, name: t })}
-              placeholder="e.g. Sam"
+              onChangeText={(v) => setDraft({ ...draft, name: v })}
+              placeholder={t("placeholder.name_example")}
               placeholderTextColor={C.muted}
               maxLength={24}
             />
-            <Text style={st.formLabel}>Household size</Text>
+            <Text style={st.formLabel}>{t("form.household_size")}</Text>
             <View style={{ flexDirection: "row", gap: 10, marginBottom: 12 }}>
               {[1, 2, 3, 4, "5+"].map((n) => {
                 const num = typeof n === "number" ? n : 5;
@@ -6649,8 +6667,8 @@ function SettingsModal({
             </View>
 
             {/* PREFERENCES */}
-            <Text style={st.settingHeader}>PREFERENCES</Text>
-            <Text style={st.formLabel}>Units</Text>
+            <Text style={st.settingHeader}>{t("set.preferences_header")}</Text>
+            <Text style={st.formLabel}>{t("form.units")}</Text>
             <View style={{ flexDirection: "row", gap: 10, marginBottom: 12 }}>
               {(["gal", "L"] as const).map((u) => {
                 const active = draft.units === u;
@@ -6661,7 +6679,7 @@ function SettingsModal({
                     style={[st.segBtn, { flex: 1 }, active && st.segBtnActive]}
                   >
                     <Text style={[st.segText, active && { color: C.bg }]}>
-                      {u === "gal" ? "Gallons (US)" : "Liters"}
+                      {u === "gal" ? t("form.gallons_us") : t("form.liters")}
                     </Text>
                   </Press>
                 );
@@ -6669,16 +6687,18 @@ function SettingsModal({
             </View>
 
             <Text style={st.formLabel}>
-              Daily goal ({draft.units === "gal" ? "gallons" : "liters"})
+              {t("form.daily_goal_units", {
+                units: draft.units === "gal" ? t("state.gallons") : t("state.liters"),
+              })}
             </Text>
             <TextInput
               style={st.input}
               value={String(draft.goal)}
-              onChangeText={(t) =>
-                setDraft({ ...draft, goal: parseInt(t) || 0 })
+              onChangeText={(v) =>
+                setDraft({ ...draft, goal: parseInt(v) || 0 })
               }
               keyboardType="numeric"
-              placeholder="80"
+              placeholder={t("placeholder.goal")}
               placeholderTextColor={C.muted}
             />
             <Text
@@ -6689,8 +6709,7 @@ function SettingsModal({
                 marginBottom: 12,
               }}
             >
-              EPA recommends 80–100 gallons/day. CA's 2025 mandate is 55
-              gal/person/day indoor.
+              {t("help.epa_ca_mandate")}
             </Text>
 
             <Text style={st.formLabel}>{t("set.language")}</Text>
@@ -6717,22 +6736,22 @@ function SettingsModal({
             </Press>
 
             {/* NOTIFICATIONS */}
-            <Text style={st.settingHeader}>NOTIFICATIONS</Text>
+            <Text style={st.settingHeader}>{t("set.notifications_header")}</Text>
             {[
               {
                 key: "remindersEnabled",
-                label: "Daily reminders",
-                desc: "Wake-up and streak nudges",
+                label: t("notif.daily_reminders"),
+                desc: t("notif.daily_reminders_desc"),
               },
               {
                 key: "tipsEnabled",
-                label: "Conservation tips",
-                desc: "Rotating tips throughout the day",
+                label: t("notif.conservation_tips"),
+                desc: t("notif.conservation_tips_desc"),
               },
               {
                 key: "alertsEnabled",
-                label: "Drought & goal alerts",
-                desc: "When you exceed your goal or new alerts hit",
+                label: t("notif.drought_alerts"),
+                desc: t("notif.drought_alerts_desc"),
               },
             ].map((n) => (
               <View key={n.key} style={st.toggleRow}>
@@ -6759,7 +6778,7 @@ function SettingsModal({
             ))}
 
             {/* ABOUT */}
-            <Text style={st.settingHeader}>ABOUT</Text>
+            <Text style={st.settingHeader}>{t("set.about_header")}</Text>
             <Press
               onPress={() => setShowAbout(true)}
               style={[
@@ -6775,12 +6794,12 @@ function SettingsModal({
               <Text
                 style={{ color: C.purple, fontWeight: "700", fontSize: 14 }}
               >
-                About us & contact
+                {t("btn.about_contact")}
               </Text>
             </Press>
 
             {/* DANGER */}
-            <Text style={st.settingHeader}>DATA</Text>
+            <Text style={st.settingHeader}>{t("set.data_header")}</Text>
             <Press
               onPress={async () => {
                 await AsyncStorage.removeItem("quiz_done");
@@ -6789,8 +6808,8 @@ function SettingsModal({
                 await setProfile({ ...profile, onboarded: false });
                 onClose();
                 Alert.alert(
-                  "Quiz reset",
-                  "The water-footprint quiz will start the next time you open the app.",
+                  t("alert.quiz_reset"),
+                  t("alert.quiz_reset_msg"),
                 );
               }}
               style={[
@@ -6806,7 +6825,7 @@ function SettingsModal({
               <Text
                 style={{ color: C.accent, fontWeight: "700", fontSize: 14 }}
               >
-                Retake water-footprint quiz
+                {t("btn.retake_quiz")}
               </Text>
             </Press>
             <Press onPress={resetData} style={[st.dangerBtn]}>
@@ -6814,7 +6833,7 @@ function SettingsModal({
               <Text
                 style={{ color: C.danger, fontWeight: "700", fontSize: 14 }}
               >
-                Reset all data
+                {t("btn.reset_all_data")}
               </Text>
             </Press>
 
@@ -6827,12 +6846,12 @@ function SettingsModal({
                 marginBottom: 16,
               }}
             >
-              H2O to You v1.0 · Made for California
+              {t("footer.made_for_california")}
             </Text>
           </ScrollView>
 
           <Press onPress={save} style={[st.btn, { marginTop: 8 }]}>
-            <Text style={st.btnText}>Save Changes</Text>
+            <Text style={st.btnText}>{t("btn.save_changes")}</Text>
           </Press>
         </View>
       </KeyboardAvoidingView>
@@ -7008,16 +7027,19 @@ const ABOUT_OUR_WORK_PARAS = [
   "H2O to You is completely free to use, because charging would put water-saving out of reach for the people who need it most. Every feature in this app has been built with as much care and precision as we could manage, so the experience enlightens you, motivates you, and stays out of your way.",
 ];
 
-async function openContactLink(url: string) {
+async function openContactLink(
+  url: string,
+  t: (key: StringKey, params?: Record<string, string | number>) => string,
+) {
   try {
     const ok = await Linking.canOpenURL(url);
     if (ok) {
       await Linking.openURL(url);
     } else {
-      Alert.alert("Can't open link", url);
+      Alert.alert(t("alert.cant_open_link"), url);
     }
   } catch {
-    Alert.alert("Couldn't open link", "Try again later.");
+    Alert.alert(t("alert.couldnt_open_link"), t("alert.try_again_later"));
   }
 }
 
@@ -7028,6 +7050,28 @@ function AboutModal({
   visible: boolean;
   onClose: () => void;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
+  const contactLabelMap: Record<string, StringKey> = {
+    email: "about.email_label",
+    website: "about.website_label",
+    social: "about.social_label",
+    report: "about.report_label",
+  };
+  const contactDetailMap: Record<string, StringKey> = {
+    email: "about.email_detail",
+    website: "about.website_detail",
+    social: "about.social_detail",
+    report: "about.report_detail",
+  };
+  const socialLabelMap: Record<string, StringKey> = {
+    smore: "about.smore_label",
+  };
+  const ourWorkKeys: StringKey[] = [
+    "about.our_work_p1",
+    "about.our_work_p2",
+    "about.our_work_p3",
+  ];
   return (
     <Modal
       visible={visible}
@@ -7046,7 +7090,7 @@ function AboutModal({
               marginBottom: 14,
             }}
           >
-            <Text style={st.modalTitle}>About Us</Text>
+            <Text style={st.modalTitle}>{t("modal.about_us")}</Text>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -7085,12 +7129,12 @@ function AboutModal({
                   letterSpacing: 1,
                 }}
               >
-                BUILT FOR CALIFORNIA · 2026
+                {t("about.tagline")}
               </Text>
             </View>
 
             {/* SOCIAL MEDIA — first, per spec */}
-            <Text style={st.settingHeader}>FOLLOW US</Text>
+            <Text style={st.settingHeader}>{t("about.follow_us")}</Text>
             <Text
               style={{
                 color: C.muted,
@@ -7099,8 +7143,7 @@ function AboutModal({
                 marginBottom: 10,
               }}
             >
-              Read the Aquanauts' Smore newsletter for water tips, alerts, and
-              California water news.
+              {t("about.follow_us_desc")}
             </Text>
             <View
               style={{
@@ -7113,7 +7156,7 @@ function AboutModal({
               {SOCIAL_LINKS.map((s) => (
                 <Press
                   key={s.id}
-                  onPress={() => openContactLink(s.url)}
+                  onPress={() => openContactLink(s.url, t)}
                   style={{
                     width: (SW - 56) / 2,
                     flexDirection: "row",
@@ -7146,7 +7189,7 @@ function AboutModal({
                         fontSize: 13,
                       }}
                     >
-                      {s.label}
+                      {socialLabelMap[s.id] ? t(socialLabelMap[s.id]) : s.label}
                     </Text>
                     <Text
                       numberOfLines={1}
@@ -7161,7 +7204,7 @@ function AboutModal({
 
             {/* CONTACT */}
             <Text style={[st.settingHeader, { marginTop: 4 }]}>
-              GET IN TOUCH
+              {t("about.get_in_touch")}
             </Text>
             <Text
               style={{
@@ -7171,12 +7214,12 @@ function AboutModal({
                 marginBottom: 10,
               }}
             >
-              Reach the H2O to You team — we read every message.
+              {t("about.get_in_touch_desc")}
             </Text>
             {CONTACT_LINKS.map((c) => (
               <Press
                 key={c.id}
-                onPress={() => openContactLink(c.url)}
+                onPress={() => openContactLink(c.url, t)}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
@@ -7207,10 +7250,10 @@ function AboutModal({
                   <Text
                     style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
                   >
-                    {c.label}
+                    {contactLabelMap[c.id] ? t(contactLabelMap[c.id]) : c.label}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                    {c.detail}
+                    {contactDetailMap[c.id] ? t(contactDetailMap[c.id]) : c.detail}
                   </Text>
                 </View>
                 <Ionicons name="open-outline" size={16} color={c.color} />
@@ -7219,27 +7262,26 @@ function AboutModal({
 
             {/* ABOUT OUR WORK */}
             <Text style={[st.settingHeader, { marginTop: 18 }]}>
-              ABOUT OUR WORK
+              {t("about.our_work")}
             </Text>
             <View style={[st.glassCard, { padding: 16 }]}>
-              {ABOUT_OUR_WORK_PARAS.map((p, i) => (
+              {ourWorkKeys.map((k, i) => (
                 <Text
                   key={i}
                   style={{
                     color: C.text,
                     fontSize: 13,
                     lineHeight: 21,
-                    marginBottom:
-                      i === ABOUT_OUR_WORK_PARAS.length - 1 ? 0 : 12,
+                    marginBottom: i === ourWorkKeys.length - 1 ? 0 : 12,
                   }}
                 >
-                  {p}
+                  {t(k)}
                 </Text>
               ))}
             </View>
 
             {/* FOUNDERS — at the bottom */}
-            <Text style={[st.settingHeader, { marginTop: 18 }]}>FOUNDERS</Text>
+            <Text style={[st.settingHeader, { marginTop: 18 }]}>{t("about.founders")}</Text>
             {FOUNDERS.map((f) => (
               <View
                 key={f.name}
@@ -7280,7 +7322,7 @@ function AboutModal({
                     {f.name}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-                    {f.role}
+                    {t("about.founder_role")}
                   </Text>
                 </View>
                 <Ionicons name="ribbon" size={18} color={f.accent} />
@@ -7295,7 +7337,7 @@ function AboutModal({
                 marginTop: 20,
               }}
             >
-              Made with care · H2O Hackathon 2026
+              {t("about.made_with_care")}
             </Text>
           </ScrollView>
         </View>
@@ -7312,24 +7354,25 @@ function NotifsModal({
   visible: boolean;
   onClose: () => void;
 }) {
-  const { notifs, markAllRead, clearNotifs, refreshNotifs } = useApp();
+  const { notifs, markAllRead, clearNotifs, refreshNotifs, profile } = useApp();
+  const t = useT(profile.lang);
 
   useEffect(() => {
     if (visible) {
       refreshNotifs();
-      const t = setTimeout(() => markAllRead(), 1500);
-      return () => clearTimeout(t);
+      const tm = setTimeout(() => markAllRead(), 1500);
+      return () => clearTimeout(tm);
     }
   }, [visible]);
 
   const fmtTime = (ts: number) => {
     const diff = Date.now() - ts;
     const m = Math.floor(diff / 60000);
-    if (m < 1) return "just now";
-    if (m < 60) return `${m}m ago`;
+    if (m < 1) return t("notif.just_now");
+    if (m < 60) return t("notif.m_ago", { m });
     const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    return `${Math.floor(h / 24)}d ago`;
+    if (h < 24) return t("notif.h_ago", { h });
+    return t("notif.d_ago", { d: Math.floor(h / 24) });
   };
 
   return (
@@ -7350,7 +7393,7 @@ function NotifsModal({
               marginBottom: 12,
             }}
           >
-            <Text style={st.modalTitle}>Notifications</Text>
+            <Text style={st.modalTitle}>{t("modal.notifications")}</Text>
             <View style={{ flexDirection: "row", gap: 16 }}>
               {notifs.length > 0 && (
                 <TouchableOpacity
@@ -7360,7 +7403,7 @@ function NotifsModal({
                   <Text
                     style={{ color: C.danger, fontSize: 12, fontWeight: "600" }}
                   >
-                    Clear all
+                    {t("notif.clear_all")}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -7377,7 +7420,7 @@ function NotifsModal({
             <View style={{ alignItems: "center", paddingVertical: 60 }}>
               <Text style={{ fontSize: 48, marginBottom: 12 }}>🌊</Text>
               <Text style={{ color: C.text, fontSize: 16, fontWeight: "700" }}>
-                All quiet here
+                {t("notif.empty_title")}
               </Text>
               <Text
                 style={{
@@ -7387,7 +7430,7 @@ function NotifsModal({
                   textAlign: "center",
                 }}
               >
-                You'll see reminders, tips, and alerts as they arrive.
+                {t("notif.empty_body")}
               </Text>
             </View>
           ) : (
@@ -7453,6 +7496,7 @@ function GoalModal({
   onClose: () => void;
 }) {
   const { profile, setProfile } = useApp();
+  const t = useT(profile.lang);
   const [val, setVal] = useState(String(profile.goal));
 
   useEffect(() => {
@@ -7485,9 +7529,9 @@ function GoalModal({
       >
         <View style={st.modalBox}>
           <View style={st.modalHandle} />
-          <Text style={st.modalTitle}>Set Daily Goal</Text>
+          <Text style={st.modalTitle}>{t("modal.set_daily_goal")}</Text>
           <Text style={{ color: C.muted, fontSize: 13, marginBottom: 16 }}>
-            EPA recommends 80–100 gallons/day. CA mandate: 55 gal/person/day.
+            {t("help.epa_ca_mandate_short")}
           </Text>
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 14 }}>
             {[55, 80, 100, 150].map((g) => (
@@ -7514,13 +7558,13 @@ function GoalModal({
             onChangeText={setVal}
             keyboardType="numeric"
             placeholderTextColor={C.muted}
-            placeholder="e.g. 80"
+            placeholder={t("placeholder.goal_with_eg")}
           />
           <Press onPress={save} style={st.btn}>
-            <Text style={st.btnText}>Save Goal</Text>
+            <Text style={st.btnText}>{t("btn.save_goal")}</Text>
           </Press>
           <TouchableOpacity onPress={onClose} style={{ marginTop: 12 }}>
-            <Text style={{ color: C.muted, textAlign: "center" }}>Cancel</Text>
+            <Text style={{ color: C.muted, textAlign: "center" }}>{t("btn.cancel")}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -9124,6 +9168,8 @@ function ShowerCoachModal({
   visible: boolean;
   onClose: () => void;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [running, setRunning] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [gpm, setGpm] = useState(2.5);
@@ -9316,9 +9362,9 @@ function ShowerCoachModal({
             }}
           >
             <View>
-              <Text style={st.modalTitle}>Shower Coach</Text>
+              <Text style={st.modalTitle}>{t("modal.shower_coach")}</Text>
               <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-                {gpm.toFixed(1)} gpm showerhead · live tracking
+                {t("shower.header_subtitle", { gpm: gpm.toFixed(1) })}
               </Text>
             </View>
             <TouchableOpacity
@@ -9399,7 +9445,7 @@ function ShowerCoachModal({
                       marginTop: 2,
                     }}
                   >
-                    {running ? "● LIVE" : "READY"}
+                    {running ? `● ${t("shower.live")}` : t("shower.ready")}
                   </Text>
                 </View>
               </View>
@@ -9422,7 +9468,7 @@ function ShowerCoachModal({
                   >
                     {gallons.toFixed(1)}
                   </Text>
-                  <Text style={{ color: C.muted, fontSize: 10 }}>gallons</Text>
+                  <Text style={{ color: C.muted, fontSize: 10 }}>{t("state.gallons")}</Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
                   <Text
@@ -9434,7 +9480,7 @@ function ShowerCoachModal({
                   >
                     ${cost.toFixed(2)}
                   </Text>
-                  <Text style={{ color: C.muted, fontSize: 10 }}>cost</Text>
+                  <Text style={{ color: C.muted, fontSize: 10 }}>{t("shower.cost")}</Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
                   <Text
@@ -9447,7 +9493,7 @@ function ShowerCoachModal({
                     {Math.round((seconds / CA_AVG_SHOWER_SEC) * 100)}%
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 10 }}>
-                    vs CA avg
+                    {t("shower.vs_ca_avg")}
                   </Text>
                 </View>
               </View>
@@ -9501,21 +9547,21 @@ function ShowerCoachModal({
               ]}
             >
               <Text style={st.btnText}>
-                {running ? "■ STOP & LOG" : "▶ START SHOWER"}
+                {running ? t("btn.stop_log") : t("btn.start_shower")}
               </Text>
             </Press>
 
             {/* HISTORY */}
             {last7.length > 0 && (
               <>
-                <Text style={st.settingHeader}>RECENT SHOWERS</Text>
+                <Text style={st.settingHeader}>{t("shower.recent_showers")}</Text>
                 <View style={[st.glassCard, { padding: 10 }]}>
                   {last7.map((e, i) => {
                     const m = Math.floor(e.seconds / 60);
                     const s = e.seconds % 60;
                     const dateLabel =
                       e.date === new Date().toISOString().split("T")[0]
-                        ? "Today"
+                        ? t("state.today")
                         : e.date;
                     const pct = (e.gallons / maxGal) * 100;
                     const col =
@@ -10052,6 +10098,8 @@ function RebatesModal({
   visible: boolean;
   onClose: () => void;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [zip, setZip] = useState("95202"); // Stockton default for demo
   const [cat, setCat] = useState<RebateCategory | "all">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -10101,9 +10149,9 @@ function RebatesModal({
             }}
           >
             <View>
-              <Text style={st.modalTitle}>Find Rebates</Text>
+              <Text style={st.modalTitle}>{t("modal.find_rebates")}</Text>
               <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-                Real CA utility programs · {REBATES_DB.length} listed
+                {t("rebate.header_subtitle", { count: REBATES_DB.length })}
               </Text>
             </View>
             <TouchableOpacity
@@ -10129,12 +10177,12 @@ function RebatesModal({
           >
             <Ionicons name="location" size={18} color={C.accent} />
             <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700" }}>
-              ZIP
+              {t("form.zip")}
             </Text>
             <TextInput
               value={zip}
-              onChangeText={(t) => setZip(t.replace(/[^0-9]/g, "").slice(0, 5))}
-              placeholder="95202"
+              onChangeText={(v) => setZip(v.replace(/[^0-9]/g, "").slice(0, 5))}
+              placeholder={t("placeholder.zip_example")}
               placeholderTextColor={C.muted}
               keyboardType="number-pad"
               maxLength={5}
@@ -10156,6 +10204,14 @@ function RebatesModal({
           >
             {REBATE_CATEGORIES.map((c) => {
               const active = cat === c.id;
+              const catLabelMap: Record<string, StringKey> = {
+                all: "rebate.cat_all",
+                toilets: "rebate.cat_toilets",
+                landscape: "rebate.cat_landscape",
+                irrigation: "rebate.cat_irrigation",
+                appliances: "rebate.cat_appliances",
+                fixtures: "rebate.cat_fixtures",
+              };
               return (
                 <Press
                   key={c.id}
@@ -10184,7 +10240,7 @@ function RebatesModal({
                       fontWeight: "800",
                     }}
                   >
-                    {c.label}
+                    {catLabelMap[c.id] ? t(catLabelMap[c.id]) : c.label}
                   </Text>
                 </Press>
               );
@@ -10216,7 +10272,7 @@ function RebatesModal({
                   letterSpacing: 1.5,
                 }}
               >
-                POTENTIAL VALUE
+                {t("rebate.potential_value")}
               </Text>
               <Text
                 style={{
@@ -10229,7 +10285,7 @@ function RebatesModal({
                 ${totalRebateValue.toLocaleString()}
               </Text>
               <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                in available rebates ({matching.length} programs)
+                {t("rebate.available_programs", { count: matching.length })}
               </Text>
               <View
                 style={{
@@ -10249,7 +10305,7 @@ function RebatesModal({
                     {totalGalSavings.toLocaleString()}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 10 }}>
-                    gal/yr saved
+                    {t("rebate.gal_yr_saved")}
                   </Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
@@ -10259,7 +10315,7 @@ function RebatesModal({
                     ${totalDollarSavings.toFixed(0)}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 10 }}>
-                    annual bill cut
+                    {t("rebate.annual_bill_cut")}
                   </Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
@@ -10269,7 +10325,7 @@ function RebatesModal({
                     ${(totalDollarSavings * 15).toFixed(0)}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 10 }}>
-                    15-yr lifetime
+                    {t("rebate.lifetime_15yr")}
                   </Text>
                 </View>
               </View>
@@ -10290,7 +10346,7 @@ function RebatesModal({
                     textAlign: "center",
                   }}
                 >
-                  No rebates match this ZIP / category combo.
+                  {t("rebate.no_matches")}
                 </Text>
                 <Text
                   style={{
@@ -10300,7 +10356,7 @@ function RebatesModal({
                     textAlign: "center",
                   }}
                 >
-                  Try ZIP 95202 (Stockton), 90001 (LA), or 92101 (San Diego).
+                  {t("rebate.try_zips")}
                 </Text>
               </View>
             )}
@@ -10546,13 +10602,13 @@ function RebatesModal({
                       </View>
 
                       <Press
-                        onPress={() => openContactLink(r.apply_url)}
+                        onPress={() => openContactLink(r.apply_url, t)}
                         style={[
                           st.btn,
                           { backgroundColor: C.gold, paddingVertical: 12 },
                         ]}
                       >
-                        <Text style={st.btnText}>Apply for this rebate →</Text>
+                        <Text style={st.btnText}>{t("rebate.apply")}</Text>
                       </Press>
                     </View>
                   )}
@@ -13148,6 +13204,8 @@ function CameraControls({
   onLibrary: () => void;
   disabled?: boolean;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   return (
     <View
       style={{
@@ -13164,7 +13222,7 @@ function CameraControls({
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Ionicons name="camera" size={18} color={C.bg} />
-          <Text style={st.btnText}>Take Photo</Text>
+          <Text style={st.btnText}>{t("btn.take_photo")}</Text>
         </View>
       </Press>
       <Press
@@ -13177,7 +13235,7 @@ function CameraControls({
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Ionicons name="images" size={18} color={C.text} />
-          <Text style={[st.btnText, { color: C.text }]}>From Library</Text>
+          <Text style={[st.btnText, { color: C.text }]}>{t("btn.from_library")}</Text>
         </View>
       </Press>
     </View>
@@ -14301,6 +14359,8 @@ const PLANT_WATER_COLOR: Record<LandscapePlant["water_need"], string> = {
 };
 
 function LandscapeAuditView() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [result, setResult] = useState<LandscapeAnalysis | null>(null);
   const [scanning, setScanning] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -14437,7 +14497,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
             ]}
           >
             <Ionicons name="camera" size={16} color={C.bg} />
-            <Text style={[st.btnText, { marginLeft: 6 }]}>Take Photo</Text>
+            <Text style={[st.btnText, { marginLeft: 6 }]}>{t("btn.take_photo")}</Text>
           </Press>
           <Press
             onPress={onLibrary}
@@ -14454,7 +14514,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
           >
             <Ionicons name="images" size={16} color={C.success} />
             <Text style={[st.btnText, { color: C.success, marginLeft: 6 }]}>
-              From Library
+              {t("btn.from_library")}
             </Text>
           </Press>
         </View>
@@ -14837,7 +14897,8 @@ function AchievementsModal({
   visible: boolean;
   onClose: () => void;
 }) {
-  const { badges: owned, refreshBadges } = useApp();
+  const { badges: owned, refreshBadges, profile } = useApp();
+  const t = useT(profile.lang);
   const [filter, setFilter] = useState<"all" | string>("all");
 
   useEffect(() => {
@@ -14869,9 +14930,9 @@ function AchievementsModal({
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text style={st.modalTitle}>Achievements</Text>
+              <Text style={st.modalTitle}>{t("modal.achievements")}</Text>
               <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>
-                {got} of {total} unlocked · {pct}%
+                {t("ach.unlocked_status", { got, total, pct })}
               </Text>
             </View>
             <TouchableOpacity
