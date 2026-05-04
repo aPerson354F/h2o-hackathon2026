@@ -1,4 +1,4 @@
-import translations from "./i18n/translations.json";
+import translations from "./translations.json";
 
 export const LANGUAGES: { code: string; name: string; native: string }[] = [
   { code: "en", name: "English", native: "English" },
