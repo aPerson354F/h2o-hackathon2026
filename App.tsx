@@ -12052,10 +12052,13 @@ function MapScreen() {
               marginBottom: 4,
             }}
           >
-            {SJ_ALERT.headline}
+            {t("map.sj_alert.headline")}
           </Text>
           <Text style={{ color: C.textSoft, fontSize: 12, lineHeight: 18 }}>
-            {SJ_ALERT.body}
+            {t("map.sj_alert.body", {
+              res: LATEST.reservoir,
+              rl: t(classifyReservoir(LATEST.reservoir).labelKey),
+            })}
           </Text>
         </View>
 
@@ -12506,7 +12509,7 @@ function MapScreen() {
                     </Text>
                   </View>
                   <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                    Built {a.built} · {a.flow}
+                    {t("map.aq.built_flow", { built: a.built, flow: a.flow })}
                   </Text>
                   <View
                     style={{
@@ -12553,7 +12556,7 @@ function MapScreen() {
                           marginBottom: 4,
                         }}
                       >
-                        OPERATOR · {a.operator}
+                        {t("map.aq.operator_lbl", { operator: a.operator })}
                       </Text>
                       <Text
                         style={{
@@ -12562,7 +12565,7 @@ function MapScreen() {
                           lineHeight: 18,
                         }}
                       >
-                        {a.desc}
+                        {t(`aq.${a.id}.desc` as StringKey)}
                       </Text>
                     </View>
                   )}
@@ -12707,9 +12710,9 @@ function MapScreen() {
                     </Text>
                   </View>
                   <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                    {r.river} · est. {r.built} · risk:{" "}
+                    {t("map.res.river_built", { river: r.river, built: r.built })}{" "}
                     <Text style={{ color: riskCol, fontWeight: "800" }}>
-                      {r.risk}
+                      {t(`risk.${r.risk}` as StringKey)}
                     </Text>
                   </Text>
                   {active && (
@@ -12729,24 +12732,23 @@ function MapScreen() {
                           marginBottom: 6,
                         }}
                       >
-                        {r.notes}
+                        {t(`res.${r.id}.notes` as StringKey)}
                       </Text>
                       <Text
                         style={{ color: C.muted, fontSize: 11, lineHeight: 16 }}
                       >
-                        Holds{" "}
-                        {((r.capacity * r.pct) / 100 / 1_000_000).toFixed(2)}M
-                        acre-feet today — roughly{" "}
-                        {Math.max(
-                          1,
-                          Math.round(
-                            (((r.capacity * r.pct) / 100) * 326_000) /
-                              80 /
-                              365 /
-                              1_000_000,
+                        {t("map.res.holds_today", {
+                          acft: ((r.capacity * r.pct) / 100 / 1_000_000).toFixed(2),
+                          years: Math.max(
+                            1,
+                            Math.round(
+                              (((r.capacity * r.pct) / 100) * 326_000) /
+                                80 /
+                                365 /
+                                1_000_000,
+                            ),
                           ),
-                        )}
-                        M people-years of indoor water at 80 gal/day.
+                        })}
                       </Text>
                     </View>
                   )}
@@ -13112,12 +13114,12 @@ function MapScreen() {
                     marginBottom: 3,
                   }}
                 >
-                  {d.threat}
+                  {t(`sjr.${d.id}.threat` as StringKey)}
                 </Text>
                 <Text
                   style={{ color: C.textSoft, fontSize: 12, lineHeight: 17 }}
                 >
-                  {d.detail}
+                  {t(`sjr.${d.id}.detail` as StringKey)}
                 </Text>
               </View>
             ))}

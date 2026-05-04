@@ -1062,6 +1062,59 @@ export const STRINGS = {
   "aq.north_bay.status": "Stable — newest SWP branch",
   "aq.madera.status": "Stable — short, gravity-fed",
   "aq.mokelumne_aq.status": "Stable — three parallel lines for redundancy",
+
+  // aqueduct descriptions (long-form, shown when user expands a row)
+  "aq.ca_aqueduct.desc": "Spine of the State Water Project. Lifts Feather River water 1,926 ft over the Tehachapi Mountains using the world's largest pumps (Edmonston Plant, 80,000 hp each), serving 27M people and 750k acres of farmland. Court-ordered Delta export cuts during dry years protect endangered Chinook salmon and Delta smelt — driving deliveries below contract amounts in 7 of the last 10 years. Severe land subsidence in the Aqueduct's middle reach (San Joaquin Valley) has reduced canal capacity by up to 20% in spots, requiring a $2B+ rehabilitation program.",
+  "aq.colorado.desc": "Five pumping stations lift Colorado River water 1,617 ft over the Mojave Desert to Lake Mathews. Serves 19M people in the South Coast. CA's Colorado allocation has been progressively cut under the 2023 Lower Basin Drought Plan as Lake Mead and Lake Powell hover at historic lows. The single most climate-vulnerable artery in the Western U.S. — a Mead \"dead pool\" event would force LA, San Diego, and Inland Empire utilities into emergency rationing within weeks.",
+  "aq.hetch_hetchy.desc": "Pure gravity from 3,800-ft elevation Sierra snowmelt — no pumping required. Serves 2.7M Bay Area residents. One of only six U.S. systems holding an EPA filtration waiver thanks to the protected Yosemite watershed. The pipeline was rebuilt 2008–2019 for $4.8B (the WSIP program) to harden against the Hayward Fault. Long-term risk is snowpack decline — the basin's spring runoff has shifted 2–3 weeks earlier since 1980.",
+  "aq.la_aqueduct.desc": "William Mulholland's gravity-fed lifeline from the Eastern Sierra. The project that built modern LA — and drained Owens Lake, an environmental catastrophe still costing LADWP $2B+ in court-ordered dust control. In dry years it now carries less than one-third of its original capacity; LA backfills the rest with Metropolitan Water District purchases, recycled water, and aggressive groundwater banking in the San Fernando Basin.",
+  "aq.delta_mendota.desc": "Twin to the California Aqueduct on the federal side: pulls Delta water south to the Mendota Pool to feed San Joaquin Valley farms displaced by the Friant Dam diversion. Runs in parallel with the SWP for ~70 miles before splitting east. Subsidence has compromised the canal floor in spots; a $300M lining repair is underway.",
+  "aq.friant_kern.desc": "Carries San Joaquin River water from Millerton Lake (Friant Dam) south past Bakersfield. The most subsidence-affected canal in the U.S. — sections near Corcoran have sunk 4+ feet since the 1990s, choking off flow to downstream farms. A $292M lift project began in 2022 to raise the canal walls.",
+  "aq.all_american.desc": "Largest irrigation canal on Earth by flow. Diverts 80%+ of California's Colorado River entitlement to the Imperial Valley, which grows the bulk of America's winter vegetables. A 23-mile section was concrete-lined in 2010 to stop seepage into Mexico — a politically contentious upgrade that saved 67,700 ac-ft/yr.",
+  "aq.coachella.desc": "Branches off the All-American to feed the date palms, citrus, and golf courses of the Coachella Valley. The 2006 lining project recovered ~26,000 ac-ft/yr that previously soaked into the desert. Coachella's groundwater aquifer is now actively recharged with this Colorado River water.",
+  "aq.south_bay.desc": "First completed branch of the State Water Project. Runs west from the Delta to serve Alameda County, Santa Clara County (Silicon Valley), and the East Bay. Tied to the Bay Area's seismic resilience program — alternate supply if Hetch Hetchy is interrupted.",
+  "aq.north_bay.desc": "Smallest branch of the State Water Project. Serves Napa and Solano counties — the only major imported supply for Wine Country. Pumped from the Barker Slough in the North Delta, which is environmentally sensitive due to Delta smelt habitat.",
+  "aq.madera.desc": "Twin sister to Friant-Kern — also draws from Millerton Lake but flows north to serve Madera and Chowchilla irrigation districts. Built during WWII to support emergency food production; one of the smaller but most reliable canals in the Central Valley Project.",
+  "aq.mokelumne_aq.desc": "Three parallel pipelines bring Mokelumne River water from Pardee Reservoir across the Delta to 1.4M East Bay residents. Built to redundant capacity after the 1906 SF earthquake taught the Bay Area to never rely on a single line. Crosses the Hayward Fault — annual seismic inspections.",
+
+  // map list shared labels
+  "map.aq.built_flow": "Built {built} · {flow}",
+  "map.aq.operator_lbl": "OPERATOR · {operator}",
+  "map.res.river_built": "{river} · est. {built} · risk:",
+  "map.res.holds_today": "Holds {acft}M acre-feet today — roughly {years}M people-years of indoor water at 80 gal/day.",
+  "risk.low": "low",
+  "risk.medium": "medium",
+  "risk.high": "high",
+  "risk.critical": "critical",
+
+  // reservoir notes (shown when user taps a reservoir row)
+  "res.shasta.notes": "Keystone of the federal Central Valley Project. A proposed 18-ft dam raise has been studied since the 1980s but never funded. Dropped to 24% in 2021 — its lowest level since 1977 — and a similar low is forecast for late 2026 if winter precipitation underperforms.",
+  "res.trinity.notes": "Diverts much of its flow east into the Sacramento system via the Clear Creek Tunnel. Currently the most depleted major Northern CA reservoir. Sustained low levels are warming downstream water and harming the Trinity's Coho and Chinook runs.",
+  "res.oroville.notes": "Largest reservoir of the State Water Project; head of the California Aqueduct. The 2017 main-spillway failure and emergency-spillway near-collapse forced 188,000 downstream evacuations. Spillway was rebuilt for $1.1B but the dam embankment remains under enhanced monitoring during atmospheric-river events.",
+  "res.newmel.notes": "Fourth-largest CA reservoir; supplies SJ County irrigation districts and Bay Area cities. Designed to handle slow Sierra snowmelt — but rapid warm-rain melt events now routinely force flood-control releases that \"spill\" supply downstream and out to the Delta.",
+  "res.donpedro.notes": "Operated jointly by Modesto and Turlock Irrigation Districts. Outlet works upgraded in 2021 to add cold-water release capability for the Tuolumne salmon fishery. Critical buffer for Stanislaus and SJ County agriculture.",
+  "res.hetch.notes": "O'Shaughnessy Dam, gravity supply for SF. Small relative to demand — operated as a high-elevation snow-capture asset. Rebuilds in 1938 and major rehab work in 2014 have kept it among the safest dams in the state.",
+  "res.camanche.notes": "Sits on the SJ–Calaveras county line; primary downstream regulator for EBMUD's Pardee supply. Earthen embankment is 62 years old. During rapid Mokelumne snowmelt, EBMUD must release water to maintain flood-control space — directly draining drought storage that took years to rebuild.",
+  "res.newhogan.notes": "USACE flood-control dam protecting Stockton and Linden. Inflow capacity is exceeded during atmospheric-river events: 2017 saw spillway flows of 8,500 cfs — close to the dam's safe-release ceiling. Dam Safety Action Class III (\"high urgency of action\") on the Corps' national portfolio.",
+  "res.pardee.notes": "EBMUD's primary drinking-water source for 1.4M East Bay residents — water travels 92 miles via the Mokelumne Aqueducts. Built 1929; one of the oldest large dams still in active municipal supply use. Seismic retrofit completed 2009.",
+  "res.sanluis.notes": "Largest off-stream reservoir in the U.S. Pumped full from the Delta during winter, drawn down each summer for SJ Valley farms and SoCal cities. \"Low Point\" issue: when level drops below 300 ft elevation, algae and turbidity spike and Santa Clara Valley loses usable supply.",
+  "res.castaic.notes": "Terminal reservoir for the West Branch of the State Water Project. Last storage point before the LA Basin — its levels are LA's short-term insurance against any Aqueduct outage.",
+  "res.perris.notes": "Southern terminus of the State Water Project. Operating ceiling was cut by ~50% from 1999–2018 due to seismic concerns at the Bernasconi Hills foundation; remediation completed 2018 restored full storage.",
+  "res.mead.notes": "Largest U.S. reservoir by volume — feeds the Colorado River Aqueduct that supplies 19M Southern Californians. Has lost ~150 ft of elevation since 2000. Below 950 ft, Hoover Dam stops generating power; below 895 ft, water cannot pass downstream (\"dead pool\"). Currently ~1,062 ft.",
+
+  // SJ reservoir risks — drought-modal expanded entries
+  "sjr.newhogan.threat": "Spillway capacity exceeded during atmospheric-river events",
+  "sjr.newhogan.detail": "Earthen dam built 1964 to protect Stockton from Calaveras River floods. The 2017 event pushed spillway flows to 8,500 cfs — within ~15% of the safe-release ceiling. The Corps lists it as Dam Safety Action Class III (\"high urgency of action\"), with a multi-year remediation underway. A rapid warm-storm melt over the upper Calaveras could exceed the rebuild schedule.",
+  "sjr.camanche.threat": "60+ year old earthen embankment under stress",
+  "sjr.camanche.detail": "Sits squarely on the SJ–Calaveras county line. EBMUD must keep flood-control space empty in winter, so any rapid Mokelumne snowmelt forces releases that drain storage built up over years. Persistent seepage on the right abutment has been monitored since the 1990s — manageable today, but a sustained high-pool event during a wet warm-rain year is the recognized failure scenario.",
+  "sjr.newmel.threat": "Snowmelt timing mismatch + algal blooms during low-pool",
+  "sjr.newmel.detail": "Designed for the 20th-century pattern of slow May–July snowmelt. Now sees compressed March–April pulses that overrun release capacity, forcing \"wasted\" downstream spills. When pool drops below 700 kAF in summer, harmful algal blooms close swim beaches and threaten Stockton-East Water District treatment.",
+  "sjr.donpedro.threat": "Sediment loading + outlet aging",
+  "sjr.donpedro.detail": "A century of upstream erosion has reduced effective storage. Outlet works were upgraded in 2021 to add cold-water release capability for Tuolumne salmon, but the 1971 spillway gates remain on a 25-year refurbishment cycle. A pre-deepening rain-on-snow event would test that infrastructure hard.",
+
+  // SJ alert banner (top of drought-mode)
+  "map.sj_alert.headline": "San Joaquin County reservoirs are stressed from both ends.",
+  "map.sj_alert.body": "Statewide storage has rebuilt from the 2022 lows (currently {res}% — {rl}), but the structural weakness remains exposed: warmer winter storms push Sierra snowmelt through the system in fast pulses instead of the slow May–July melt the dams were designed for. Operators must release water for flood-control safety even when downstream demand is high. Aging embankments at Camanche and New Hogan are the local pinch points.",
 } as const;
 
 export type StringKey = keyof typeof STRINGS;
