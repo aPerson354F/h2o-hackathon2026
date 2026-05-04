@@ -3632,12 +3632,13 @@ function HomeScreen() {
     })();
   }, [profile.onboarded]);
 
-  const greeting = useMemo(() => {
+  const t = useT(profile.lang);
+  const greeting = (() => {
     const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 18) return "Good afternoon";
-    return "Good evening";
-  }, []);
+    if (h < 12) return t("home.morning");
+    if (h < 18) return t("home.afternoon");
+    return t("home.evening");
+  })();
 
   const loadData = useCallback(async () => {
     const today = new Date().toISOString().split("T")[0];
@@ -3698,11 +3699,11 @@ function HomeScreen() {
     <SafeAreaView style={s.screen} edges={["top"]}>
       <GradientBg height={340} />
       <ScreenHeader
-        title="H2O to You"
+        title={t("home.app_name")}
         subtitle={
           profile.name
             ? `${greeting}, ${profile.name}`
-            : "California Water Guardian"
+            : t("home.subtitle_default")
         }
         onBell={() => setShowNotifs(true)}
         onGear={() => setShowSettings(true)}
@@ -4188,6 +4189,7 @@ const ACTIVITIES = [
 
 function LoggerScreen() {
   const { profile, refreshNotifs } = useApp();
+  const t = useT(profile.lang);
   const [log, setLog] = useState<
     { label: string; gallons: number; time: string; icon?: string }[]
   >([]);
@@ -4355,8 +4357,8 @@ function LoggerScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
       <GradientBg height={200} fromColor={C.teal} opacity={0.25} />
       <ScreenHeader
-        title="Log Activity"
-        subtitle="Tap to record your water use"
+        title={t("log.header_title")}
+        subtitle={t("log.header_subtitle")}
       />
 
       {/* XP POP */}
@@ -4397,7 +4399,7 @@ function LoggerScreen() {
       >
         {/* TOTAL CARD */}
         <View style={[st.glassCard, { margin: 16, alignItems: "center" }]}>
-          <Text style={st.bigLabel}>TODAY'S USAGE</Text>
+          <Text style={st.bigLabel}>{t("log.todays_usage")}</Text>
           <Text
             style={{
               color: barColor,
@@ -4411,7 +4413,8 @@ function LoggerScreen() {
               : galToL(total).toFixed(1)}
           </Text>
           <Text style={{ color: C.muted, marginBottom: 14 }}>
-            {profile.units === "gal" ? "gallons" : "liters"} used today
+            {profile.units === "gal" ? t("state.gallons") : t("state.liters")}{" "}
+            {t("log.used_today")}
           </Text>
           <View style={st.bigBarTrack}>
             <Animated.View
@@ -4431,7 +4434,7 @@ function LoggerScreen() {
           >
             <Text style={{ color: C.muted, fontSize: 10 }}>0</Text>
             <Text style={{ color: C.muted, fontSize: 10 }}>
-              {fmtVol(profile.goal, profile.units, 0)} target
+              {fmtVol(profile.goal, profile.units, 0)} {t("log.target")}
             </Text>
           </View>
         </View>
@@ -4499,7 +4502,7 @@ function LoggerScreen() {
             <Ionicons name="search" size={16} color={C.muted} />
             <TextInput
               style={st.searchInput}
-              placeholder="Search activity..."
+              placeholder={t("log.search_placeholder")}
               placeholderTextColor={C.muted}
               value={search}
               onChangeText={setSearch}
@@ -11075,6 +11078,8 @@ const parseMapMode = (raw: unknown): MapMode | null =>
     : null;
 
 function MapScreen() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const route = useRoute<any>();
   const paramMode = route.params?.mode;
   const [mode, setMode] = useState<MapMode>(
@@ -11153,8 +11158,8 @@ function MapScreen() {
     <SafeAreaView style={s.screen} edges={["top"]}>
       <GradientBg height={200} fromColor={C.purple} opacity={0.18} />
       <ScreenHeader
-        title="Conservation Map"
-        subtitle="California's lifelines, in one view"
+        title={t("map.header_title")}
+        subtitle={t("map.header_subtitle")}
       />
 
       <View style={st.tabBarScrollWrap}>
@@ -11165,9 +11170,9 @@ function MapScreen() {
         >
           {[
             { id: "outlook", label: "Outlook", icon: "telescope" },
-            { id: "aqueducts", label: "Aqueducts", icon: "git-branch" },
-            { id: "reservoirs", label: "Reservoirs", icon: "water" },
-            { id: "quality", label: "Quality", icon: "shield-checkmark" },
+            { id: "aqueducts", label: t("map.aqueducts"), icon: "git-branch" },
+            { id: "reservoirs", label: t("map.reservoirs"), icon: "water" },
+            { id: "quality", label: t("map.quality"), icon: "shield-checkmark" },
             { id: "drought", label: "Drought", icon: "flame" },
           ].map((t) => (
             <Press

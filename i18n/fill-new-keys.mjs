@@ -1,62 +1,16 @@
-import translations from "./translations.json";
+// Fills missing KEYS in each language's translation dict (vs. fill-missing.mjs
+// which fills missing LANGUAGES). Idempotent: safe to re-run after adding keys.
+// Run: node i18n/fill-new-keys.mjs
+import { readFileSync, writeFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-export const LANGUAGES: { code: string; name: string; native: string }[] = [
-  { code: "en", name: "English", native: "English" },
-  { code: "zh", name: "Chinese (Simplified)", native: "中文" },
-  { code: "hi", name: "Hindi", native: "हिन्दी" },
-  { code: "es", name: "Spanish", native: "Español" },
-  { code: "fr", name: "French", native: "Français" },
-  { code: "ar", name: "Arabic", native: "العربية" },
-  { code: "bn", name: "Bengali", native: "বাংলা" },
-  { code: "ru", name: "Russian", native: "Русский" },
-  { code: "pt", name: "Portuguese", native: "Português" },
-  { code: "ur", name: "Urdu", native: "اردو" },
-  { code: "id", name: "Indonesian", native: "Bahasa Indonesia" },
-  { code: "de", name: "German", native: "Deutsch" },
-  { code: "ja", name: "Japanese", native: "日本語" },
-  { code: "sw", name: "Swahili", native: "Kiswahili" },
-  { code: "mr", name: "Marathi", native: "मराठी" },
-  { code: "te", name: "Telugu", native: "తెలుగు" },
-  { code: "tr", name: "Turkish", native: "Türkçe" },
-  { code: "ta", name: "Tamil", native: "தமிழ்" },
-  { code: "vi", name: "Vietnamese", native: "Tiếng Việt" },
-  { code: "ko", name: "Korean", native: "한국어" },
-  { code: "fa", name: "Persian", native: "فارسی" },
-  { code: "it", name: "Italian", native: "Italiano" },
-  { code: "th", name: "Thai", native: "ไทย" },
-  { code: "gu", name: "Gujarati", native: "ગુજરાતી" },
-  { code: "pl", name: "Polish", native: "Polski" },
-  { code: "uk", name: "Ukrainian", native: "Українська" },
-  { code: "ro", name: "Romanian", native: "Română" },
-  { code: "nl", name: "Dutch", native: "Nederlands" },
-  { code: "ms", name: "Malay", native: "Bahasa Melayu" },
-  { code: "fil", name: "Filipino", native: "Filipino" },
-  { code: "my", name: "Burmese", native: "မြန်မာ" },
-  { code: "am", name: "Amharic", native: "አማርኛ" },
-  { code: "ha", name: "Hausa", native: "Hausa" },
-  { code: "yo", name: "Yoruba", native: "Yorùbá" },
-  { code: "ig", name: "Igbo", native: "Igbo" },
-  { code: "ne", name: "Nepali", native: "नेपाली" },
-  { code: "si", name: "Sinhala", native: "සිංහල" },
-  { code: "km", name: "Khmer", native: "ខ្មែរ" },
-  { code: "lo", name: "Lao", native: "ລາວ" },
-  { code: "mn", name: "Mongolian", native: "Монгол" },
-  { code: "ka", name: "Georgian", native: "ქართული" },
-  { code: "hy", name: "Armenian", native: "Հայերեն" },
-  { code: "el", name: "Greek", native: "Ελληνικά" },
-  { code: "cs", name: "Czech", native: "Čeština" },
-  { code: "hu", name: "Hungarian", native: "Magyar" },
-  { code: "sv", name: "Swedish", native: "Svenska" },
-  { code: "fi", name: "Finnish", native: "Suomi" },
-  { code: "no", name: "Norwegian", native: "Norsk" },
-  { code: "he", name: "Hebrew", native: "עברית" },
-  { code: "da", name: "Danish", native: "Dansk" },
-];
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(HERE, "..");
+const TRANS_PATH = join(ROOT, "i18n/translations.json");
 
-export type Lang = (typeof LANGUAGES)[number]["code"];
-
-export const STRINGS = {
-  // tab bar
+// Source of truth: keep in sync with STRINGS in i18n/index.ts
+const STRINGS = {
   "tab.home": "Home",
   "tab.log": "Log",
   "tab.map": "Map",
@@ -64,8 +18,6 @@ export const STRINGS = {
   "tab.stats": "Stats",
   "tab.learn": "Learn",
   "tab.chat": "Chat",
-
-  // common buttons / actions
   "btn.save": "Save",
   "btn.cancel": "Cancel",
   "btn.done": "Done",
@@ -83,8 +35,6 @@ export const STRINGS = {
   "btn.try_again": "Try again",
   "btn.copy": "Copy",
   "btn.share": "Share",
-
-  // common state
   "state.loading": "Loading…",
   "state.error": "Something went wrong",
   "state.empty": "Nothing here yet",
@@ -95,8 +45,6 @@ export const STRINGS = {
   "state.gallons": "gallons",
   "state.liters": "liters",
   "state.minutes": "min",
-
-  // onboarding
   "onb.welcome_title": "Welcome to H2O Watch",
   "onb.welcome_sub": "Track your water, save the planet",
   "onb.name_label": "What's your name?",
@@ -106,8 +54,6 @@ export const STRINGS = {
   "onb.goal_label": "Daily water goal",
   "onb.start": "Get started",
   "onb.tour_title": "Quick tour",
-
-  // home screen
   "home.greeting": "Hi {name}",
   "home.app_name": "H2O to You",
   "home.subtitle_default": "California Water Guardian",
@@ -125,8 +71,6 @@ export const STRINGS = {
   "home.daily_fact": "Daily water fact",
   "home.saved_today": "Saved today",
   "home.streak": "Day streak",
-
-  // log screen
   "log.title": "Water log",
   "log.subtitle": "Today's activities",
   "log.header_title": "Log Activity",
@@ -141,8 +85,6 @@ export const STRINGS = {
   "log.amount_label": "Amount",
   "log.amount_placeholder": "e.g. 3",
   "log.no_entries": "No entries yet today",
-
-  // map screen
   "map.title": "Water map",
   "map.subtitle": "California in real time",
   "map.header_title": "Conservation Map",
@@ -150,8 +92,6 @@ export const STRINGS = {
   "map.aqueducts": "Aqueducts",
   "map.reservoirs": "Reservoirs",
   "map.quality": "Quality",
-
-  // camera screen
   "cam.title": "Camera tools",
   "cam.subtitle": "AI-powered water analysis",
   "cam.test_strip": "Test strip",
@@ -160,8 +100,6 @@ export const STRINGS = {
   "cam.take_photo": "Take photo",
   "cam.pick_image": "Pick from library",
   "cam.analyzing": "Analyzing…",
-
-  // stats screen
   "stats.title": "Statistics",
   "stats.subtitle": "Your week at a glance",
   "stats.day": "Day",
@@ -170,15 +108,11 @@ export const STRINGS = {
   "stats.total_saved": "Total saved",
   "stats.daily_average": "Daily average",
   "stats.export": "Export data",
-
-  // learn screen
   "learn.title": "Learn",
   "learn.subtitle": "History, status, and how to help",
   "learn.history": "Water history",
   "learn.status": "Current status",
   "learn.how_to_help": "How to help",
-
-  // chat screen
   "chat.title": "AI Assistant",
   "chat.subtitle": "Ask anything about water",
   "chat.input_placeholder": "Ask about water conservation…",
@@ -188,8 +122,6 @@ export const STRINGS = {
   "chat.suggest_plants": "Best drought-tolerant plants?",
   "chat.suggest_lawn": "How much water does a lawn use?",
   "chat.suggest_bottled": "Is bottled water bad for the planet?",
-
-  // settings / profile
   "set.title": "Settings",
   "set.profile": "Profile",
   "set.name": "Name",
@@ -203,34 +135,79 @@ export const STRINGS = {
   "set.reset_data": "Reset data",
   "set.reset_confirm": "Are you sure? This erases all your data.",
   "set.reset_done": "Your data has been erased.",
-
-  // alerts
   "alert.invalid_amount": "Enter a number greater than 0.",
   "alert.copied_title": "Copied!",
   "alert.copied_body": "Text copied to your clipboard.",
-} as const;
+};
 
-export type StringKey = keyof typeof STRINGS;
+const GOOGLE_CODE = {
+  fil: "tl",
+  zh: "zh-CN",
+  he: "iw",
+};
 
-const DICT: Record<string, Record<string, string>> = translations as any;
+async function translateOne(text, target) {
+  const tl = GOOGLE_CODE[target] ?? target;
+  const placeholders = [];
+  const masked = text.replace(/\{(\w+)\}/g, (_, name) => {
+    placeholders.push(name);
+    return `__PH${placeholders.length - 1}__`;
+  });
+  const url =
+    `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${tl}` +
+    `&dt=t&q=${encodeURIComponent(masked)}`;
+  const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  let translated = data[0].map((s) => s[0]).join("");
+  translated = translated.replace(/__PH(\d+)__/gi, (_, i) => `{${placeholders[parseInt(i)]}}`);
+  return translated;
+}
 
-export function translate(
-  lang: Lang,
-  key: StringKey,
-  params?: Record<string, string | number>,
-): string {
-  const langDict = DICT[lang] ?? {};
-  const fallback = STRINGS[key];
-  let s = langDict[key] ?? fallback ?? key;
-  if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
-    }
+async function pool(items, concurrency, fn) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  await Promise.all(
+    Array.from({ length: concurrency }, async () => {
+      while (cursor < items.length) {
+        const idx = cursor++;
+        results[idx] = await fn(items[idx], idx);
+      }
+    }),
+  );
+  return results;
+}
+
+const existing = JSON.parse(readFileSync(TRANS_PATH, "utf8"));
+existing.en = STRINGS;
+
+const allKeys = Object.keys(STRINGS);
+const langCodes = Object.keys(existing).filter((c) => c !== "en");
+
+let totalAdded = 0;
+for (const code of langCodes) {
+  const dict = existing[code] ?? {};
+  const missingKeys = allKeys.filter((k) => !dict[k]);
+  if (missingKeys.length === 0) {
+    process.stdout.write(`${code.padEnd(4)} skip (complete)\n`);
+    continue;
   }
-  return s;
+  process.stdout.write(`${code.padEnd(4)} +${missingKeys.length} keys ... `);
+  const t0 = Date.now();
+  const values = await pool(missingKeys, 6, async (k) => {
+    try {
+      return await translateOne(STRINGS[k], code);
+    } catch {
+      return STRINGS[k];
+    }
+  });
+  for (let i = 0; i < missingKeys.length; i++) {
+    dict[missingKeys[i]] = values[i];
+  }
+  existing[code] = dict;
+  writeFileSync(TRANS_PATH, JSON.stringify(existing, null, 2));
+  totalAdded += missingKeys.length;
+  console.log(`done (${Date.now() - t0}ms)`);
 }
 
-export function useT(lang: Lang) {
-  return (key: StringKey, params?: Record<string, string | number>) =>
-    translate(lang, key, params);
-}
+console.log(`\nDone. Added ${totalAdded} translations across ${langCodes.length} languages.`);
