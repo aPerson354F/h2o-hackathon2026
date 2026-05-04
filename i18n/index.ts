@@ -1119,10 +1119,7 @@ export const STRINGS = {
   // Water Journey tour (first-run + replay) — 6-stage onboarding
   "tour.welcome_lbl": "WELCOME",
   "tour.replay_lbl": "REPLAY",
-  "tour.skip": "SKIP",
   "tour.close": "CLOSE",
-  "tour.back": "← Back",
-  "tour.next": "Next →",
   "tour.done": "Done",
   "tour.continue_quiz": "Continue to quiz →",
   "tour.s1.title": "1. Sierra Snowpack",
@@ -1155,7 +1152,6 @@ export const STRINGS = {
   "err.no_response": "No response.",
   "err.briefing_unreachable": "Could not reach the briefing service. Try again later.",
   "err.vision_failed": "Vision request failed: {msg}",
-  "err.unknown": "unknown error",
   "err.chat_trouble": "Sorry, I had trouble responding.",
   "err.connection": "Connection error. Please try again.",
   "err.cam_vision_failed": "Vision request failed. Try again or use the demo button.",
@@ -1348,6 +1344,24 @@ export const STRINGS = {
   "strip.ai_returned_no_match": "AI returned \"{value}\" — no exact match in reference scale.",
   "strip.could_not_parse": "Could not parse AI response. Try a clearer photo of the strip pad.",
   "strip.ref_sample_tap": "Reference sample tap (no AI used).",
+
+  // post-quiz / post-onboard notif messages (HomeScreen)
+  "notif.footprint_estimated_title": "Footprint estimated",
+  "notif.footprint_estimated_body": "You use about {gal} gallons per year. Let's reduce that together.",
+  "notif.welcome_aboard_title": "Welcome aboard!",
+  "notif.welcome_aboard_body": "Your water-saving journey begins now. Tap Log to record your first activity.",
+
+  // Conservation Report share text (header + footer + bullet labels)
+  "report.share_header": "🌊 H2O to You — Conservation Report",
+  "report.share_generated": "Generated {date}",
+  "report.share_lifetime_saved": "Lifetime saved: {gal} gal",
+  "report.share_active_days": "Active days (90d): {days}",
+  "report.share_weekly_avg": "Weekly avg use: {gal} gal/day",
+  "report.share_streak": "Streak: {days} day(s)",
+  "report.share_level": "Level {level} Guardian · {xp} XP",
+  "report.share_badges_earned": "Badges earned: {got}/{total}",
+  "report.share_footer": "Built for the H2O Hackathon · 2026",
+  "report.share_title": "Conservation Report",
 } as const;
 
 export type StringKey = keyof typeof STRINGS;

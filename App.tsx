@@ -4334,8 +4334,10 @@ function HomeScreen() {
           await addNotif({
             type: "tip",
             emoji: "💧",
-            title: "Footprint estimated",
-            body: `You use about ${Math.round(totalAnnual).toLocaleString()} gallons per year. Let's reduce that together.`,
+            title: t("notif.footprint_estimated_title"),
+            body: t("notif.footprint_estimated_body", {
+              gal: Math.round(totalAnnual).toLocaleString(),
+            }),
           });
           setShowQuiz(false);
           setShowOnboard(true);
@@ -4347,8 +4349,8 @@ function HomeScreen() {
           await addNotif({
             type: "achievement",
             emoji: "🎉",
-            title: "Welcome aboard!",
-            body: "Your water-saving journey begins now. Tap Log to record your first activity.",
+            title: t("notif.welcome_aboard_title"),
+            body: t("notif.welcome_aboard_body"),
           });
           await setProfile({
             ...DEFAULT_PROFILE,
@@ -5117,20 +5119,20 @@ function ConservationReportModal({
   const onShare = useCallback(async () => {
     if (!report) return;
     const lines = [
-      `🌊 H2O to You — Conservation Report`,
-      `Generated ${new Date(report.generatedAt).toLocaleDateString()}`,
+      t("report.share_header"),
+      t("report.share_generated", { date: new Date(report.generatedAt).toLocaleDateString() }),
       ``,
-      `• Lifetime saved: ${report.lifetimeSaved.toFixed(0)} gal`,
-      `• Active days (90d): ${report.activeDays}`,
-      `• Weekly avg use: ${report.weeklyAvg.toFixed(0)} gal/day`,
-      `• Streak: ${report.streak} day(s)`,
-      `• Level ${report.level} Guardian · ${report.xp} XP`,
-      `• Badges earned: ${report.badges.length}/${BADGES.length}`,
+      `• ${t("report.share_lifetime_saved", { gal: report.lifetimeSaved.toFixed(0) })}`,
+      `• ${t("report.share_active_days", { days: report.activeDays })}`,
+      `• ${t("report.share_weekly_avg", { gal: report.weeklyAvg.toFixed(0) })}`,
+      `• ${t("report.share_streak", { days: report.streak })}`,
+      `• ${t("report.share_level", { level: report.level, xp: report.xp })}`,
+      `• ${t("report.share_badges_earned", { got: report.badges.length, total: BADGES.length })}`,
       ``,
-      `Built for the H2O Hackathon · 2026`,
+      t("report.share_footer"),
     ];
-    await shareText(lines.join("\n"), "Conservation Report");
-  }, [report]);
+    await shareText(lines.join("\n"), t("report.share_title"));
+  }, [report, t]);
 
   const onExport = useCallback(async () => {
     if (!report) return;
