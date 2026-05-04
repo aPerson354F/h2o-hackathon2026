@@ -210,9 +210,9 @@ async function askGroq(
       }),
     });
     const d = await res.json();
-    return d.choices?.[0]?.message?.content ?? "No response.";
+    return d.choices?.[0]?.message?.content ?? translate(lang ?? "en", "err.no_response");
   } catch {
-    return "Could not reach the briefing service. Try again later.";
+    return translate(lang ?? "en", "err.briefing_unreachable");
   }
 }
 
@@ -250,10 +250,12 @@ async function askGroqVision(
     });
     const d = await res.json();
     return (
-      d.choices?.[0]?.message?.content ?? d.error?.message ?? "No response."
+      d.choices?.[0]?.message?.content ?? d.error?.message ?? translate(lang ?? "en", "err.no_response")
     );
   } catch (e: any) {
-    return `Vision request failed: ${e?.message ?? "unknown error"}`;
+    return translate(lang ?? "en", "err.vision_failed", {
+      msg: e?.message ?? translate(lang ?? "en", "err.unknown"),
+    });
   }
 }
 
@@ -282,10 +284,10 @@ async function askGroqChat(
     });
     const d = await res.json();
     return (
-      d.choices?.[0]?.message?.content ?? "Sorry, I had trouble responding."
+      d.choices?.[0]?.message?.content ?? translate(lang ?? "en", "err.chat_trouble")
     );
   } catch {
-    return "Connection error. Please try again.";
+    return translate(lang ?? "en", "err.connection");
   }
 }
 
@@ -369,6 +371,7 @@ function confirmAction(
   message: string,
   onConfirm: () => void | Promise<void>,
   confirmLabel: string = "Confirm",
+  cancelLabel: string = "Cancel",
 ) {
   if (Platform.OS === "web") {
     const ok =
@@ -379,7 +382,7 @@ function confirmAction(
     return;
   }
   Alert.alert(title, message, [
-    { text: "Cancel", style: "cancel" },
+    { text: cancelLabel, style: "cancel" },
     {
       text: confirmLabel,
       style: "destructive",
@@ -4490,13 +4493,14 @@ function LoggerScreen() {
 
   const clearLog = () =>
     confirmAction(
-      "Clear Log",
-      "Reset today's log? This can't be undone.",
+      t("alert.clear_log_title"),
+      t("alert.clear_log_msg"),
       async () => {
         setLog([]);
         await AsyncStorage.removeItem(`log_${today}`);
       },
-      "Clear",
+      t("alert.clear"),
+      t("alert.cancel"),
     );
 
   const filtered = ACTIVITIES.filter((a) =>
@@ -5649,7 +5653,7 @@ function StatsScreen() {
                   }}
                 >
                   {mine
-                    ? t("stats.found_via_msg", { label: mine.label, emoji: mine.emoji, count: mine.count.toLocaleString() })
+                    ? t("stats.found_via_msg", { label: t(REFERRAL_LABEL_KEY[mine.value]), emoji: mine.emoji, count: mine.count.toLocaleString() })
                     : t("stats.found_via_default")}
                 </Text>
                 {sorted.map((r) => {
@@ -5682,7 +5686,7 @@ function StatsScreen() {
                               fontWeight: isMine ? "800" : "600",
                             }}
                           >
-                            {r.label}
+                            {t(REFERRAL_LABEL_KEY[r.value])}
                           </Text>
                           {isMine && (
                             <View
@@ -6758,6 +6762,7 @@ function SettingsModal({
         Alert.alert(t("alert.reset_complete"), t("set.reset_done"));
       },
       t("btn.reset"),
+      t("alert.cancel"),
     );
 
   return (
@@ -8069,6 +8074,27 @@ const MOCK_REFERRAL_BREAKDOWN: {
   { value: "other", label: "Other", emoji: "✨", count: 18 },
   { value: "podcast", label: "Podcast", emoji: "🎙️", count: 14 },
 ];
+
+const REFERRAL_LABEL_KEY: Record<string, StringKey> = {
+  friend_family: "referral.friend_family",
+  tiktok: "referral.tiktok",
+  instagram: "referral.instagram",
+  hackathon: "referral.hackathon",
+  school: "referral.school",
+  app_store: "referral.app_store",
+  search: "referral.search",
+  news: "referral.news",
+  youtube: "referral.youtube",
+  reddit: "referral.reddit",
+  utility: "referral.utility",
+  workplace: "referral.workplace",
+  event: "referral.event",
+  newsletter: "referral.newsletter",
+  facebook: "referral.facebook",
+  twitter: "referral.twitter",
+  other: "referral.other",
+  podcast: "referral.podcast",
+};
 
 const QUIZ_TIPS: Record<string, string> = {
   Showers:
@@ -14572,7 +14598,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
         );
       }
     } catch {
-      setError("Vision request failed. Try again or use the demo button.");
+      setError(t("err.cam_vision_failed"));
     }
     setScanning(false);
   };
@@ -14777,7 +14803,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 >
                   {result.yard_size_sqft_est.toLocaleString()}
                 </Text>
-                <Text style={{ color: C.muted, fontSize: 10 }}>est sq ft</Text>
+                <Text style={{ color: C.muted, fontSize: 10 }}>{t("audit.est_sqft")}</Text>
               </View>
               <View style={{ alignItems: "center" }}>
                 <Text
@@ -14785,7 +14811,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 >
                   {result.current_gallons_yr_est.toLocaleString()}
                 </Text>
-                <Text style={{ color: C.muted, fontSize: 10 }}>gal/yr now</Text>
+                <Text style={{ color: C.muted, fontSize: 10 }}>{t("audit.galyr_now")}</Text>
               </View>
               <View style={{ alignItems: "center" }}>
                 <Text
@@ -14793,7 +14819,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 >
                   {paybackYr > 0 ? `${paybackYr.toFixed(1)}y` : "—"}
                 </Text>
-                <Text style={{ color: C.muted, fontSize: 10 }}>payback</Text>
+                <Text style={{ color: C.muted, fontSize: 10 }}>{t("audit.payback")}</Text>
               </View>
             </View>
           </View>

@@ -1017,6 +1017,43 @@ const STRINGS = {
   "tour.s6.title": "6. Your Tap",
   "tour.s6.fact": "About 90 miles · 6 weeks of journey",
   "tour.s6.body": "From mountain snow to your kitchen sink — water completes the trip in roughly six weeks, traveling about 90 miles. Every shower, dish, and glass of water you use here started as a snowflake on the Sierra.",
+
+  "alert.cancel": "Cancel",
+  "alert.confirm": "Confirm",
+  "alert.clear": "Clear",
+  "alert.clear_log_title": "Clear Log",
+  "alert.clear_log_msg": "Reset today's log? This can't be undone.",
+
+  "err.no_response": "No response.",
+  "err.briefing_unreachable": "Could not reach the briefing service. Try again later.",
+  "err.vision_failed": "Vision request failed: {msg}",
+  "err.unknown": "unknown error",
+  "err.chat_trouble": "Sorry, I had trouble responding.",
+  "err.connection": "Connection error. Please try again.",
+  "err.cam_vision_failed": "Vision request failed. Try again or use the demo button.",
+
+  "referral.friend_family": "Friend or family",
+  "referral.tiktok": "TikTok",
+  "referral.instagram": "Instagram",
+  "referral.hackathon": "Hackathon / coding event",
+  "referral.school": "School or teacher",
+  "referral.app_store": "App Store / Play Store",
+  "referral.search": "Google or search",
+  "referral.news": "News article or blog",
+  "referral.youtube": "YouTube",
+  "referral.reddit": "Reddit",
+  "referral.utility": "City / utility website",
+  "referral.workplace": "My workplace",
+  "referral.event": "Community event / fair",
+  "referral.newsletter": "Email newsletter",
+  "referral.facebook": "Facebook",
+  "referral.twitter": "X / Twitter",
+  "referral.other": "Other",
+  "referral.podcast": "Podcast",
+
+  "audit.est_sqft": "est sq ft",
+  "audit.galyr_now": "gal/yr now",
+  "audit.payback": "payback",
 };
 
 const GOOGLE_CODE = {
