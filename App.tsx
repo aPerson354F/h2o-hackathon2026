@@ -58,7 +58,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { useT, LANGUAGES, type Lang, type StringKey } from "./i18n";
+import { useT, translate, LANGUAGES, type Lang, type StringKey } from "./i18n";
 
 const Tab = createBottomTabNavigator();
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -853,6 +853,30 @@ const BADGES = [
   },
 ];
 
+// Side-table mapping each badge id to its translation keys.
+const BADGE_TR: Record<string, { name: StringKey; desc: StringKey }> = {
+  first_log: { name: "badge.first_log.name", desc: "badge.first_log.desc" },
+  under_50: { name: "badge.under_50.name", desc: "badge.under_50.desc" },
+  streak_3: { name: "badge.streak_3.name", desc: "badge.streak_3.desc" },
+  streak_7: { name: "badge.streak_7.name", desc: "badge.streak_7.desc" },
+  streak_30: { name: "badge.streak_30.name", desc: "badge.streak_30.desc" },
+  saver: { name: "badge.saver.name", desc: "badge.saver.desc" },
+  sharer: { name: "badge.sharer.name", desc: "badge.sharer.desc" },
+  goal_set: { name: "badge.goal_set.name", desc: "badge.goal_set.desc" },
+  level_5: { name: "badge.level_5.name", desc: "badge.level_5.desc" },
+  tour_done: { name: "badge.tour_done.name", desc: "badge.tour_done.desc" },
+  sim_watched: { name: "badge.sim_watched.name", desc: "badge.sim_watched.desc" },
+  map_explorer: { name: "badge.map_explorer.name", desc: "badge.map_explorer.desc" },
+  strip_tester: { name: "badge.strip_tester.name", desc: "badge.strip_tester.desc" },
+  pollution_hunter: { name: "badge.pollution_hunter.name", desc: "badge.pollution_hunter.desc" },
+  footprint_aware: { name: "badge.footprint_aware.name", desc: "badge.footprint_aware.desc" },
+  login_5: { name: "badge.login_5.name", desc: "badge.login_5.desc" },
+  login_30: { name: "badge.login_30.name", desc: "badge.login_30.desc" },
+  level_10: { name: "badge.level_10.name", desc: "badge.level_10.desc" },
+  shower_coach_used: { name: "badge.shower_coach_used.name", desc: "badge.shower_coach_used.desc" },
+  landscape_audited: { name: "badge.landscape_audited.name", desc: "badge.landscape_audited.desc" },
+};
+
 async function awardBadge(id: string): Promise<boolean> {
   // Prefer the in-context handler so UI re-renders + toast fires
   if (_badgeUnlockHandler) {
@@ -936,6 +960,21 @@ const TIPS = [
   },
 ];
 
+// Tip-title to translation key map. Index-aligned with TIPS so we can keep
+// the data array unchanged but render translated strings at notif time.
+const TIP_TR: { title: StringKey; body: StringKey }[] = [
+  { title: "tip.shower_short.title", body: "tip.shower_short.body" },
+  { title: "tip.tap_off.title", body: "tip.tap_off.body" },
+  { title: "tip.water_dawn.title", body: "tip.water_dawn.body" },
+  { title: "tip.brick_tank.title", body: "tip.brick_tank.body" },
+  { title: "tip.skip_prerinse.title", body: "tip.skip_prerinse.body" },
+  { title: "tip.veggie_water.title", body: "tip.veggie_water.body" },
+  { title: "tip.fix_drip.title", body: "tip.fix_drip.body" },
+  { title: "tip.cover_pool.title", body: "tip.cover_pool.body" },
+  { title: "tip.reuse_ice.title", body: "tip.reuse_ice.body" },
+  { title: "tip.capture_rain.title", body: "tip.capture_rain.body" },
+];
+
 async function getNotifs(): Promise<Notif[]> {
   return JSON.parse((await AsyncStorage.getItem("notifs")) || "[]");
 }
@@ -958,7 +997,7 @@ async function addNotif(n: Omit<Notif, "id" | "time" | "read">) {
   return newN;
 }
 
-async function generateNotifs(profile: Profile) {
+async function generateNotifs(profile: Profile, t?: TFn) {
   const list = await getNotifs();
   const now = new Date();
   const today = now.toISOString().split("T")[0];
@@ -966,18 +1005,22 @@ async function generateNotifs(profile: Profile) {
   const log = JSON.parse((await AsyncStorage.getItem(`log_${today}`)) || "[]");
   const total = log.reduce((s: number, e: any) => s + e.gallons, 0);
   const hour = now.getHours();
+  const tx = (k: StringKey, params?: Record<string, string | number>): string =>
+    t ? t(k, params) : "";
 
   // tip rotation - one per ~6h window
   const slot = `${today}-${Math.floor(hour / 6)}`;
   if (lastGen !== slot) {
     if (profile.tipsEnabled) {
-      const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+      const idx = Math.floor(Math.random() * TIPS.length);
+      const tip = TIPS[idx];
+      const tr = TIP_TR[idx];
       list.unshift({
         id: "tip-" + slot,
         type: "tip",
         emoji: tip.e,
-        title: tip.t,
-        body: tip.b,
+        title: t ? tx(tr.title) : tip.t,
+        body: t ? tx(tr.body) : tip.b,
         time: Date.now(),
         read: false,
       });
@@ -988,8 +1031,14 @@ async function generateNotifs(profile: Profile) {
         id: "morn-" + today,
         type: "reminder",
         emoji: "🌅",
-        title: "Good morning" + (profile.name ? `, ${profile.name}` : "") + "!",
-        body: "Start your day right — log your first activity to keep your streak alive.",
+        title: t
+          ? tx("notif.good_morning", {
+              name: profile.name ? `, ${profile.name}` : "",
+            })
+          : "Good morning" + (profile.name ? `, ${profile.name}` : "") + "!",
+        body: t
+          ? tx("notif.morning_body")
+          : "Start your day right — log your first activity to keep your streak alive.",
         time: Date.now(),
         read: false,
       });
@@ -1000,8 +1049,12 @@ async function generateNotifs(profile: Profile) {
         id: "over-" + today + "-" + Math.floor(hour / 6),
         type: "alert",
         emoji: "⚠️",
-        title: `${Math.round(total - profile.goal)} gal over goal`,
-        body: "You've passed your daily target. Try skipping the next non-essential use.",
+        title: t
+          ? tx("notif.over_goal", { gal: Math.round(total - profile.goal) })
+          : `${Math.round(total - profile.goal)} gal over goal`,
+        body: t
+          ? tx("notif.over_goal_body")
+          : "You've passed your daily target. Try skipping the next non-essential use.",
         time: Date.now(),
         read: false,
       });
@@ -1012,8 +1065,10 @@ async function generateNotifs(profile: Profile) {
         id: "eve-" + today,
         type: "streak",
         emoji: "🔥",
-        title: "Don't break your streak!",
-        body: "You haven't logged today. A single quick log keeps your fire burning.",
+        title: t ? tx("notif.streak_save_title") : "Don't break your streak!",
+        body: t
+          ? tx("notif.streak_save_body")
+          : "You haven't logged today. A single quick log keeps your fire burning.",
         time: Date.now(),
         read: false,
       });
@@ -1074,6 +1129,16 @@ const TOUR_PAGES = [
     body: "Got a question about drought, plants, or smart sprinklers? Your AI water expert is one tap away.",
     color: C.amber,
   },
+];
+
+const TOUR_TR: { title: StringKey; body: StringKey }[] = [
+  { title: "tour.welcome.title", body: "tour.welcome.body" },
+  { title: "tour.log.title", body: "tour.log.body" },
+  { title: "tour.achievements.title", body: "tour.achievements.body" },
+  { title: "tour.simulation.title", body: "tour.simulation.body" },
+  { title: "tour.map.title", body: "tour.map.body" },
+  { title: "tour.camera.title", body: "tour.camera.body" },
+  { title: "tour.assistant.title", body: "tour.assistant.body" },
 ];
 
 // ─── SIMULATION DATA ──────────────────────────────────
@@ -2645,6 +2710,17 @@ const CHALLENGE_POOL: ChallengePool[] = [
   },
 ];
 
+const CHAL_TR: Record<string, { title: StringKey; desc: StringKey }> = {
+  log3: { title: "chal.log3.title", desc: "chal.log3.desc" },
+  under: { title: "chal.under.title", desc: "chal.under.desc" },
+  shower2: { title: "chal.shower2.title", desc: "chal.shower2.desc" },
+  hydrate: { title: "chal.hydrate.title", desc: "chal.hydrate.desc" },
+  nobath: { title: "chal.nobath.title", desc: "chal.nobath.desc" },
+  midday: { title: "chal.midday.title", desc: "chal.midday.desc" },
+  cam: { title: "chal.cam.title", desc: "chal.cam.desc" },
+  mapview: { title: "chal.mapview.title", desc: "chal.mapview.desc" },
+};
+
 // ─── LEADERBOARD (mock community) ─────────────────────
 type LeaderEntry = {
   name: string;
@@ -2750,7 +2826,10 @@ async function evalChallenge(
   return { progress: Math.min(progress, c.target), done: progress >= c.target };
 }
 
-async function claimChallenge(c: ChallengePool): Promise<boolean> {
+async function claimChallenge(
+  c: ChallengePool,
+  lang: Lang = "en",
+): Promise<boolean> {
   const today = new Date().toISOString().split("T")[0];
   const claimedKey = `chal_claimed_${today}`;
   const claimed: string[] = JSON.parse(
@@ -2761,11 +2840,14 @@ async function claimChallenge(c: ChallengePool): Promise<boolean> {
   await AsyncStorage.setItem(claimedKey, JSON.stringify(claimed));
   const xp = parseInt((await AsyncStorage.getItem("xp")) || "0");
   await AsyncStorage.setItem("xp", String(xp + c.xp));
+  const tr = CHAL_TR[c.id];
+  const title = tr ? translate(lang, tr.title) : c.title;
+  const desc = tr ? translate(lang, tr.desc) : c.desc;
   await addNotif({
     type: "achievement",
     emoji: c.icon,
-    title: `+${c.xp} XP — ${c.title}`,
-    body: `Daily challenge complete: ${c.desc}`,
+    title: translate(lang, "notif.chal_claim_title", { xp: c.xp, title }),
+    body: translate(lang, "notif.chal_claim_body", { desc }),
   });
   return true;
 }
@@ -2848,7 +2930,8 @@ function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshNotifs = useCallback(async () => {
-    const n = await generateNotifs(profile);
+    const t: TFn = (key, params) => translate(profile.lang, key, params);
+    const n = await generateNotifs(profile, t);
     setNotifs(n);
   }, [profile]);
 
@@ -2868,29 +2951,38 @@ function AppProvider({ children }: { children: React.ReactNode }) {
     await saveNotifs([]);
   }, []);
 
-  const unlockBadge = useCallback(async (id: string): Promise<boolean> => {
-    const list: string[] = JSON.parse(
-      (await AsyncStorage.getItem("badges")) || "[]",
-    );
-    if (list.includes(id)) return false;
-    list.push(id);
-    await AsyncStorage.setItem("badges", JSON.stringify(list));
-    setBadges(list);
-    const def = BADGES.find((b) => b.id === id);
-    if (def) {
-      setRecentUnlock(def);
-      await addNotif({
-        type: "achievement",
-        emoji: def.icon,
-        title: "Achievement Unlocked!",
-        body: `${def.name} — ${def.desc}`,
-      });
-      // refresh notifs list
-      const n = await getNotifs();
-      setNotifs(n);
-    }
-    return true;
-  }, []);
+  const unlockBadge = useCallback(
+    async (id: string): Promise<boolean> => {
+      const list: string[] = JSON.parse(
+        (await AsyncStorage.getItem("badges")) || "[]",
+      );
+      if (list.includes(id)) return false;
+      list.push(id);
+      await AsyncStorage.setItem("badges", JSON.stringify(list));
+      setBadges(list);
+      const def = BADGES.find((b) => b.id === id);
+      if (def) {
+        setRecentUnlock(def);
+        const tr = BADGE_TR[def.id];
+        const name = tr
+          ? translate(profile.lang, tr.name)
+          : def.name;
+        const desc = tr
+          ? translate(profile.lang, tr.desc)
+          : def.desc;
+        await addNotif({
+          type: "achievement",
+          emoji: def.icon,
+          title: translate(profile.lang, "notif.achievement_title"),
+          body: translate(profile.lang, "notif.achievement_body", { name, desc }),
+        });
+        const n = await getNotifs();
+        setNotifs(n);
+      }
+      return true;
+    },
+    [profile.lang],
+  );
 
   const dismissUnlock = useCallback(() => setRecentUnlock(null), []);
 
@@ -3011,10 +3103,14 @@ function BadgeUnlockToast() {
             {t("toast.achievement_unlocked_label")}
           </Text>
           <Text style={{ color: C.white, fontSize: 14, fontWeight: "800" }}>
-            {recentUnlock.name}
+            {BADGE_TR[recentUnlock.id]
+              ? t(BADGE_TR[recentUnlock.id].name)
+              : recentUnlock.name}
           </Text>
           <Text style={{ color: C.textSoft, fontSize: 11, marginTop: 1 }}>
-            {recentUnlock.desc}
+            {BADGE_TR[recentUnlock.id]
+              ? t(BADGE_TR[recentUnlock.id].desc)
+              : recentUnlock.desc}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={C.muted} />
@@ -3092,9 +3188,14 @@ function DailyChallengesCard() {
   }, [refresh]);
 
   const onClaim = async (c: ChallengePool) => {
-    const ok = await claimChallenge(c);
+    const ok = await claimChallenge(c, profile.lang);
     if (ok) {
-      Alert.alert(`+${c.xp} XP`, `${c.title} complete!`);
+      Alert.alert(
+        t("alert.challenge_complete_title", { xp: c.xp }),
+        t("alert.challenge_complete_msg", {
+          title: CHAL_TR[c.id] ? t(CHAL_TR[c.id].title) : c.title,
+        }),
+      );
       refresh();
     }
   };
@@ -3142,7 +3243,7 @@ function DailyChallengesCard() {
                 <Text
                   style={{ color: C.white, fontSize: 13, fontWeight: "700" }}
                 >
-                  {c.title}
+                  {CHAL_TR[c.id] ? t(CHAL_TR[c.id].title) : c.title}
                 </Text>
                 <Text
                   style={{ color: c.color, fontSize: 11, fontWeight: "800" }}
@@ -3151,7 +3252,7 @@ function DailyChallengesCard() {
                 </Text>
               </View>
               <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                {c.desc}
+                {CHAL_TR[c.id] ? t(CHAL_TR[c.id].desc) : c.desc}
               </Text>
               <View
                 style={{
@@ -4083,6 +4184,7 @@ function HomeScreen() {
             >
               {BADGES.map((b) => {
                 const got = badges.includes(b.id);
+                const tr = BADGE_TR[b.id];
                 return (
                   <Press
                     key={b.id}
@@ -4090,8 +4192,8 @@ function HomeScreen() {
                     style={[st.badgeCard, !got && { opacity: 0.35 }]}
                   >
                     <Text style={{ fontSize: 26 }}>{b.icon}</Text>
-                    <Text style={st.badgeName}>{b.name}</Text>
-                    <Text style={st.badgeDesc}>{b.desc}</Text>
+                    <Text style={st.badgeName}>{tr ? t(tr.name) : b.name}</Text>
+                    <Text style={st.badgeDesc}>{tr ? t(tr.desc) : b.desc}</Text>
                     {got ? (
                       <View style={st.badgeCheck}>
                         <Ionicons name="checkmark" size={10} color={C.bg} />
@@ -8672,6 +8774,8 @@ function IntroTourModal({
   visible: boolean;
   onClose: () => void;
 }) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [page, setPage] = useState(0);
   const fade = useRef(new Animated.Value(1)).current;
 
@@ -8728,15 +8832,19 @@ function IntroTourModal({
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={{ color: C.muted, fontSize: 12, fontWeight: "700" }}>
-              SKIP
+              {t("tour.skip")}
             </Text>
           </TouchableOpacity>
           <Animated.View style={{ opacity: fade, alignItems: "center" }}>
             <View style={[st.tourIconRing, { borderColor: p.color }]}>
               <Text style={{ fontSize: 56 }}>{p.icon}</Text>
             </View>
-            <Text style={[st.tourTitle, { color: p.color }]}>{p.title}</Text>
-            <Text style={st.tourBody}>{p.body}</Text>
+            <Text style={[st.tourTitle, { color: p.color }]}>
+              {TOUR_TR[page] ? t(TOUR_TR[page].title) : p.title}
+            </Text>
+            <Text style={st.tourBody}>
+              {TOUR_TR[page] ? t(TOUR_TR[page].body) : p.body}
+            </Text>
           </Animated.View>
 
           <View
@@ -8767,7 +8875,7 @@ function IntroTourModal({
                 onPress={() => goTo(page - 1)}
                 style={[st.btn, { flex: 1, backgroundColor: C.surface2 }]}
               >
-                <Text style={[st.btnText, { color: C.text }]}>Back</Text>
+                <Text style={[st.btnText, { color: C.text }]}>{t("tour.back")}</Text>
               </Press>
             )}
             <Press
@@ -8775,7 +8883,7 @@ function IntroTourModal({
               style={[st.btn, { flex: 1, backgroundColor: p.color }]}
             >
               <Text style={[st.btnText, { color: C.bg }]}>
-                {isLast ? "Start Exploring" : "Next"}
+                {isLast ? t("tour.start_exploring") : t("tour.next")}
               </Text>
             </Press>
           </View>
@@ -14996,6 +15104,7 @@ function AchievementsModal({
               ...ACHIEVEMENT_CATEGORIES,
             ].map((c) => {
               const active = filter === c.id;
+              const catName = t(`ach.cat.${c.id}` as StringKey);
               return (
                 <Press
                   key={c.id}
@@ -15016,7 +15125,7 @@ function AchievementsModal({
                       fontWeight: "700",
                     }}
                   >
-                    {c.name}
+                    {catName}
                   </Text>
                 </Press>
               );
@@ -15030,14 +15139,15 @@ function AchievementsModal({
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {filtered.map((b) => {
                 const has = owned.includes(b.id);
+                const tr = BADGE_TR[b.id];
                 return (
                   <View
                     key={b.id}
                     style={[st.bigBadge, !has && { opacity: 0.35 }]}
                   >
                     <Text style={{ fontSize: 32 }}>{b.icon}</Text>
-                    <Text style={st.bigBadgeName}>{b.name}</Text>
-                    <Text style={st.bigBadgeDesc}>{b.desc}</Text>
+                    <Text style={st.bigBadgeName}>{tr ? t(tr.name) : b.name}</Text>
+                    <Text style={st.bigBadgeDesc}>{tr ? t(tr.desc) : b.desc}</Text>
                     {has && (
                       <View style={st.bigBadgeCheck}>
                         <Ionicons name="checkmark" size={11} color={C.bg} />
