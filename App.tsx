@@ -210,7 +210,10 @@ async function askGroq(
       }),
     });
     const d = await res.json();
-    return d.choices?.[0]?.message?.content ?? translate(lang ?? "en", "err.no_response");
+    return (
+      d.choices?.[0]?.message?.content ??
+      translate(lang ?? "en", "err.no_response")
+    );
   } catch {
     return translate(lang ?? "en", "err.briefing_unreachable");
   }
@@ -250,7 +253,9 @@ async function askGroqVision(
     });
     const d = await res.json();
     return (
-      d.choices?.[0]?.message?.content ?? d.error?.message ?? translate(lang ?? "en", "err.no_response")
+      d.choices?.[0]?.message?.content ??
+      d.error?.message ??
+      translate(lang ?? "en", "err.no_response")
     );
   } catch (e: any) {
     return translate(lang ?? "en", "err.vision_failed", {
@@ -284,7 +289,8 @@ async function askGroqChat(
     });
     const d = await res.json();
     return (
-      d.choices?.[0]?.message?.content ?? translate(lang ?? "en", "err.chat_trouble")
+      d.choices?.[0]?.message?.content ??
+      translate(lang ?? "en", "err.chat_trouble")
     );
   } catch {
     return translate(lang ?? "en", "err.connection");
@@ -292,10 +298,7 @@ async function askGroqChat(
 }
 
 // ─── IMAGE PICKER HELPER ────────────────────────────────
-type TFn = (
-  key: StringKey,
-  params?: Record<string, string | number>,
-) => string;
+type TFn = (key: StringKey, params?: Record<string, string | number>) => string;
 async function pickImage(
   useCamera: boolean,
   t?: TFn,
@@ -870,16 +873,37 @@ const BADGE_TR: Record<string, { name: StringKey; desc: StringKey }> = {
   goal_set: { name: "badge.goal_set.name", desc: "badge.goal_set.desc" },
   level_5: { name: "badge.level_5.name", desc: "badge.level_5.desc" },
   tour_done: { name: "badge.tour_done.name", desc: "badge.tour_done.desc" },
-  sim_watched: { name: "badge.sim_watched.name", desc: "badge.sim_watched.desc" },
-  map_explorer: { name: "badge.map_explorer.name", desc: "badge.map_explorer.desc" },
-  strip_tester: { name: "badge.strip_tester.name", desc: "badge.strip_tester.desc" },
-  pollution_hunter: { name: "badge.pollution_hunter.name", desc: "badge.pollution_hunter.desc" },
-  footprint_aware: { name: "badge.footprint_aware.name", desc: "badge.footprint_aware.desc" },
+  sim_watched: {
+    name: "badge.sim_watched.name",
+    desc: "badge.sim_watched.desc",
+  },
+  map_explorer: {
+    name: "badge.map_explorer.name",
+    desc: "badge.map_explorer.desc",
+  },
+  strip_tester: {
+    name: "badge.strip_tester.name",
+    desc: "badge.strip_tester.desc",
+  },
+  pollution_hunter: {
+    name: "badge.pollution_hunter.name",
+    desc: "badge.pollution_hunter.desc",
+  },
+  footprint_aware: {
+    name: "badge.footprint_aware.name",
+    desc: "badge.footprint_aware.desc",
+  },
   login_5: { name: "badge.login_5.name", desc: "badge.login_5.desc" },
   login_30: { name: "badge.login_30.name", desc: "badge.login_30.desc" },
   level_10: { name: "badge.level_10.name", desc: "badge.level_10.desc" },
-  shower_coach_used: { name: "badge.shower_coach_used.name", desc: "badge.shower_coach_used.desc" },
-  landscape_audited: { name: "badge.landscape_audited.name", desc: "badge.landscape_audited.desc" },
+  shower_coach_used: {
+    name: "badge.shower_coach_used.name",
+    desc: "badge.shower_coach_used.desc",
+  },
+  landscape_audited: {
+    name: "badge.landscape_audited.name",
+    desc: "badge.landscape_audited.desc",
+  },
 };
 
 async function awardBadge(id: string): Promise<boolean> {
@@ -1010,8 +1034,10 @@ async function generateNotifs(profile: Profile, t?: TFn) {
   const log = JSON.parse((await AsyncStorage.getItem(`log_${today}`)) || "[]");
   const total = log.reduce((s: number, e: any) => s + e.gallons, 0);
   const hour = now.getHours();
-  const tx = (k: StringKey, params?: Record<string, string | number>): string =>
-    t ? t(k, params) : "";
+  const tx = (
+    k: StringKey,
+    params?: Record<string, string | number>,
+  ): string => (t ? t(k, params) : "");
 
   // tip rotation - one per ~6h window
   const slot = `${today}-${Math.floor(hour / 6)}`;
@@ -2969,17 +2995,16 @@ function AppProvider({ children }: { children: React.ReactNode }) {
       if (def) {
         setRecentUnlock(def);
         const tr = BADGE_TR[def.id];
-        const name = tr
-          ? translate(profile.lang, tr.name)
-          : def.name;
-        const desc = tr
-          ? translate(profile.lang, tr.desc)
-          : def.desc;
+        const name = tr ? translate(profile.lang, tr.name) : def.name;
+        const desc = tr ? translate(profile.lang, tr.desc) : def.desc;
         await addNotif({
           type: "achievement",
           emoji: def.icon,
           title: translate(profile.lang, "notif.achievement_title"),
-          body: translate(profile.lang, "notif.achievement_body", { name, desc }),
+          body: translate(profile.lang, "notif.achievement_body", {
+            name,
+            desc,
+          }),
         });
         const n = await getNotifs();
         setNotifs(n);
@@ -3217,7 +3242,9 @@ function DailyChallengesCard() {
         }}
       >
         <Text style={s.sectionInline}>{t("home.daily_challenges_header")}</Text>
-        <Text style={{ color: C.muted, fontSize: 11 }}>{t("home.resets_midnight")}</Text>
+        <Text style={{ color: C.muted, fontSize: 11 }}>
+          {t("home.resets_midnight")}
+        </Text>
       </View>
       {challenges.map((c) => {
         const pr = progress[c.id] || { progress: 0, done: false };
@@ -3327,7 +3354,9 @@ function ReservoirStrip() {
         }}
       >
         <Text style={s.sectionInline}>{t("home.reservoirs_live")}</Text>
-        <Text style={{ color: C.muted, fontSize: 11 }}>{t("home.via_cdec")}</Text>
+        <Text style={{ color: C.muted, fontSize: 11 }}>
+          {t("home.via_cdec")}
+        </Text>
       </View>
       <ScrollView
         horizontal
@@ -3900,8 +3929,12 @@ function HomeScreen() {
               </View>
               <View style={st.xpBarWrap}>
                 <View style={st.xpHeader}>
-                  <Text style={st.xpLevel}>{t("home.level_guardian", { level })}</Text>
-                  <Text style={st.xpCount}>{t("home.xp_count", { xp: progress })}</Text>
+                  <Text style={st.xpLevel}>
+                    {t("home.level_guardian", { level })}
+                  </Text>
+                  <Text style={st.xpCount}>
+                    {t("home.xp_count", { xp: progress })}
+                  </Text>
                 </View>
                 <View style={st.xpTrack}>
                   <View style={[st.xpFill, { width: `${progress}%` }]} />
@@ -3975,7 +4008,9 @@ function HomeScreen() {
                   <Ionicons name="notifications" size={20} color={C.gold} />
                 </View>
                 <Text style={st.quickLabel}>{t("quick.alerts")}</Text>
-                <Text style={st.quickValue}>{t("quick.alerts_new", { count: unreadCount })}</Text>
+                <Text style={st.quickValue}>
+                  {t("quick.alerts_new", { count: unreadCount })}
+                </Text>
               </Press>
               <Press onPress={() => setShowAch(true)} style={st.quickAction}>
                 <View
@@ -4170,7 +4205,10 @@ function HomeScreen() {
               }}
             >
               <Text style={s.sectionInline}>
-                {t("home.achievements_count", { count: badges.length, total: BADGES.length })}
+                {t("home.achievements_count", {
+                  count: badges.length,
+                  total: BADGES.length,
+                })}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowAch(true)}
@@ -5263,7 +5301,9 @@ function ConservationReportModal({
                     {report.topActivity.label}
                   </Text>
                   <Text style={{ color: C.accent, fontSize: 12, marginTop: 2 }}>
-                    {t("cr.gal_logged", { gal: report.topActivity.gallons.toFixed(0) })}
+                    {t("cr.gal_logged", {
+                      gal: report.topActivity.gallons.toFixed(0),
+                    })}
                   </Text>
                 </View>
               ) : null}
@@ -5504,7 +5544,10 @@ function StatsScreen() {
                     withDots: false,
                   },
                 ],
-                legend: [t("stats.usage_legend", { unit }), t("stats.target_legend")],
+                legend: [
+                  t("stats.usage_legend", { unit }),
+                  t("stats.target_legend"),
+                ],
               }}
               width={SW - 32}
               height={210}
@@ -5641,7 +5684,9 @@ function StatsScreen() {
                     {t("stats.how_users_found")}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 10 }}>
-                    {t("stats.responses", { count: totalUsers.toLocaleString() })}
+                    {t("stats.responses", {
+                      count: totalUsers.toLocaleString(),
+                    })}
                   </Text>
                 </View>
                 <Text
@@ -5653,7 +5698,11 @@ function StatsScreen() {
                   }}
                 >
                   {mine
-                    ? t("stats.found_via_msg", { label: t(REFERRAL_LABEL_KEY[mine.value]), emoji: mine.emoji, count: mine.count.toLocaleString() })
+                    ? t("stats.found_via_msg", {
+                        label: t(REFERRAL_LABEL_KEY[mine.value]),
+                        emoji: mine.emoji,
+                        count: mine.count.toLocaleString(),
+                      })
                     : t("stats.found_via_default")}
                 </Text>
                 {sorted.map((r) => {
@@ -5813,12 +5862,48 @@ function StatsScreen() {
 }
 
 // ─── LEARN SCREEN ──────────────────────────────────────
-const DROUGHT_LEVELS: { level: string; label: string; labelKey: StringKey; color: string; pct: number }[] = [
-  { level: "D0", label: "Abnormally Dry", labelKey: "drought.d0_label", color: "#eab308", pct: 12 },
-  { level: "D1", label: "Moderate Drought", labelKey: "drought.d1_label", color: "#f97316", pct: 18 },
-  { level: "D2", label: "Severe Drought", labelKey: "drought.d2_label", color: "#ef4444", pct: 31 },
-  { level: "D3", label: "Extreme Drought", labelKey: "drought.d3_label", color: "#991b1b", pct: 25 },
-  { level: "D4", label: "Exceptional", labelKey: "drought.d4_label", color: "#450a0a", pct: 8 },
+const DROUGHT_LEVELS: {
+  level: string;
+  label: string;
+  labelKey: StringKey;
+  color: string;
+  pct: number;
+}[] = [
+  {
+    level: "D0",
+    label: "Abnormally Dry",
+    labelKey: "drought.d0_label",
+    color: "#eab308",
+    pct: 12,
+  },
+  {
+    level: "D1",
+    label: "Moderate Drought",
+    labelKey: "drought.d1_label",
+    color: "#f97316",
+    pct: 18,
+  },
+  {
+    level: "D2",
+    label: "Severe Drought",
+    labelKey: "drought.d2_label",
+    color: "#ef4444",
+    pct: 31,
+  },
+  {
+    level: "D3",
+    label: "Extreme Drought",
+    labelKey: "drought.d3_label",
+    color: "#991b1b",
+    pct: 25,
+  },
+  {
+    level: "D4",
+    label: "Exceptional",
+    labelKey: "drought.d4_label",
+    color: "#450a0a",
+    pct: 8,
+  },
 ];
 
 const HISTORY = [
@@ -6025,12 +6110,14 @@ function LearnScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={st.tabBarScrollContent}
         >
-          {([
-            { id: "status", label: t("learn.tab.status"), icon: "pulse" },
-            { id: "history", label: t("learn.tab.history"), icon: "time" },
-            { id: "tech", label: t("learn.tab.tech"), icon: "flash" },
-            { id: "tips", label: t("learn.tab.tips"), icon: "bulb" },
-          ] as const).map((tabItem) => (
+          {(
+            [
+              { id: "status", label: t("learn.tab.status"), icon: "pulse" },
+              { id: "history", label: t("learn.tab.history"), icon: "time" },
+              { id: "tech", label: t("learn.tab.tech"), icon: "flash" },
+              { id: "tips", label: t("learn.tab.tips"), icon: "bulb" },
+            ] as const
+          ).map((tabItem) => (
             <Press
               key={tabItem.id}
               onPress={() => setTab(tabItem.id as any)}
@@ -6041,7 +6128,9 @@ function LearnScreen() {
                 size={14}
                 color={tab === tabItem.id ? C.bg : C.muted}
               />
-              <Text style={[st.tabBtnText, tab === tabItem.id && { color: C.bg }]}>
+              <Text
+                style={[st.tabBtnText, tab === tabItem.id && { color: C.bg }]}
+              >
                 {tabItem.label}
               </Text>
             </Press>
@@ -6468,7 +6557,11 @@ function LearnScreen() {
                   >
                     <Text style={{ fontSize: 22 }}>{tech.e}</Text>
                     <Text
-                      style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
+                      style={{
+                        color: C.white,
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}
                     >
                       {tr ? t(tr.title) : tech.t}
                     </Text>
@@ -6522,7 +6615,11 @@ function LearnScreen() {
                   >
                     <Text style={{ fontSize: 22 }}>{tip.e}</Text>
                     <Text
-                      style={{ color: C.white, fontWeight: "800", fontSize: 14 }}
+                      style={{
+                        color: C.white,
+                        fontWeight: "800",
+                        fontSize: 14,
+                      }}
                     >
                       {tr ? t(tr.title) : tip.t}
                     </Text>
@@ -6847,7 +6944,10 @@ function SettingsModal({
 
             <Text style={st.formLabel}>
               {t("form.daily_goal_units", {
-                units: draft.units === "gal" ? t("state.gallons") : t("state.liters"),
+                units:
+                  draft.units === "gal"
+                    ? t("state.gallons")
+                    : t("state.liters"),
               })}
             </Text>
             <TextInput
@@ -6884,9 +6984,13 @@ function SettingsModal({
                 },
               ]}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
                 <Ionicons name="language" size={16} color={C.accent} />
-                <Text style={{ color: C.text, fontWeight: "700", fontSize: 14 }}>
+                <Text
+                  style={{ color: C.text, fontWeight: "700", fontSize: 14 }}
+                >
                   {LANGUAGES.find((l) => l.code === draft.lang)?.native ??
                     "English"}
                 </Text>
@@ -6895,7 +6999,9 @@ function SettingsModal({
             </Press>
 
             {/* NOTIFICATIONS */}
-            <Text style={st.settingHeader}>{t("set.notifications_header")}</Text>
+            <Text style={st.settingHeader}>
+              {t("set.notifications_header")}
+            </Text>
             {[
               {
                 key: "remindersEnabled",
@@ -6966,10 +7072,7 @@ function SettingsModal({
                 await AsyncStorage.removeItem("quiz_total_annual");
                 await setProfile({ ...profile, onboarded: false });
                 onClose();
-                Alert.alert(
-                  t("alert.quiz_reset"),
-                  t("alert.quiz_reset_msg"),
-                );
+                Alert.alert(t("alert.quiz_reset"), t("alert.quiz_reset_msg"));
               }}
               style={[
                 st.dangerBtn,
@@ -7412,7 +7515,9 @@ function AboutModal({
                     {contactLabelMap[c.id] ? t(contactLabelMap[c.id]) : c.label}
                   </Text>
                   <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                    {contactDetailMap[c.id] ? t(contactDetailMap[c.id]) : c.detail}
+                    {contactDetailMap[c.id]
+                      ? t(contactDetailMap[c.id])
+                      : c.detail}
                   </Text>
                 </View>
                 <Ionicons name="open-outline" size={16} color={c.color} />
@@ -7440,7 +7545,9 @@ function AboutModal({
             </View>
 
             {/* FOUNDERS — at the bottom */}
-            <Text style={[st.settingHeader, { marginTop: 18 }]}>{t("about.founders")}</Text>
+            <Text style={[st.settingHeader, { marginTop: 18 }]}>
+              {t("about.founders")}
+            </Text>
             {FOUNDERS.map((f) => (
               <View
                 key={f.name}
@@ -7723,7 +7830,9 @@ function GoalModal({
             <Text style={st.btnText}>{t("btn.save_goal")}</Text>
           </Press>
           <TouchableOpacity onPress={onClose} style={{ marginTop: 12 }}>
-            <Text style={{ color: C.muted, textAlign: "center" }}>{t("btn.cancel")}</Text>
+            <Text style={{ color: C.muted, textAlign: "center" }}>
+              {t("btn.cancel")}
+            </Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -8185,7 +8294,10 @@ const QUIZ_CAT_KEY: Record<string, { name: StringKey; tip: StringKey }> = {
   Drinking: { name: "quiz.cat.drinking", tip: "quiz.tip.drinking" },
   Laundry: { name: "quiz.cat.laundry", tip: "quiz.tip.laundry" },
   Dishes: { name: "quiz.cat.dishes", tip: "quiz.tip.dishes" },
-  "Lawn & Garden": { name: "quiz.cat.lawn_garden", tip: "quiz.tip.lawn_garden" },
+  "Lawn & Garden": {
+    name: "quiz.cat.lawn_garden",
+    tip: "quiz.tip.lawn_garden",
+  },
   Baths: { name: "quiz.cat.baths", tip: "quiz.tip.baths" },
   "Pool & Spa": { name: "quiz.cat.pool_spa", tip: "quiz.tip.pool_spa" },
   "Car Wash": { name: "quiz.cat.car_wash", tip: "quiz.tip.car_wash" },
@@ -8492,7 +8604,10 @@ function PreQuizModal({
                       textAlign: "center",
                     }}
                   >
-                    {t("quiz.pct_of_ca", { pct: pctOfAvg, verdict: verdict.label })}
+                    {t("quiz.pct_of_ca", {
+                      pct: pctOfAvg,
+                      verdict: verdict.label,
+                    })}
                   </Text>
                 </View>
               </View>
@@ -8611,11 +8726,17 @@ function PreQuizModal({
                           letterSpacing: 1,
                         }}
                       >
-                        {t("quiz.biggest_impact", { cat: catName.toUpperCase() })}
+                        {t("quiz.biggest_impact", {
+                          cat: catName.toUpperCase(),
+                        })}
                       </Text>
                     </View>
                     <Text
-                      style={{ color: C.textSoft, fontSize: 13, lineHeight: 19 }}
+                      style={{
+                        color: C.textSoft,
+                        fontSize: 13,
+                        lineHeight: 19,
+                      }}
                     >
                       {tipText}
                     </Text>
@@ -8725,7 +8846,9 @@ function OnboardingModal({
                   }}
                   style={[st.btn, { flex: 1, backgroundColor: C.surface2 }]}
                 >
-                  <Text style={[st.btnText, { color: C.text }]}>{t("btn.skip")}</Text>
+                  <Text style={[st.btnText, { color: C.text }]}>
+                    {t("btn.skip")}
+                  </Text>
                 </Press>
                 <Press onPress={() => setStep(2)} style={[st.btn, { flex: 1 }]}>
                   <Text style={st.btnText}>{t("btn.continue")}</Text>
@@ -8951,7 +9074,9 @@ function IntroTourModal({
                 onPress={() => goTo(page - 1)}
                 style={[st.btn, { flex: 1, backgroundColor: C.surface2 }]}
               >
-                <Text style={[st.btnText, { color: C.text }]}>{t("tour.back")}</Text>
+                <Text style={[st.btnText, { color: C.text }]}>
+                  {t("tour.back")}
+                </Text>
               </Press>
             )}
             <Press
@@ -9672,7 +9797,9 @@ function ShowerCoachModal({
                   >
                     {gallons.toFixed(1)}
                   </Text>
-                  <Text style={{ color: C.muted, fontSize: 10 }}>{t("state.gallons")}</Text>
+                  <Text style={{ color: C.muted, fontSize: 10 }}>
+                    {t("state.gallons")}
+                  </Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
                   <Text
@@ -9684,7 +9811,9 @@ function ShowerCoachModal({
                   >
                     ${cost.toFixed(2)}
                   </Text>
-                  <Text style={{ color: C.muted, fontSize: 10 }}>{t("shower.cost")}</Text>
+                  <Text style={{ color: C.muted, fontSize: 10 }}>
+                    {t("shower.cost")}
+                  </Text>
                 </View>
                 <View style={{ alignItems: "center" }}>
                   <Text
@@ -9758,7 +9887,9 @@ function ShowerCoachModal({
             {/* HISTORY */}
             {last7.length > 0 && (
               <>
-                <Text style={st.settingHeader}>{t("shower.recent_showers")}</Text>
+                <Text style={st.settingHeader}>
+                  {t("shower.recent_showers")}
+                </Text>
                 <View style={[st.glassCard, { padding: 10 }]}>
                   {last7.map((e, i) => {
                     const m = Math.floor(e.seconds / 60);
@@ -10780,8 +10911,12 @@ function RebatesModal({
                             {paybackYears < 0.1
                               ? t("rebate.payback_immediate")
                               : paybackYears < 1
-                                ? t("rebate.payback_months", { n: Math.round(paybackYears * 12) })
-                                : t("rebate.payback_years", { n: paybackYears.toFixed(1) })}
+                                ? t("rebate.payback_months", {
+                                    n: Math.round(paybackYears * 12),
+                                  })
+                                : t("rebate.payback_years", {
+                                    n: paybackYears.toFixed(1),
+                                  })}
                           </Text>
                         </View>
                         <View
@@ -10900,7 +11035,11 @@ const WATER_JOURNEY_STAGES: {
   },
 ];
 
-const TOUR_STAGE_KEYS: { title: StringKey; fact: StringKey; body: StringKey }[] = [
+const TOUR_STAGE_KEYS: {
+  title: StringKey;
+  fact: StringKey;
+  body: StringKey;
+}[] = [
   { title: "tour.s1.title", fact: "tour.s1.fact", body: "tour.s1.body" },
   { title: "tour.s2.title", fact: "tour.s2.fact", body: "tour.s2.body" },
   { title: "tour.s3.title", fact: "tour.s3.fact", body: "tour.s3.body" },
@@ -11046,7 +11185,8 @@ function WaterJourneyModal({
                 letterSpacing: 1.5,
               }}
             >
-              {isReplay ? t("tour.replay_lbl") : t("tour.welcome_lbl")} · {stageIdx + 1} / {total}
+              {isReplay ? t("tour.replay_lbl") : t("tour.welcome_lbl")} ·{" "}
+              {stageIdx + 1} / {total}
             </Text>
             <TouchableOpacity
               onPress={onSkip}
@@ -11477,7 +11617,11 @@ function MapScreen() {
             { id: "outlook", label: t("map.outlook"), icon: "telescope" },
             { id: "aqueducts", label: t("map.aqueducts"), icon: "git-branch" },
             { id: "reservoirs", label: t("map.reservoirs"), icon: "water" },
-            { id: "quality", label: t("map.quality"), icon: "shield-checkmark" },
+            {
+              id: "quality",
+              label: t("map.quality"),
+              icon: "shield-checkmark",
+            },
             { id: "drought", label: t("map.drought"), icon: "flame" },
           ].map((tabItem) => (
             <Press
@@ -11493,7 +11637,9 @@ function MapScreen() {
                 size={14}
                 color={mode === tabItem.id ? C.bg : C.muted}
               />
-              <Text style={[st.tabBtnText, mode === tabItem.id && { color: C.bg }]}>
+              <Text
+                style={[st.tabBtnText, mode === tabItem.id && { color: C.bg }]}
+              >
                 {tabItem.label}
               </Text>
             </Press>
@@ -11883,9 +12029,24 @@ function MapScreen() {
             const sn = classifySnowpack(LATEST.snowpack);
             const p = classifyPrecip(LATEST.precip);
             const tiles = [
-              { icon: "🏞️", label: t("map.tile_reservoir"), value: LATEST.reservoir, c: r },
-              { icon: "❄️", label: t("map.tile_snowpack"), value: LATEST.snowpack, c: sn },
-              { icon: "🌧️", label: t("map.tile_precip"), value: LATEST.precip, c: p },
+              {
+                icon: "🏞️",
+                label: t("map.tile_reservoir"),
+                value: LATEST.reservoir,
+                c: r,
+              },
+              {
+                icon: "❄️",
+                label: t("map.tile_snowpack"),
+                value: LATEST.snowpack,
+                c: sn,
+              },
+              {
+                icon: "🌧️",
+                label: t("map.tile_precip"),
+                value: LATEST.precip,
+                c: p,
+              },
             ];
             return (
               <View
@@ -12271,7 +12432,11 @@ function MapScreen() {
                           marginBottom: 8,
                         }}
                       >
-                        {t("forecast.analog_history", { arrow, delta: Math.abs(a.reservoirDelta6mo), final: a.nextReservoirAt6mo ?? "—" })}
+                        {t("forecast.analog_history", {
+                          arrow,
+                          delta: Math.abs(a.reservoirDelta6mo),
+                          final: a.nextReservoirAt6mo ?? "—",
+                        })}
                       </Text>
                     )}
                     {projData.length >= 2 && (
@@ -12342,7 +12507,11 @@ function MapScreen() {
                     <LineChart
                       data={{
                         labels: overlayLabels,
-                        legend: [t("forecast.legend.reservoir"), t("forecast.legend.snowpack"), t("forecast.legend.precip")],
+                        legend: [
+                          t("forecast.legend.reservoir"),
+                          t("forecast.legend.snowpack"),
+                          t("forecast.legend.precip"),
+                        ],
                         datasets: [
                           {
                             data: last10y.map((x) => x.reservoir),
@@ -12402,7 +12571,9 @@ function MapScreen() {
                         marginBottom: 8,
                       }}
                     >
-                      {t("forecast.what_to_do", { label: p.label.toUpperCase() })}
+                      {t("forecast.what_to_do", {
+                        label: p.label.toUpperCase(),
+                      })}
                     </Text>
                     {actions.map((line, i) => (
                       <View
@@ -12444,7 +12615,10 @@ function MapScreen() {
                         fontStyle: "italic",
                       }}
                     >
-                      {t("forecast.recommendations_note", { date: LATEST.date, analog: a.analogDate || "—" })}
+                      {t("forecast.recommendations_note", {
+                        date: LATEST.date,
+                        analog: a.analogDate || "—",
+                      })}
                     </Text>
                   </View>
                 </FadeInUp>
@@ -12491,7 +12665,10 @@ function MapScreen() {
                 lineHeight: 16,
               }}
             >
-              {t("forecast.method_avgs", { res: AVG_RES.toFixed(0), sn: AVG_SNOW.toFixed(0) })}
+              {t("forecast.method_avgs", {
+                res: AVG_RES.toFixed(0),
+                sn: AVG_SNOW.toFixed(0),
+              })}
             </Text>
           </View>
         )}
@@ -12748,7 +12925,10 @@ function MapScreen() {
                     </Text>
                   </View>
                   <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
-                    {t("map.res.river_built", { river: r.river, built: r.built })}{" "}
+                    {t("map.res.river_built", {
+                      river: r.river,
+                      built: r.built,
+                    })}{" "}
                     <Text style={{ color: riskCol, fontWeight: "800" }}>
                       {t(`risk.${r.risk}` as StringKey)}
                     </Text>
@@ -12776,7 +12956,11 @@ function MapScreen() {
                         style={{ color: C.muted, fontSize: 11, lineHeight: 16 }}
                       >
                         {t("map.res.holds_today", {
-                          acft: ((r.capacity * r.pct) / 100 / 1_000_000).toFixed(2),
+                          acft: (
+                            (r.capacity * r.pct) /
+                            100 /
+                            1_000_000
+                          ).toFixed(2),
                           years: Math.max(
                             1,
                             Math.round(
@@ -12896,8 +13080,10 @@ function MapScreen() {
               </Text>
               {(["D0", "D1", "D2", "D3", "D4"] as const).map((k) => {
                 const c = DROUGHT_CATEGORIES[k];
-                const labelKey = `drought.cat.${k.toLowerCase()}_label` as StringKey;
-                const impactKey = `drought.cat.${k.toLowerCase()}_impact` as StringKey;
+                const labelKey =
+                  `drought.cat.${k.toLowerCase()}_label` as StringKey;
+                const impactKey =
+                  `drought.cat.${k.toLowerCase()}_impact` as StringKey;
                 return (
                   <View
                     key={k}
@@ -13011,7 +13197,9 @@ function MapScreen() {
                           fontWeight: "800",
                         }}
                       >
-                        {t(`drought.cat.${r.category.toLowerCase()}_label` as StringKey)}
+                        {t(
+                          `drought.cat.${r.category.toLowerCase()}_label` as StringKey,
+                        )}
                       </Text>
                     </View>
                     {active && (
@@ -13024,7 +13212,10 @@ function MapScreen() {
                         }}
                       >
                         {r.id === "shasta_reg"
-                          ? t("dr.shasta_reg.notes", { date: LATEST.date, sn: LATEST.snowpack })
+                          ? t("dr.shasta_reg.notes", {
+                              date: LATEST.date,
+                              sn: LATEST.snowpack,
+                            })
                           : t(`dr.${r.id}.notes` as StringKey)}
                       </Text>
                     )}
@@ -13218,7 +13409,9 @@ function MapScreen() {
                       pr: LATEST.precip,
                       pl: t(classifyPrecip(LATEST.precip).labelKey),
                       apr1: LAST_APR1.snowpack,
-                      apr1l: t(classifySnowpack(LAST_APR1.snowpack).labelKey).toLowerCase(),
+                      apr1l: t(
+                        classifySnowpack(LAST_APR1.snowpack).labelKey,
+                      ).toLowerCase(),
                     })}
           </Text>
         </View>
@@ -13266,7 +13459,9 @@ function CameraScreen() {
                 size={14}
                 color={mode === tabItem.id ? C.bg : C.muted}
               />
-              <Text style={[st.tabBtnText, mode === tabItem.id && { color: C.bg }]}>
+              <Text
+                style={[st.tabBtnText, mode === tabItem.id && { color: C.bg }]}
+              >
                 {tabItem.label}
               </Text>
             </Press>
@@ -13423,7 +13618,9 @@ function CameraControls({
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Ionicons name="images" size={18} color={C.text} />
-          <Text style={[st.btnText, { color: C.text }]}>{t("btn.from_library")}</Text>
+          <Text style={[st.btnText, { color: C.text }]}>
+            {t("btn.from_library")}
+          </Text>
         </View>
       </Press>
     </View>
@@ -13469,7 +13666,7 @@ function StripView() {
     const sys = `You are a precise water-quality scientist. The user submits a photo of a ${test.name} test strip. You must identify the dominant color of the reactive pad and match it to the closest reference. Output ONLY valid JSON, no prose.`;
     const prompt = `Reference scale for ${test.name}:\n${refList}\n\nReply with strict JSON of the form: {"value":"<exact value from list>","confidence":<0-100>,"observations":"<one sentence about the color seen>"}. Pick the closest match even if uncertain.`;
 
-    const reply = await askGroqVision(sys, prompt, img.base64);
+    const reply = await askGroqVision(sys, prompt, img.base64, profile.lang);
     const parsed = tryParseJson<{
       value: string;
       confidence: number;
@@ -13480,17 +13677,16 @@ function StripView() {
       if (m) {
         setMatched(m);
         setAiNarrative(
-          `AI saw: ${parsed.observations || "a colored strip"}\nConfidence: ${parsed.confidence ?? "—"}%`,
+          t("strip.ai_saw", {
+            obs: parsed.observations || t("strip.ai_obs_default"),
+            conf: parsed.confidence ?? "—",
+          }),
         );
       } else {
-        setError(
-          `AI returned "${parsed.value}" — no exact match in reference scale.`,
-        );
+        setError(t("strip.ai_returned_no_match", { value: parsed.value }));
       }
     } else {
-      setError(
-        "Could not parse AI response. Try a clearer photo of the strip pad.",
-      );
+      setError(t("strip.could_not_parse"));
     }
     setScanning(false);
   };
@@ -13504,7 +13700,7 @@ function StripView() {
     setTimeout(() => {
       setMatched(c);
       setScanning(false);
-      setAiNarrative("Reference sample tap (no AI used).");
+      setAiNarrative(t("strip.ref_sample_tap"));
       awardBadge("strip_tester");
     }, 800);
   };
@@ -13543,13 +13739,13 @@ function StripView() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
       >
-        {STRIP_TESTS.map((t) => {
-          const active = test.id === t.id;
+        {STRIP_TESTS.map((tst) => {
+          const active = test.id === tst.id;
           return (
             <Press
-              key={t.id}
+              key={tst.id}
               onPress={() => {
-                setTest(t);
+                setTest(tst);
                 reset();
               }}
               style={[
@@ -13557,7 +13753,7 @@ function StripView() {
                 active && { backgroundColor: C.accent, borderColor: C.accent },
               ]}
             >
-              <Text style={{ fontSize: 16 }}>{t.icon}</Text>
+              <Text style={{ fontSize: 16 }}>{tst.icon}</Text>
               <Text
                 style={{
                   color: active ? C.bg : C.text,
@@ -13565,7 +13761,7 @@ function StripView() {
                   fontWeight: "700",
                 }}
               >
-                {t.name}
+                {t(`strip.test.${tst.id}` as StringKey)}
               </Text>
             </Press>
           );
@@ -13657,103 +13853,121 @@ function StripView() {
             >
               {c.value}
             </Text>
-            <Text style={{ color: C.muted, fontSize: 9 }}>{c.verdict}</Text>
+            <Text style={{ color: C.muted, fontSize: 9 }}>
+              {t(`strip.${test.id}.${i}.verdict` as StringKey)}
+            </Text>
           </Press>
         ))}
       </View>
 
-      {matched && !scanning && (
-        <View
-          style={[
-            st.glassCard,
-            {
-              margin: 16,
-              borderColor:
-                matched.risk === "high"
-                  ? C.danger
-                  : matched.risk === "medium"
-                    ? C.warn
-                    : C.success,
-            },
-          ]}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-              marginBottom: 8,
-            }}
-          >
+      {matched &&
+        !scanning &&
+        (() => {
+          const matchedIdx = test.colors.findIndex(
+            (c) => c.value === matched.value,
+          );
+          const verdictKey =
+            `strip.${test.id}.${matchedIdx}.verdict` as StringKey;
+          const adviceKey =
+            `strip.${test.id}.${matchedIdx}.advice` as StringKey;
+          return (
             <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: matched.hex,
-                borderWidth: 2,
-                borderColor: C.white,
-              }}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: C.white, fontSize: 16, fontWeight: "800" }}>
-                {matched.value}
-              </Text>
-              <Text
-                style={{
-                  color:
+              style={[
+                st.glassCard,
+                {
+                  margin: 16,
+                  borderColor:
                     matched.risk === "high"
                       ? C.danger
                       : matched.risk === "medium"
                         ? C.warn
                         : C.success,
-                  fontSize: 12,
-                  fontWeight: "700",
+                },
+              ]}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  marginBottom: 8,
                 }}
               >
-                {matched.verdict.toUpperCase()} • {matched.risk.toUpperCase()}{" "}
-                {t("cam.risk_suffix")}
-              </Text>
-            </View>
-          </View>
-          <Text
-            style={{
-              color: C.textSoft,
-              fontSize: 13,
-              lineHeight: 20,
-              marginBottom: 12,
-            }}
-          >
-            {matched.advice}
-          </Text>
-          {aiNarrative ? (
-            <View
-              style={{
-                backgroundColor: C.bgSoft,
-                borderRadius: 10,
-                padding: 10,
-                borderWidth: 1,
-                borderColor: C.border,
-              }}
-            >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: matched.hex,
+                    borderWidth: 2,
+                    borderColor: C.white,
+                  }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ color: C.white, fontSize: 16, fontWeight: "800" }}
+                  >
+                    {matched.value}
+                  </Text>
+                  <Text
+                    style={{
+                      color:
+                        matched.risk === "high"
+                          ? C.danger
+                          : matched.risk === "medium"
+                            ? C.warn
+                            : C.success,
+                      fontSize: 12,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {t(verdictKey).toUpperCase()} •{" "}
+                    {t(`risk.${matched.risk}` as StringKey).toUpperCase()}{" "}
+                    {t("cam.risk_suffix")}
+                  </Text>
+                </View>
+              </View>
               <Text
                 style={{
-                  color: C.accent,
-                  fontSize: 11,
-                  fontWeight: "700",
-                  letterSpacing: 1,
-                  marginBottom: 6,
+                  color: C.textSoft,
+                  fontSize: 13,
+                  lineHeight: 20,
+                  marginBottom: 12,
                 }}
               >
-                {t("cam.ai_vision")}
+                {t(adviceKey)}
               </Text>
-              <Text style={{ color: C.textSoft, fontSize: 12, lineHeight: 18 }}>
-                {aiNarrative}
-              </Text>
+              {aiNarrative ? (
+                <View
+                  style={{
+                    backgroundColor: C.bgSoft,
+                    borderRadius: 10,
+                    padding: 10,
+                    borderWidth: 1,
+                    borderColor: C.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: C.accent,
+                      fontSize: 11,
+                      fontWeight: "700",
+                      letterSpacing: 1,
+                      marginBottom: 6,
+                    }}
+                  >
+                    {t("cam.ai_vision")}
+                  </Text>
+                  <Text
+                    style={{ color: C.textSoft, fontSize: 12, lineHeight: 18 }}
+                  >
+                    {aiNarrative}
+                  </Text>
+                </View>
+              ) : null}
             </View>
-          ) : null}
-        </View>
-      )}
+          );
+        })()}
     </>
   );
 }
@@ -13899,30 +14113,30 @@ function PollutionView() {
         {POLLUTION_TYPES.map((p) => {
           const pName = t(`pol.${p.id}.name` as StringKey);
           return (
-          <Press
-            key={p.id}
-            onPress={() => tap(p)}
-            style={[
-              st.gallery,
-              item?.name === pName && {
-                borderColor: C.accent,
-                backgroundColor: C.accent + "12",
-              },
-            ]}
-          >
-            <Text style={{ fontSize: 28 }}>{p.emoji}</Text>
-            <Text
-              style={{
-                color: C.text,
-                fontSize: 11,
-                marginTop: 4,
-                textAlign: "center",
-                fontWeight: "600",
-              }}
+            <Press
+              key={p.id}
+              onPress={() => tap(p)}
+              style={[
+                st.gallery,
+                item?.name === pName && {
+                  borderColor: C.accent,
+                  backgroundColor: C.accent + "12",
+                },
+              ]}
             >
-              {pName}
-            </Text>
-          </Press>
+              <Text style={{ fontSize: 28 }}>{p.emoji}</Text>
+              <Text
+                style={{
+                  color: C.text,
+                  fontSize: 11,
+                  marginTop: 4,
+                  textAlign: "center",
+                  fontWeight: "600",
+                }}
+              >
+                {pName}
+              </Text>
+            </Press>
           );
         })}
       </View>
@@ -13968,7 +14182,9 @@ function PollutionView() {
                       fontWeight: "800",
                     }}
                   >
-                    {item.biodegradable ? t("pol.biodegradable") : t("pol.synthetic")}
+                    {item.biodegradable
+                      ? t("pol.biodegradable")
+                      : t("pol.synthetic")}
                   </Text>
                 </View>
                 <View
@@ -14329,40 +14545,40 @@ function FootprintView() {
         {FOOTPRINT_ITEMS.map((it) => {
           const itName = t(`foot.${it.id}.name` as StringKey);
           return (
-          <Press
-            key={it.id}
-            onPress={() => tap(it)}
-            style={[
-              st.gallery,
-              item?.name === itName && {
-                borderColor: C.purple,
-                backgroundColor: C.purple + "12",
-              },
-            ]}
-          >
-            <Text style={{ fontSize: 28 }}>{it.emoji}</Text>
-            <Text
-              style={{
-                color: C.text,
-                fontSize: 11,
-                marginTop: 4,
-                textAlign: "center",
-                fontWeight: "600",
-              }}
+            <Press
+              key={it.id}
+              onPress={() => tap(it)}
+              style={[
+                st.gallery,
+                item?.name === itName && {
+                  borderColor: C.purple,
+                  backgroundColor: C.purple + "12",
+                },
+              ]}
             >
-              {itName}
-            </Text>
-            <Text
-              style={{
-                color: C.accent,
-                fontSize: 10,
-                marginTop: 2,
-                fontWeight: "800",
-              }}
-            >
-              {fmtVol(it.gallons, profile.units, it.gallons < 5 ? 1 : 0)}
-            </Text>
-          </Press>
+              <Text style={{ fontSize: 28 }}>{it.emoji}</Text>
+              <Text
+                style={{
+                  color: C.text,
+                  fontSize: 11,
+                  marginTop: 4,
+                  textAlign: "center",
+                  fontWeight: "600",
+                }}
+              >
+                {itName}
+              </Text>
+              <Text
+                style={{
+                  color: C.accent,
+                  fontSize: 10,
+                  marginTop: 2,
+                  fontWeight: "800",
+                }}
+              >
+                {fmtVol(it.gallons, profile.units, it.gallons < 5 ? 1 : 0)}
+              </Text>
+            </Press>
           );
         })}
       </View>
@@ -14388,7 +14604,9 @@ function FootprintView() {
                 style={{ color: C.purple, fontSize: 11, fontWeight: "700" }}
               >
                 {t("foot.hidden_cost")}{" "}
-                {item.confidence ? t("foot.confidence_suffix", { pct: item.confidence }) : ""}
+                {item.confidence
+                  ? t("foot.confidence_suffix", { pct: item.confidence })
+                  : ""}
               </Text>
             </View>
             <Text style={{ color: C.accent, fontSize: 22, fontWeight: "900" }}>
@@ -14598,9 +14816,7 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
       if (parsed && parsed.summary && parsed.plants) {
         showResult(parsed);
       } else {
-        setError(
-          t("cam.no_analyze_yard"),
-        );
+        setError(t("cam.no_analyze_yard"));
       }
     } catch {
       setError(t("err.cam_vision_failed"));
@@ -14625,16 +14841,48 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
       showResult({
         ...SAMPLE_LANDSCAPE,
         plants: [
-          { name: t("audit.demo.kentucky"), water_need: "high", estimated_count: 1 },
-          { name: t("audit.demo.hydrangea"), water_need: "high", estimated_count: 4 },
-          { name: t("audit.demo.boxwood"), water_need: "medium", estimated_count: 6 },
-          { name: t("audit.demo.annuals"), water_need: "high", estimated_count: 12 },
+          {
+            name: t("audit.demo.kentucky"),
+            water_need: "high",
+            estimated_count: 1,
+          },
+          {
+            name: t("audit.demo.hydrangea"),
+            water_need: "high",
+            estimated_count: 4,
+          },
+          {
+            name: t("audit.demo.boxwood"),
+            water_need: "medium",
+            estimated_count: 6,
+          },
+          {
+            name: t("audit.demo.annuals"),
+            water_need: "high",
+            estimated_count: 12,
+          },
         ],
         recommendations: [
-          { swap: t("audit.demo.swap1"), saves_gallons_yr: 18000, est_cost_usd: 4500 },
-          { swap: t("audit.demo.swap2"), saves_gallons_yr: 4800, est_cost_usd: 320 },
-          { swap: t("audit.demo.swap3"), saves_gallons_yr: 2400, est_cost_usd: 80 },
-          { swap: t("audit.demo.swap4"), saves_gallons_yr: 3000, est_cost_usd: 200 },
+          {
+            swap: t("audit.demo.swap1"),
+            saves_gallons_yr: 18000,
+            est_cost_usd: 4500,
+          },
+          {
+            swap: t("audit.demo.swap2"),
+            saves_gallons_yr: 4800,
+            est_cost_usd: 320,
+          },
+          {
+            swap: t("audit.demo.swap3"),
+            saves_gallons_yr: 2400,
+            est_cost_usd: 80,
+          },
+          {
+            swap: t("audit.demo.swap4"),
+            saves_gallons_yr: 3000,
+            est_cost_usd: 200,
+          },
         ],
         summary: t("audit.demo.summary"),
       });
@@ -14702,7 +14950,9 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
             ]}
           >
             <Ionicons name="camera" size={16} color={C.bg} />
-            <Text style={[st.btnText, { marginLeft: 6 }]}>{t("btn.take_photo")}</Text>
+            <Text style={[st.btnText, { marginLeft: 6 }]}>
+              {t("btn.take_photo")}
+            </Text>
           </Press>
           <Press
             onPress={onLibrary}
@@ -14802,7 +15052,9 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 marginTop: -2,
               }}
             >
-              {t("audit.gal_year_off_bill", { dollars: dollarSavings.toFixed(0) })}
+              {t("audit.gal_year_off_bill", {
+                dollars: dollarSavings.toFixed(0),
+              })}
             </Text>
             <View
               style={{
@@ -14818,7 +15070,9 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 >
                   {result.yard_size_sqft_est.toLocaleString()}
                 </Text>
-                <Text style={{ color: C.muted, fontSize: 10 }}>{t("audit.est_sqft")}</Text>
+                <Text style={{ color: C.muted, fontSize: 10 }}>
+                  {t("audit.est_sqft")}
+                </Text>
               </View>
               <View style={{ alignItems: "center" }}>
                 <Text
@@ -14826,7 +15080,9 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 >
                   {result.current_gallons_yr_est.toLocaleString()}
                 </Text>
-                <Text style={{ color: C.muted, fontSize: 10 }}>{t("audit.galyr_now")}</Text>
+                <Text style={{ color: C.muted, fontSize: 10 }}>
+                  {t("audit.galyr_now")}
+                </Text>
               </View>
               <View style={{ alignItems: "center" }}>
                 <Text
@@ -14834,7 +15090,9 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                 >
                   {paybackYr > 0 ? `${paybackYr.toFixed(1)}y` : "—"}
                 </Text>
-                <Text style={{ color: C.muted, fontSize: 10 }}>{t("audit.payback")}</Text>
+                <Text style={{ color: C.muted, fontSize: 10 }}>
+                  {t("audit.payback")}
+                </Text>
               </View>
             </View>
           </View>
@@ -14988,7 +15246,9 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                             fontWeight: "800",
                           }}
                         >
-                          {t("audit.gal_yr_suffix", { gal: r.saves_gallons_yr.toLocaleString() })}
+                          {t("audit.gal_yr_suffix", {
+                            gal: r.saves_gallons_yr.toLocaleString(),
+                          })}
                         </Text>
                       </View>
                       <View
@@ -15006,7 +15266,9 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                             fontWeight: "800",
                           }}
                         >
-                          {t("audit.cost_approx", { cost: r.est_cost_usd.toLocaleString() })}
+                          {t("audit.cost_approx", {
+                            cost: r.est_cost_usd.toLocaleString(),
+                          })}
                         </Text>
                       </View>
                       <View
@@ -15024,7 +15286,11 @@ Use realistic estimates based on California climate. Include 3-6 plants/features
                             fontWeight: "800",
                           }}
                         >
-                          {t("audit.dollars_yr", { val: (r.saves_gallons_yr * WATER_COST_PER_GAL).toFixed(0) })}
+                          {t("audit.dollars_yr", {
+                            val: (
+                              r.saves_gallons_yr * WATER_COST_PER_GAL
+                            ).toFixed(0),
+                          })}
                         </Text>
                       </View>
                     </View>
@@ -15218,8 +15484,12 @@ function AchievementsModal({
                     style={[st.bigBadge, !has && { opacity: 0.35 }]}
                   >
                     <Text style={{ fontSize: 32 }}>{b.icon}</Text>
-                    <Text style={st.bigBadgeName}>{tr ? t(tr.name) : b.name}</Text>
-                    <Text style={st.bigBadgeDesc}>{tr ? t(tr.desc) : b.desc}</Text>
+                    <Text style={st.bigBadgeName}>
+                      {tr ? t(tr.name) : b.name}
+                    </Text>
+                    <Text style={st.bigBadgeDesc}>
+                      {tr ? t(tr.desc) : b.desc}
+                    </Text>
                     {has && (
                       <View style={st.bigBadgeCheck}>
                         <Ionicons name="checkmark" size={11} color={C.bg} />
