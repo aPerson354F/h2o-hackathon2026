@@ -19,14 +19,13 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "http://localhost:19006",
 ];
 
-function getAllowedOrigins(): string[] {
-  const fromEnv = process.env.ALLOWED_ORIGINS;
-  if (!fromEnv) return DEFAULT_ALLOWED_ORIGINS;
-  return fromEnv.split(",").map((s) => s.trim()).filter(Boolean);
-}
+const ALLOWED_ORIGINS: string[] = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean)
+  : DEFAULT_ALLOWED_ORIGINS;
 
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 30;
+const RATE_MAP_SOFT_CAP = 1000;
 const hits = new Map<string, number[]>();
 
 function isRateLimited(ip: string): boolean {
@@ -38,6 +37,11 @@ function isRateLimited(ip: string): boolean {
   }
   window.push(now);
   hits.set(ip, window);
+  if (hits.size > RATE_MAP_SOFT_CAP) {
+    for (const [k, v] of hits) {
+      if (!v.length || now - v[v.length - 1] >= RATE_WINDOW_MS) hits.delete(k);
+    }
+  }
   return false;
 }
 
@@ -49,9 +53,8 @@ function clientIp(req: VercelRequest): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const allowed = getAllowedOrigins();
   const origin = (req.headers.origin as string | undefined) ?? "";
-  const corsOrigin = allowed.includes(origin) ? origin : "";
+  const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : "";
 
   if (req.method === "OPTIONS") {
     if (corsOrigin) {
