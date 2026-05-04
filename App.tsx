@@ -1738,23 +1738,27 @@ const classifySnowpack = (pct: number) => {
   if (pct >= 120)
     return {
       label: "Excellent",
+      labelKey: "label.excellent" as const,
       color: C.success,
       note: "Above-normal April-1 peak — strong runoff year.",
     };
   if (pct >= 90)
     return {
       label: "Average",
+      labelKey: "label.average" as const,
       color: C.teal,
       note: "Near the long-term April-1 norm.",
     };
   if (pct >= 70)
     return {
       label: "Below Avg.",
+      labelKey: "label.below_avg" as const,
       color: C.gold,
       note: "Lean snowpack — runoff will fall short of demand.",
     };
   return {
     label: "Concerning",
+    labelKey: "label.concerning" as const,
     color: C.danger,
     note: "Critical deficit (only a true verdict at/after April 1).",
   };
@@ -1763,17 +1767,29 @@ const classifySnowpack = (pct: number) => {
 // Precipitation as % of long-term average.
 const classifyPrecip = (pct: number) => {
   if (pct >= 110)
-    return { label: "Wet", color: C.success, note: "Above-average rainfall." };
+    return {
+      label: "Wet",
+      labelKey: "label.wet" as const,
+      color: C.success,
+      note: "Above-average rainfall.",
+    };
   if (pct >= 90)
-    return { label: "Normal", color: C.teal, note: "Within the normal band." };
+    return {
+      label: "Normal",
+      labelKey: "label.normal" as const,
+      color: C.teal,
+      note: "Within the normal band.",
+    };
   if (pct >= 70)
     return {
       label: "Dry",
+      labelKey: "label.dry" as const,
       color: C.gold,
       note: "Below average — watch for cumulative deficit.",
     };
   return {
     label: "Drought Signal",
+    labelKey: "label.drought_signal" as const,
     color: C.danger,
     note: "Sustained deficit territory.",
   };
@@ -1784,23 +1800,27 @@ const classifyReservoir = (pct: number) => {
   if (pct >= 85)
     return {
       label: "Strong",
+      labelKey: "label.strong" as const,
       color: C.success,
       note: "Carryover storage is healthy.",
     };
   if (pct >= 70)
     return {
       label: "Healthy",
+      labelKey: "label.healthy" as const,
       color: C.teal,
       note: "Adequate, with room to improve.",
     };
   if (pct >= 50)
     return {
       label: "Watch",
+      labelKey: "label.watch" as const,
       color: C.gold,
       note: "Operators tightening releases.",
     };
   return {
     label: "Concern",
+    labelKey: "label.concern" as const,
     color: C.danger,
     note: "Approaching emergency-response thresholds.",
   };
@@ -3030,6 +3050,7 @@ function ScreenHeader({
 // ─── DAILY CHALLENGES CARD ─────────────────────────────
 function DailyChallengesCard() {
   const { profile } = useApp();
+  const t = useT(profile.lang);
   const [challenges, setChallenges] = useState<ChallengePool[]>([]);
   const [progress, setProgress] = useState<
     Record<string, { progress: number; done: boolean }>
@@ -3072,8 +3093,8 @@ function DailyChallengesCard() {
           marginBottom: 10,
         }}
       >
-        <Text style={s.sectionInline}>DAILY CHALLENGES</Text>
-        <Text style={{ color: C.muted, fontSize: 11 }}>resets at midnight</Text>
+        <Text style={s.sectionInline}>{t("home.daily_challenges_header")}</Text>
+        <Text style={{ color: C.muted, fontSize: 11 }}>{t("home.resets_midnight")}</Text>
       </View>
       {challenges.map((c) => {
         const pr = progress[c.id] || { progress: 0, done: false };
@@ -3109,7 +3130,7 @@ function DailyChallengesCard() {
                 <Text
                   style={{ color: c.color, fontSize: 11, fontWeight: "800" }}
                 >
-                  +{c.xp} XP
+                  {t("chal.xp", { xp: c.xp })}
                 </Text>
               </View>
               <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
@@ -3136,9 +3157,9 @@ function DailyChallengesCard() {
               <Text style={{ color: C.muted, fontSize: 10, marginTop: 4 }}>
                 {pr.progress}/{c.target}{" "}
                 {pr.done && !isClaimed
-                  ? "· READY TO CLAIM"
+                  ? `· ${t("chal.ready_to_claim")}`
                   : isClaimed
-                    ? "· CLAIMED"
+                    ? `· ${t("chal.claimed")}`
                     : ""}
               </Text>
             </View>
@@ -3153,7 +3174,7 @@ function DailyChallengesCard() {
                 }}
               >
                 <Text style={{ color: C.bg, fontWeight: "900", fontSize: 11 }}>
-                  CLAIM
+                  {t("chal.claim")}
                 </Text>
               </Press>
             )}
@@ -3169,6 +3190,8 @@ function DailyChallengesCard() {
 
 // ─── RESERVOIR STRIP ───────────────────────────────────
 function ReservoirStrip() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   return (
     <View style={{ marginTop: 18 }}>
       <View
@@ -3180,8 +3203,8 @@ function ReservoirStrip() {
           marginBottom: 10,
         }}
       >
-        <Text style={s.sectionInline}>CA RESERVOIRS · LIVE</Text>
-        <Text style={{ color: C.muted, fontSize: 11 }}>via CDEC snapshot</Text>
+        <Text style={s.sectionInline}>{t("home.reservoirs_live")}</Text>
+        <Text style={{ color: C.muted, fontSize: 11 }}>{t("home.via_cdec")}</Text>
       </View>
       <ScrollView
         horizontal
@@ -3260,6 +3283,7 @@ function ReservoirStrip() {
 // ─── LEADERBOARD CARD ──────────────────────────────────
 function LeaderboardCard() {
   const { profile } = useApp();
+  const t = useT(profile.lang);
   const [me, setMe] = useState<{ saved: number; streak: number }>({
     saved: 0,
     streak: 0,
@@ -3295,9 +3319,9 @@ function LeaderboardCard() {
           marginBottom: 10,
         }}
       >
-        <Text style={s.sectionInline}>LEADERBOARD · LIFETIME SAVED</Text>
+        <Text style={s.sectionInline}>{t("home.leaderboard_lifetime")}</Text>
         <Text style={{ color: C.accent, fontSize: 11, fontWeight: "800" }}>
-          #{myRank} of {merged.length}
+          {t("home.leaderboard_rank", { rank: myRank, total: merged.length })}
         </Text>
       </View>
       {top.map((e, i) => {
@@ -3400,6 +3424,8 @@ function LeaderboardCard() {
 
 // ─── HYDRATION TRACKER ─────────────────────────────────
 function HydrationCard() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
   const [cups, setCups] = useState(0);
   const refresh = async () => setCups(await getTodayHydration());
   useEffect(() => {
@@ -3417,7 +3443,7 @@ function HydrationCard() {
 
   return (
     <View style={{ marginHorizontal: 16, marginTop: 18 }}>
-      <Text style={s.sectionInline}>YOUR HYDRATION</Text>
+      <Text style={s.sectionInline}>{t("home.your_hydration")}</Text>
       <View style={[st.glassCard, { marginTop: 10, padding: 14 }]}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
           <View
@@ -3436,10 +3462,10 @@ function HydrationCard() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ color: C.white, fontSize: 15, fontWeight: "800" }}>
-              {cups} of {HYDRATION_GOAL} cups
+              {t("home.cups_of_goal", { cups, goal: HYDRATION_GOAL })}
             </Text>
             <Text style={{ color: C.muted, fontSize: 11, marginTop: 1 }}>
-              Personal water intake
+              {t("home.personal_water_intake")}
             </Text>
             <View
               style={{
@@ -3499,6 +3525,7 @@ function HydrationCard() {
 // ─── AI TIP OF THE DAY ─────────────────────────────────
 function AITipCard() {
   const { profile } = useApp();
+  const t = useT(profile.lang);
   const [tip, setTip] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -3519,7 +3546,7 @@ function AITipCard() {
 
   return (
     <View style={{ marginHorizontal: 16, marginTop: 18 }}>
-      <Text style={s.sectionInline}>AI TIP OF THE DAY</Text>
+      <Text style={s.sectionInline}>{t("home.ai_tip_title")}</Text>
       <View
         style={[st.glassCard, { marginTop: 10, borderColor: C.amber + "66" }]}
       >
@@ -3737,7 +3764,7 @@ function HomeScreen() {
                   color={ringColor}
                 />
                 <View style={{ alignItems: "center" }}>
-                  <Text style={st.heroLabel}>WATER SCORE</Text>
+                  <Text style={st.heroLabel}>{t("home.water_score")}</Text>
                   <Text style={[st.scoreLetter, { color: scoreColor }]}>
                     {score}
                   </Text>
@@ -3749,8 +3776,8 @@ function HomeScreen() {
               </View>
               <View style={st.xpBarWrap}>
                 <View style={st.xpHeader}>
-                  <Text style={st.xpLevel}>LEVEL {level} GUARDIAN</Text>
-                  <Text style={st.xpCount}>{progress}/100 XP</Text>
+                  <Text style={st.xpLevel}>{t("home.level_guardian", { level })}</Text>
+                  <Text style={st.xpCount}>{t("home.xp_count", { xp: progress })}</Text>
                 </View>
                 <View style={st.xpTrack}>
                   <View style={[st.xpFill, { width: `${progress}%` }]} />
@@ -3768,7 +3795,7 @@ function HomeScreen() {
                 >
                   <Ionicons name="flag" size={20} color={C.accent} />
                 </View>
-                <Text style={st.quickLabel}>Goal</Text>
+                <Text style={st.quickLabel}>{t("quick.goal")}</Text>
                 <Text style={st.quickValue}>
                   {fmtVol(profile.goal, profile.units, 0)}
                 </Text>
@@ -3792,8 +3819,8 @@ function HomeScreen() {
                     color={C.accentBright}
                   />
                 </View>
-                <Text style={st.quickLabel}>Journey</Text>
-                <Text style={st.quickValue}>Sierra → tap</Text>
+                <Text style={st.quickLabel}>{t("quick.journey")}</Text>
+                <Text style={st.quickValue}>{t("quick.journey_value")}</Text>
               </Press>
               <Press onPress={() => setShowTour(true)} style={st.quickAction}>
                 <View
@@ -3801,8 +3828,8 @@ function HomeScreen() {
                 >
                   <Ionicons name="compass" size={20} color={C.purple} />
                 </View>
-                <Text style={st.quickLabel}>Tour</Text>
-                <Text style={st.quickValue}>Learn app</Text>
+                <Text style={st.quickLabel}>{t("quick.tour")}</Text>
+                <Text style={st.quickValue}>{t("quick.tour_value")}</Text>
               </Press>
             </View>
           </FadeInUp>
@@ -3814,8 +3841,8 @@ function HomeScreen() {
                 >
                   <Ionicons name="share-social" size={20} color={C.teal} />
                 </View>
-                <Text style={st.quickLabel}>Share</Text>
-                <Text style={st.quickValue}>Spread word</Text>
+                <Text style={st.quickLabel}>{t("quick.share")}</Text>
+                <Text style={st.quickValue}>{t("quick.share_value")}</Text>
               </Press>
               <Press onPress={() => setShowNotifs(true)} style={st.quickAction}>
                 <View
@@ -3823,8 +3850,8 @@ function HomeScreen() {
                 >
                   <Ionicons name="notifications" size={20} color={C.gold} />
                 </View>
-                <Text style={st.quickLabel}>Alerts</Text>
-                <Text style={st.quickValue}>{unreadCount} new</Text>
+                <Text style={st.quickLabel}>{t("quick.alerts")}</Text>
+                <Text style={st.quickValue}>{t("quick.alerts_new", { count: unreadCount })}</Text>
               </Press>
               <Press onPress={() => setShowAch(true)} style={st.quickAction}>
                 <View
@@ -3832,7 +3859,7 @@ function HomeScreen() {
                 >
                   <Ionicons name="trophy" size={20} color={C.amber} />
                 </View>
-                <Text style={st.quickLabel}>Trophies</Text>
+                <Text style={st.quickLabel}>{t("quick.trophies")}</Text>
                 <Text style={st.quickValue}>
                   {badges.length}/{BADGES.length}
                 </Text>
@@ -3849,8 +3876,8 @@ function HomeScreen() {
                 >
                   <Ionicons name="water-outline" size={20} color={C.accent} />
                 </View>
-                <Text style={st.quickLabel}>Shower</Text>
-                <Text style={st.quickValue}>Live coach</Text>
+                <Text style={st.quickLabel}>{t("quick.shower")}</Text>
+                <Text style={st.quickValue}>{t("quick.shower_value")}</Text>
               </Press>
               <Press
                 onPress={() => setShowRebates(true)}
@@ -3861,8 +3888,8 @@ function HomeScreen() {
                 >
                   <Ionicons name="cash" size={20} color={C.gold} />
                 </View>
-                <Text style={st.quickLabel}>Rebates</Text>
-                <Text style={st.quickValue}>Find $</Text>
+                <Text style={st.quickLabel}>{t("quick.rebates")}</Text>
+                <Text style={st.quickValue}>{t("quick.rebates_value")}</Text>
               </Press>
               <Press
                 onPress={() => nav.navigate("Map", { mode: "outlook" })}
@@ -3873,8 +3900,8 @@ function HomeScreen() {
                 >
                   <Ionicons name="telescope" size={20} color={C.purple} />
                 </View>
-                <Text style={st.quickLabel}>Forecast</Text>
-                <Text style={st.quickValue}>10-yr outlook</Text>
+                <Text style={st.quickLabel}>{t("quick.forecast")}</Text>
+                <Text style={st.quickValue}>{t("quick.forecast_value")}</Text>
               </Press>
             </View>
           </FadeInUp>
@@ -3884,22 +3911,22 @@ function HomeScreen() {
             <View style={st.statRow}>
               {[
                 {
-                  label: "Saved vs CA Avg",
+                  label: t("stat.saved_vs_ca"),
                   value: fmtVol(savings, profile.units, 0),
                   icon: "🌿",
                   color: C.success,
                 },
                 {
-                  label: "Day Streak",
+                  label: t("stat.day_streak"),
                   value: `${streak}`,
-                  sub: "days",
+                  sub: t("stat.days"),
                   icon: "🔥",
                   color: C.gold,
                 },
                 {
-                  label: "Level",
+                  label: t("stat.level"),
                   value: `${level}`,
-                  sub: "guardian",
+                  sub: t("stat.guardian"),
                   icon: "⚡",
                   color: C.accent,
                 },
@@ -3924,10 +3951,10 @@ function HomeScreen() {
               const p = classifyPrecip(LATEST.precip);
               const headline =
                 LATEST.reservoir < 60 || LATEST.snowpack < 50
-                  ? "Active Drought Alert"
+                  ? t("alert.active_drought")
                   : LATEST.reservoir < 75 || LATEST.snowpack < 75
-                    ? "Watch Conditions"
-                    : "Conditions Normal";
+                    ? t("alert.watch_conditions")
+                    : t("alert.conditions_normal");
               const headlineColor =
                 LATEST.reservoir < 60
                   ? C.danger
@@ -3965,9 +3992,14 @@ function HomeScreen() {
                           marginTop: 2,
                         }}
                       >
-                        Reservoirs {LATEST.reservoir}% ({r.label}) · Snowpack{" "}
-                        {LATEST.snowpack}% ({sn.label}) · Precip {LATEST.precip}
-                        % ({p.label})
+                        {t("alert.drought_status", {
+                          res: LATEST.reservoir,
+                          rl: t(r.labelKey),
+                          sn: LATEST.snowpack,
+                          snl: t(sn.labelKey),
+                          p: LATEST.precip,
+                          pl: t(p.labelKey),
+                        })}
                       </Text>
                     </View>
                   </View>
@@ -4014,7 +4046,7 @@ function HomeScreen() {
               }}
             >
               <Text style={s.sectionInline}>
-                ACHIEVEMENTS · {badges.length}/{BADGES.length}
+                {t("home.achievements_count", { count: badges.length, total: BADGES.length })}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowAch(true)}
@@ -4023,7 +4055,7 @@ function HomeScreen() {
                 <Text
                   style={{ color: C.accent, fontSize: 12, fontWeight: "700" }}
                 >
-                  View all →
+                  {t("home.view_all")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6342,12 +6374,16 @@ function ChatScreen() {
   const { profile } = useApp();
   const t = useT(profile.lang);
   const [messages, setMessages] = useState<Msg[]>([
-    {
-      role: "assistant",
-      content:
-        "Hi! I'm your H2O assistant 💧 Ask me anything about water conservation, the California drought, or tips to reduce your usage!",
-    },
+    { role: "assistant", content: t("chat.greeting") },
   ]);
+
+  useEffect(() => {
+    setMessages((prev) =>
+      prev.length === 1 && prev[0].role === "assistant"
+        ? [{ role: "assistant", content: t("chat.greeting") }]
+        : prev,
+    );
+  }, [profile.lang]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
