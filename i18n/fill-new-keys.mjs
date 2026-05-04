@@ -1227,6 +1227,21 @@ const STRINGS = {
   "err.app_unexpected": "The app hit an unexpected error. Your data is safe — tap below to reload.",
   "err.unknown_capitalized": "Unknown error",
   "err.reload_app": "Reload app",
+
+  "label.note.snowpack_excellent": "Above-normal April-1 peak — strong runoff year.",
+  "label.note.snowpack_average": "Near the long-term April-1 norm.",
+  "label.note.snowpack_below_avg": "Lean snowpack — runoff will fall short of demand.",
+  "label.note.snowpack_concerning": "Critical deficit (only a true verdict at/after April 1).",
+  "label.note.precip_wet": "Above-average rainfall.",
+  "label.note.precip_normal": "Within the normal band.",
+  "label.note.precip_dry": "Below average — watch for cumulative deficit.",
+  "label.note.precip_drought": "Sustained deficit territory.",
+  "label.note.res_strong": "Carryover storage is healthy.",
+  "label.note.res_healthy": "Adequate, with room to improve.",
+  "label.note.res_watch": "Operators tightening releases.",
+  "label.note.res_concern": "Approaching emergency-response thresholds.",
+
+  "home.share_message": "I'm using H2O to You to conserve water in California 💧 — saved {gal} gallons today and counting! Join me.",
 };
 
 const GOOGLE_CODE = {

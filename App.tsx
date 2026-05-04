@@ -1853,6 +1853,7 @@ const classifySnowpack = (pct: number) => {
       labelKey: "label.excellent" as const,
       color: C.success,
       note: "Above-normal April-1 peak — strong runoff year.",
+      noteKey: "label.note.snowpack_excellent" as const,
     };
   if (pct >= 90)
     return {
@@ -1860,6 +1861,7 @@ const classifySnowpack = (pct: number) => {
       labelKey: "label.average" as const,
       color: C.teal,
       note: "Near the long-term April-1 norm.",
+      noteKey: "label.note.snowpack_average" as const,
     };
   if (pct >= 70)
     return {
@@ -1867,12 +1869,14 @@ const classifySnowpack = (pct: number) => {
       labelKey: "label.below_avg" as const,
       color: C.gold,
       note: "Lean snowpack — runoff will fall short of demand.",
+      noteKey: "label.note.snowpack_below_avg" as const,
     };
   return {
     label: "Concerning",
     labelKey: "label.concerning" as const,
     color: C.danger,
     note: "Critical deficit (only a true verdict at/after April 1).",
+    noteKey: "label.note.snowpack_concerning" as const,
   };
 };
 
@@ -1884,6 +1888,7 @@ const classifyPrecip = (pct: number) => {
       labelKey: "label.wet" as const,
       color: C.success,
       note: "Above-average rainfall.",
+      noteKey: "label.note.precip_wet" as const,
     };
   if (pct >= 90)
     return {
@@ -1891,6 +1896,7 @@ const classifyPrecip = (pct: number) => {
       labelKey: "label.normal" as const,
       color: C.teal,
       note: "Within the normal band.",
+      noteKey: "label.note.precip_normal" as const,
     };
   if (pct >= 70)
     return {
@@ -1898,12 +1904,14 @@ const classifyPrecip = (pct: number) => {
       labelKey: "label.dry" as const,
       color: C.gold,
       note: "Below average — watch for cumulative deficit.",
+      noteKey: "label.note.precip_dry" as const,
     };
   return {
     label: "Drought Signal",
     labelKey: "label.drought_signal" as const,
     color: C.danger,
     note: "Sustained deficit territory.",
+    noteKey: "label.note.precip_drought" as const,
   };
 };
 
@@ -1915,6 +1923,7 @@ const classifyReservoir = (pct: number) => {
       labelKey: "label.strong" as const,
       color: C.success,
       note: "Carryover storage is healthy.",
+      noteKey: "label.note.res_strong" as const,
     };
   if (pct >= 70)
     return {
@@ -1922,6 +1931,7 @@ const classifyReservoir = (pct: number) => {
       labelKey: "label.healthy" as const,
       color: C.teal,
       note: "Adequate, with room to improve.",
+      noteKey: "label.note.res_healthy" as const,
     };
   if (pct >= 50)
     return {
@@ -1929,12 +1939,14 @@ const classifyReservoir = (pct: number) => {
       labelKey: "label.watch" as const,
       color: C.gold,
       note: "Operators tightening releases.",
+      noteKey: "label.note.res_watch" as const,
     };
   return {
     label: "Concern",
     labelKey: "label.concern" as const,
     color: C.danger,
     note: "Approaching emergency-response thresholds.",
+    noteKey: "label.note.res_concern" as const,
   };
 };
 
@@ -3869,7 +3881,7 @@ function HomeScreen() {
   const ringColor = pct > 90 ? C.danger : pct > 70 ? C.gold : C.accent;
 
   const onShare = async () => {
-    const message = `I'm using H2O to You to conserve water in California 💧 — saved ${savings.toFixed(0)} gallons today and counting! Join me.`;
+    const message = t("home.share_message", { gal: savings.toFixed(0) });
     const ok = await shareText(message);
     if (ok) await awardBadge("sharer");
   };
@@ -12128,7 +12140,7 @@ function MapScreen() {
                     marginTop: 10,
                   }}
                 >
-                  {r.note} {sn.note} {p.note}
+                  {t(r.noteKey)} {t(sn.noteKey)} {t(p.noteKey)}
                 </Text>
                 <Text
                   style={{
