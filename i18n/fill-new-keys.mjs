@@ -1218,6 +1218,15 @@ const STRINGS = {
   "report.share_badges_earned": "Badges earned: {got}/{total}",
   "report.share_footer": "Built for the H2O Hackathon · 2026",
   "report.share_title": "Conservation Report",
+
+  "shower.cost_footer": "Cost based on the CA blended residential rate (~${rate}/gal). Showerhead flow rate from your water-footprint quiz.",
+
+  "pol.logged_sample_share": "Logged as a pollution sample · Help your community by sharing finds",
+
+  "err.something_wrong": "Something went wrong",
+  "err.app_unexpected": "The app hit an unexpected error. Your data is safe — tap below to reload.",
+  "err.unknown_capitalized": "Unknown error",
+  "err.reload_app": "Reload app",
 };
 
 const GOOGLE_CODE = {

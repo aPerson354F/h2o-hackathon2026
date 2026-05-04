@@ -9970,9 +9970,7 @@ function ShowerCoachModal({
                 fontStyle: "italic",
               }}
             >
-              Cost based on the CA blended residential rate (~$
-              {WATER_COST_PER_GAL.toFixed(3)}/gal). Showerhead flow rate from
-              your water-footprint quiz.
+              {t("shower.cost_footer", { rate: WATER_COST_PER_GAL.toFixed(3) })}
             </Text>
           </ScrollView>
         </View>
@@ -14293,8 +14291,7 @@ function PollutionView() {
                   fontWeight: "700",
                 }}
               >
-                Logged as a pollution sample · Help your community by sharing
-                finds
+                {t("pol.logged_sample_share")}
               </Text>
             </View>
           )}
@@ -15648,20 +15645,29 @@ function NavRoot() {
 // ─── ERROR BOUNDARY — pro apps never whitescreen ──────────────────────
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { error: Error | null }
+  { error: Error | null; lang: Lang }
 > {
   constructor(props: any) {
     super(props);
-    this.state = { error: null };
+    this.state = { error: null, lang: "en" };
   }
   static getDerivedStateFromError(error: Error) {
     return { error };
   }
   componentDidCatch(error: Error) {
     if (typeof console !== "undefined") console.error("[H2O] crash:", error);
+    AsyncStorage.getItem("profile")
+      .then((raw) => {
+        if (!raw) return;
+        const p = JSON.parse(raw);
+        if (p?.lang) this.setState({ lang: p.lang });
+      })
+      .catch(() => {});
   }
   render() {
     if (!this.state.error) return this.props.children;
+    const tx = (k: StringKey, params?: Record<string, string | number>) =>
+      translate(this.state.lang, k, params);
     return (
       <View
         style={{
@@ -15681,7 +15687,7 @@ class ErrorBoundary extends React.Component<
             marginTop: 16,
           }}
         >
-          Something went wrong
+          {tx("err.something_wrong")}
         </Text>
         <Text
           style={{
@@ -15692,8 +15698,7 @@ class ErrorBoundary extends React.Component<
             marginTop: 8,
           }}
         >
-          The app hit an unexpected error. Your data is safe — tap below to
-          reload.
+          {tx("err.app_unexpected")}
         </Text>
         <Text
           style={{
@@ -15704,7 +15709,7 @@ class ErrorBoundary extends React.Component<
             fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
           }}
         >
-          {this.state.error.message?.slice(0, 200) || "Unknown error"}
+          {this.state.error.message?.slice(0, 200) || tx("err.unknown_capitalized")}
         </Text>
         <Press
           onPress={() => this.setState({ error: null })}
@@ -15717,7 +15722,7 @@ class ErrorBoundary extends React.Component<
           }}
         >
           <Text style={{ color: C.bg, fontWeight: "800", fontSize: 14 }}>
-            Reload app
+            {tx("err.reload_app")}
           </Text>
         </Press>
       </View>
