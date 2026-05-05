@@ -1,0 +1,13 @@
+name: Create Production Builds
+
+jobs:
+  build_android:
+    type: build # This job type creates a production build for Android
+    params:
+      platform: android
+  # iOS build disabled — requires Apple Developer account ($99/year).
+  # Re-enable once Apple credentials are set up.
+  # build_ios:
+  #   type: build
+  #   params:
+  #     platform: ios
