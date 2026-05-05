@@ -63,6 +63,11 @@ const PRECIP_NORMAL_INCHES = {
   "07": 0.1, "08": 0.1, "09": 0.5, "10": 2.0, "11": 4.5, "12": 7.0,
 };
 
+// Sierra is reliably bare and snow-pillow sensors are unreliable Jul–Oct
+// (drift, stuck-on-residue, offline). Treated as 0 % snowpack rather than
+// aggregated from noisy data.
+const SUMMER_MONTHS = new Set(["07", "08", "09", "10"]);
+
 const today = new Date();
 const startDate = new Date(today.getFullYear() - 2, today.getMonth(), 1);
 const fmt = (d) =>
@@ -93,11 +98,17 @@ const monthKey = (dateStr) => {
 };
 
 async function fetchReservoirs() {
+  // Reservoirs run sequentially (12 stations × 2 calls = 24 round trips
+  // serialised) but each station's monthly + daily pair runs concurrently.
+  // We avoid 24-wide parallelism because CDEC has shown flakiness under
+  // load.
   const out = [];
   for (const r of RESERVOIRS) {
     process.stdout.write(`  ${r.cdec} `);
-    const monthly = await cdec(r.cdec, SENSOR_STORAGE, "M");
-    const daily = await cdec(r.cdec, SENSOR_STORAGE, "D");
+    const [monthly, daily] = await Promise.all([
+      cdec(r.cdec, SENSOR_STORAGE, "M"),
+      cdec(r.cdec, SENSOR_STORAGE, "D"),
+    ]);
     const recent = daily[daily.length - 1];
     const history = monthly.map((rec) => ({
       month: monthKey(rec.date),
@@ -117,15 +128,10 @@ async function fetchReservoirs() {
 }
 
 async function fetchSnowpack() {
-  // For each snow pillow, fetch daily SWC for 24 months. Average all daily
-  // values that month per station, then average across stations. Filter out
-  // sensor noise: negative values (drift), stuck-summer readings, and the
-  // CDEC missing-data sentinel (-9999, already filtered upstream).
-  //
-  // Snow pillows are unreliable Jul–Oct (sensors get stuck on residue, drift
-  // negative, or go offline). Sierra is reliably bare in those months, so we
-  // emit 0 for Jul–Oct rather than aggregating noisy data.
-  const SUMMER_MONTHS = new Set(["07", "08", "09", "10"]);
+  // Daily SWC per station, monthly mean per station, then averaged across
+  // stations. Filter sensor noise: negatives (drift), stuck-summer readings,
+  // and CDEC's -9999 sentinel (handled upstream). Summer months are skipped
+  // entirely — see SUMMER_MONTHS comment.
   const byMonth = new Map();
   for (const sta of SNOW_PILLOWS) {
     process.stdout.write(`  ${sta} `);
@@ -142,10 +148,6 @@ async function fetchSnowpack() {
     for (const [mk, vals] of perMonth) {
       if (!vals.length) continue;
       const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-      // Drop stuck-sensor stations (e.g. GIN reads ~9.5" through summer):
-      // a station reading > 1" in May–Jun is plausible high-elevation
-      // residual snow, but > 1" in Aug–Sep is definitely sensor failure.
-      if (mk.slice(5) >= "08" && mk.slice(5) <= "10" && avg > 1) continue;
       const arr = byMonth.get(mk) ?? [];
       arr.push(avg);
       byMonth.set(mk, arr);
@@ -209,9 +211,8 @@ function buildMonthly(reservoirs, snowpack, precip) {
     const snow = snowpack.find((s) => s.month === month);
     const prec = precip.find((p) => p.month === month);
     const mm = month.slice(5);
-    const SUMMER = mm >= "07" && mm <= "10";
     let snowPctOfNormal;
-    if (SUMMER) {
+    if (SUMMER_MONTHS.has(mm)) {
       snowPctOfNormal = 0;
     } else if (snow && SNOW_NORMAL_INCHES[mm]) {
       snowPctOfNormal = Math.min(
@@ -264,12 +265,15 @@ function emitWaterHistorySnippet(monthly) {
 
 async function main() {
   console.log(`CDEC fetch — ${START} → ${END}`);
-  console.log("Reservoirs:");
-  const reservoirs = await fetchReservoirs();
-  console.log("Snowpack:");
-  const snowpack = await fetchSnowpack();
-  console.log("Precipitation:");
-  const precip = await fetchPrecip();
+  // The three phases hit disjoint sets of stations and share no state, so
+  // they run concurrently. Per-phase progress lines from the inner loops
+  // will interleave — that's fine.
+  console.log("Reservoirs / Snowpack / Precipitation in parallel…");
+  const [reservoirs, snowpack, precip] = await Promise.all([
+    fetchReservoirs(),
+    fetchSnowpack(),
+    fetchPrecip(),
+  ]);
   const monthly = buildMonthly(reservoirs, snowpack, precip);
 
   const output = {
