@@ -22,8 +22,10 @@
       "infoPlist": {
         "NSCameraUsageDescription": "H2O Watch needs camera access to scan water test strips, identify pollution, and detect items for water-footprint analysis.",
         "NSPhotoLibraryUsageDescription": "H2O Watch needs photo library access to analyze images of test strips, pollution, and items.",
-        "NSPhotoLibraryAddUsageDescription": "H2O Watch may save annotated analysis results to your photos."
-      }
+        "NSPhotoLibraryAddUsageDescription": "H2O Watch may save annotated analysis results to your photos.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.aperson354f.h2ohack2026"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,10 +35,11 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ]
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "package": "com.aperson354f.h2ohack2026"
     },
     "plugins": [
       [
@@ -46,10 +49,17 @@
           "cameraPermission": "H2O Watch uses your camera to scan water test strips, pollution, and items.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-font"
     ],
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3b8281a7-a192-4f0e-8791-48f9cbb42851"
+      }
+    },
+    "owner": "aperson354f"
   }
 }
