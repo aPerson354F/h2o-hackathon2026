@@ -15900,10 +15900,10 @@ const st = StyleSheet.create({
   // Quick actions
   quickRow: {
     flexDirection: "row",
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     marginTop: 8,
     marginBottom: 6,
-    gap: 10,
+    gap: 8,
   },
   quickAction: {
     flex: 1,
