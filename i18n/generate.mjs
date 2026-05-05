@@ -9,13 +9,13 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
 
-const keyFile = existsSync(join(ROOT, "proxy/.env.local"))
-  ? "proxy/.env.local"
-  : "proxy/.env";
-const GROQ_KEY = readFileSync(join(ROOT, keyFile), "utf8")
-  .match(/^\s*GROQ_API_KEY\s*=\s*(.+)\s*$/m)[1]
-  .trim()
-  .replace(/^["']|["']$/g, "");
+const keyFile = existsSync(join(ROOT, ".env.local")) ? ".env.local" : ".env";
+const GROQ_KEY =
+  process.env.GROQ_API_KEY ??
+  readFileSync(join(ROOT, keyFile), "utf8")
+    .match(/^\s*GROQ_API_KEY\s*=\s*(.+)\s*$/m)[1]
+    .trim()
+    .replace(/^["']|["']$/g, "");
 
 const STRINGS = {
   "tab.home": "Home",

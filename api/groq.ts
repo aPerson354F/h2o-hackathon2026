@@ -1,17 +1,23 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 function loadGroqKey(): string | undefined {
   if (process.env.GROQ_API_KEY) return process.env.GROQ_API_KEY;
   for (const name of [".env.local", ".env"]) {
-    const p = join(process.cwd(), name);
-    if (!existsSync(p)) continue;
-    const m = readFileSync(p, "utf8").match(/^\s*GROQ_API_KEY\s*=\s*(.+)\s*$/m);
-    if (m) return m[1].trim().replace(/^["']|["']$/g, "");
+    try {
+      const m = readFileSync(join(process.cwd(), name), "utf8").match(
+        /^\s*GROQ_API_KEY\s*=\s*(.+)\s*$/m,
+      );
+      if (m) return m[1].trim().replace(/^["']|["']$/g, "");
+    } catch {
+      // file missing or unreadable — try next
+    }
   }
   return undefined;
 }
+
+const GROQ_KEY = loadGroqKey();
 
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 30;
@@ -20,13 +26,13 @@ const hits = new Map<string, number[]>();
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
-  const window = (hits.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (window.length >= RATE_MAX) {
-    hits.set(ip, window);
+  const recent = (hits.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (recent.length >= RATE_MAX) {
+    hits.set(ip, recent);
     return true;
   }
-  window.push(now);
-  hits.set(ip, window);
+  recent.push(now);
+  hits.set(ip, recent);
   if (hits.size > RATE_MAP_SOFT_CAP) {
     hits.forEach((v, k) => {
       if (!v.length || now - v[v.length - 1] >= RATE_WINDOW_MS) hits.delete(k);
@@ -53,8 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .json({ error: { message: "Too many requests — try again in a minute." } });
   }
 
-  const apiKey = loadGroqKey();
-  if (!apiKey) {
+  if (!GROQ_KEY) {
     return res
       .status(500)
       .json({ error: { message: "Server is missing GROQ_API_KEY" } });
@@ -67,7 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${GROQ_KEY}`,
         },
         body: JSON.stringify(req.body),
       },
