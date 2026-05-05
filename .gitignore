@@ -49,3 +49,10 @@ plan.md
 # Hackathon raw dataset (embedded into App.tsx as WATER_HISTORY)
 challenge_data.json
 .vercel
+
+# Local Claude memory/state
+.claude/
+
+# CDEC reservoir conditions PDFs (downloaded snapshots — large; data is
+# baked into data/cdec.json instead).
+rescond_*.pdf

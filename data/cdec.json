@@ -1,0 +1,1807 @@
+{
+  "generatedAt": "2026-05-05T03:05:29.690Z",
+  "range": {
+    "start": "2024-05-01",
+    "end": "2026-05-04"
+  },
+  "reservoirs": [
+    {
+      "id": "shasta",
+      "cdec": "SHA",
+      "name": "Shasta",
+      "capacityAF": 4552000,
+      "lat": 40.7197,
+      "lng": -122.4197,
+      "currentAF": 4154292,
+      "currentPct": 91,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 4298000,
+          "pct": 94
+        },
+        {
+          "month": "2024-06",
+          "af": 4000000,
+          "pct": 88
+        },
+        {
+          "month": "2024-07",
+          "af": 3451000,
+          "pct": 76
+        },
+        {
+          "month": "2024-08",
+          "af": 3007000,
+          "pct": 66
+        },
+        {
+          "month": "2024-09",
+          "af": 2766000,
+          "pct": 61
+        },
+        {
+          "month": "2024-10",
+          "af": 2595700,
+          "pct": 57
+        },
+        {
+          "month": "2024-11",
+          "af": 2769771,
+          "pct": 61
+        },
+        {
+          "month": "2024-12",
+          "af": 3477400,
+          "pct": 76
+        },
+        {
+          "month": "2025-01",
+          "af": 3492457,
+          "pct": 77
+        },
+        {
+          "month": "2025-02",
+          "af": 3561400,
+          "pct": 78
+        },
+        {
+          "month": "2025-03",
+          "af": 4067273,
+          "pct": 89
+        },
+        {
+          "month": "2025-04",
+          "af": 4396007,
+          "pct": 97
+        },
+        {
+          "month": "2025-05",
+          "af": 4151026,
+          "pct": 91
+        },
+        {
+          "month": "2025-06",
+          "af": 3788100,
+          "pct": 83
+        },
+        {
+          "month": "2025-07",
+          "af": 3237967,
+          "pct": 71
+        },
+        {
+          "month": "2025-08",
+          "af": 2851869,
+          "pct": 63
+        },
+        {
+          "month": "2025-09",
+          "af": 2678200,
+          "pct": 59
+        },
+        {
+          "month": "2025-10",
+          "af": 2547440,
+          "pct": 56
+        },
+        {
+          "month": "2025-11",
+          "af": 2681432,
+          "pct": 59
+        },
+        {
+          "month": "2025-12",
+          "af": 3295388,
+          "pct": 72
+        },
+        {
+          "month": "2026-01",
+          "af": 3642626,
+          "pct": 80
+        },
+        {
+          "month": "2026-02",
+          "af": 3822800,
+          "pct": 84
+        },
+        {
+          "month": "2026-03",
+          "af": 4090291,
+          "pct": 90
+        },
+        {
+          "month": "2026-04",
+          "af": 4140400,
+          "pct": 91
+        }
+      ]
+    },
+    {
+      "id": "trinity",
+      "cdec": "CLE",
+      "name": "Trinity",
+      "capacityAF": 2447650,
+      "lat": 40.8,
+      "lng": -122.76,
+      "currentAF": 2227864,
+      "currentPct": 91,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 2119000,
+          "pct": 87
+        },
+        {
+          "month": "2024-06",
+          "af": 2046000,
+          "pct": 84
+        },
+        {
+          "month": "2024-07",
+          "af": 1934000,
+          "pct": 79
+        },
+        {
+          "month": "2024-08",
+          "af": 1825000,
+          "pct": 75
+        },
+        {
+          "month": "2024-09",
+          "af": 1720000,
+          "pct": 70
+        },
+        {
+          "month": "2024-10",
+          "af": 1620100,
+          "pct": 66
+        },
+        {
+          "month": "2024-11",
+          "af": 1660519,
+          "pct": 68
+        },
+        {
+          "month": "2024-12",
+          "af": 1820600,
+          "pct": 74
+        },
+        {
+          "month": "2025-01",
+          "af": 1908035,
+          "pct": 78
+        },
+        {
+          "month": "2025-02",
+          "af": 2027100,
+          "pct": 83
+        },
+        {
+          "month": "2025-03",
+          "af": 2112298,
+          "pct": 86
+        },
+        {
+          "month": "2025-04",
+          "af": 2206752,
+          "pct": 90
+        },
+        {
+          "month": "2025-05",
+          "af": 2267013,
+          "pct": 93
+        },
+        {
+          "month": "2025-06",
+          "af": 2209200,
+          "pct": 90
+        },
+        {
+          "month": "2025-07",
+          "af": 2083829,
+          "pct": 85
+        },
+        {
+          "month": "2025-08",
+          "af": 1947936,
+          "pct": 80
+        },
+        {
+          "month": "2025-09",
+          "af": 1821900,
+          "pct": 74
+        },
+        {
+          "month": "2025-10",
+          "af": 1736881,
+          "pct": 71
+        },
+        {
+          "month": "2025-11",
+          "af": 1796829,
+          "pct": 73
+        },
+        {
+          "month": "2025-12",
+          "af": 1940716,
+          "pct": 79
+        },
+        {
+          "month": "2026-01",
+          "af": 2046730,
+          "pct": 84
+        },
+        {
+          "month": "2026-02",
+          "af": 2150300,
+          "pct": 88
+        },
+        {
+          "month": "2026-03",
+          "af": 2232083,
+          "pct": 91
+        },
+        {
+          "month": "2026-04",
+          "af": 2234700,
+          "pct": 91
+        }
+      ]
+    },
+    {
+      "id": "oroville",
+      "cdec": "ORO",
+      "name": "Oroville",
+      "capacityAF": 3537577,
+      "lat": 39.5392,
+      "lng": -121.4847,
+      "currentAF": 3337094,
+      "currentPct": 94,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 3531000,
+          "pct": 100
+        },
+        {
+          "month": "2024-06",
+          "af": 3251000,
+          "pct": 92
+        },
+        {
+          "month": "2024-07",
+          "af": 2759000,
+          "pct": 78
+        },
+        {
+          "month": "2024-08",
+          "af": 2308000,
+          "pct": 65
+        },
+        {
+          "month": "2024-09",
+          "af": 1887000,
+          "pct": 53
+        },
+        {
+          "month": "2024-10",
+          "af": 1729331,
+          "pct": 49
+        },
+        {
+          "month": "2024-11",
+          "af": 1901608,
+          "pct": 54
+        },
+        {
+          "month": "2024-12",
+          "af": 2314813,
+          "pct": 65
+        },
+        {
+          "month": "2025-01",
+          "af": 2589073,
+          "pct": 73
+        },
+        {
+          "month": "2025-02",
+          "af": 2865848,
+          "pct": 81
+        },
+        {
+          "month": "2025-03",
+          "af": 3023419,
+          "pct": 85
+        },
+        {
+          "month": "2025-04",
+          "af": 3277492,
+          "pct": 93
+        },
+        {
+          "month": "2025-05",
+          "af": 3415454,
+          "pct": 97
+        },
+        {
+          "month": "2025-06",
+          "af": 3232243,
+          "pct": 91
+        },
+        {
+          "month": "2025-07",
+          "af": 2730626,
+          "pct": 77
+        },
+        {
+          "month": "2025-08",
+          "af": 2322873,
+          "pct": 66
+        },
+        {
+          "month": "2025-09",
+          "af": 2060586,
+          "pct": 58
+        },
+        {
+          "month": "2025-10",
+          "af": 1835511,
+          "pct": 52
+        },
+        {
+          "month": "2025-11",
+          "af": 1761235,
+          "pct": 50
+        },
+        {
+          "month": "2025-12",
+          "af": 2374654,
+          "pct": 67
+        },
+        {
+          "month": "2026-01",
+          "af": 2825269,
+          "pct": 80
+        },
+        {
+          "month": "2026-02",
+          "af": 2927100,
+          "pct": 83
+        },
+        {
+          "month": "2026-03",
+          "af": 3090516,
+          "pct": 87
+        },
+        {
+          "month": "2026-04",
+          "af": 3319917,
+          "pct": 94
+        }
+      ]
+    },
+    {
+      "id": "newmel",
+      "cdec": "NML",
+      "name": "New Melones",
+      "capacityAF": 2400000,
+      "lat": 37.9486,
+      "lng": -120.5269,
+      "currentAF": 1867650,
+      "currentPct": 78,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 2096314,
+          "pct": 87
+        },
+        {
+          "month": "2024-06",
+          "af": 2004334,
+          "pct": 84
+        },
+        {
+          "month": "2024-07",
+          "af": 1933400,
+          "pct": 81
+        },
+        {
+          "month": "2024-08",
+          "af": 1866100,
+          "pct": 78
+        },
+        {
+          "month": "2024-09",
+          "af": 1823400,
+          "pct": 76
+        },
+        {
+          "month": "2024-10",
+          "af": 1797000,
+          "pct": 75
+        },
+        {
+          "month": "2024-11",
+          "af": 1818673,
+          "pct": 76
+        },
+        {
+          "month": "2024-12",
+          "af": 1853000,
+          "pct": 77
+        },
+        {
+          "month": "2025-01",
+          "af": 1868501,
+          "pct": 78
+        },
+        {
+          "month": "2025-02",
+          "af": 1933700,
+          "pct": 81
+        },
+        {
+          "month": "2025-03",
+          "af": 1983900,
+          "pct": 83
+        },
+        {
+          "month": "2025-04",
+          "af": 1994819,
+          "pct": 83
+        },
+        {
+          "month": "2025-05",
+          "af": 1914077,
+          "pct": 80
+        },
+        {
+          "month": "2025-06",
+          "af": 1814700,
+          "pct": 76
+        },
+        {
+          "month": "2025-07",
+          "af": 1726094,
+          "pct": 72
+        },
+        {
+          "month": "2025-08",
+          "af": 1650085,
+          "pct": 69
+        },
+        {
+          "month": "2025-09",
+          "af": 1625300,
+          "pct": 68
+        },
+        {
+          "month": "2025-10",
+          "af": 1616603,
+          "pct": 67
+        },
+        {
+          "month": "2025-11",
+          "af": 1644672,
+          "pct": 69
+        },
+        {
+          "month": "2025-12",
+          "af": 1692977,
+          "pct": 71
+        },
+        {
+          "month": "2026-01",
+          "af": 1784179,
+          "pct": 74
+        },
+        {
+          "month": "2026-02",
+          "af": 1836400,
+          "pct": 77
+        },
+        {
+          "month": "2026-03",
+          "af": 1883620,
+          "pct": 78
+        },
+        {
+          "month": "2026-04",
+          "af": 1868300,
+          "pct": 78
+        }
+      ]
+    },
+    {
+      "id": "donpedro",
+      "cdec": "DNP",
+      "name": "Don Pedro",
+      "capacityAF": 2030000,
+      "lat": 37.7,
+      "lng": -120.42,
+      "currentAF": 1862012,
+      "currentPct": 92,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 1917201,
+          "pct": 94
+        },
+        {
+          "month": "2024-06",
+          "af": 1906932,
+          "pct": 94
+        },
+        {
+          "month": "2024-07",
+          "af": 1749595,
+          "pct": 86
+        },
+        {
+          "month": "2024-08",
+          "af": 1621990,
+          "pct": 80
+        },
+        {
+          "month": "2024-09",
+          "af": 1524598,
+          "pct": 75
+        },
+        {
+          "month": "2024-10",
+          "af": 1418283,
+          "pct": 70
+        },
+        {
+          "month": "2024-11",
+          "af": 1403573,
+          "pct": 69
+        },
+        {
+          "month": "2024-12",
+          "af": 1397917,
+          "pct": 69
+        },
+        {
+          "month": "2025-01",
+          "af": 1398696,
+          "pct": 69
+        },
+        {
+          "month": "2025-02",
+          "af": 1519402,
+          "pct": 75
+        },
+        {
+          "month": "2025-03",
+          "af": 1688039,
+          "pct": 83
+        },
+        {
+          "month": "2025-04",
+          "af": 1798628,
+          "pct": 89
+        },
+        {
+          "month": "2025-05",
+          "af": 1914723,
+          "pct": 94
+        },
+        {
+          "month": "2025-06",
+          "af": 1898651,
+          "pct": 94
+        },
+        {
+          "month": "2025-07",
+          "af": 1758856,
+          "pct": 87
+        },
+        {
+          "month": "2025-08",
+          "af": 1643481,
+          "pct": 81
+        },
+        {
+          "month": "2025-09",
+          "af": 1566653,
+          "pct": 77
+        },
+        {
+          "month": "2025-10",
+          "af": 1515256,
+          "pct": 75
+        },
+        {
+          "month": "2025-11",
+          "af": 1560300,
+          "pct": 77
+        },
+        {
+          "month": "2025-12",
+          "af": 1543520,
+          "pct": 76
+        },
+        {
+          "month": "2026-01",
+          "af": 1681302,
+          "pct": 83
+        },
+        {
+          "month": "2026-02",
+          "af": 1723174,
+          "pct": 85
+        },
+        {
+          "month": "2026-03",
+          "af": 1741522,
+          "pct": 86
+        },
+        {
+          "month": "2026-04",
+          "af": 1852335,
+          "pct": 91
+        }
+      ]
+    },
+    {
+      "id": "hetch",
+      "cdec": "HTH",
+      "name": "Hetch Hetchy",
+      "capacityAF": 360000,
+      "lat": 37.9472,
+      "lng": -119.7867,
+      "currentAF": 354656,
+      "currentPct": 99,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 320200,
+          "pct": 89
+        },
+        {
+          "month": "2024-06",
+          "af": 360500,
+          "pct": 100
+        },
+        {
+          "month": "2024-07",
+          "af": 345600,
+          "pct": 96
+        },
+        {
+          "month": "2024-08",
+          "af": 314800,
+          "pct": 87
+        },
+        {
+          "month": "2024-09",
+          "af": 287500,
+          "pct": 80
+        },
+        {
+          "month": "2024-10",
+          "af": 261855,
+          "pct": 73
+        },
+        {
+          "month": "2024-11",
+          "af": 241790,
+          "pct": 67
+        },
+        {
+          "month": "2024-12",
+          "af": 241790,
+          "pct": 67
+        },
+        {
+          "month": "2025-01",
+          "af": 246580,
+          "pct": 68
+        },
+        {
+          "month": "2025-02",
+          "af": 278010,
+          "pct": 77
+        },
+        {
+          "month": "2025-03",
+          "af": 269609,
+          "pct": 75
+        },
+        {
+          "month": "2025-04",
+          "af": 295520,
+          "pct": 82
+        },
+        {
+          "month": "2025-05",
+          "af": 355244,
+          "pct": 99
+        },
+        {
+          "month": "2025-06",
+          "af": 359178,
+          "pct": 100
+        },
+        {
+          "month": "2025-07",
+          "af": 338128,
+          "pct": 94
+        },
+        {
+          "month": "2025-08",
+          "af": 307949,
+          "pct": 86
+        },
+        {
+          "month": "2025-09",
+          "af": 281986,
+          "pct": 78
+        },
+        {
+          "month": "2025-10",
+          "af": 267662,
+          "pct": 74
+        },
+        {
+          "month": "2025-11",
+          "af": 276390,
+          "pct": 77
+        },
+        {
+          "month": "2025-12",
+          "af": 298100,
+          "pct": 83
+        },
+        {
+          "month": "2026-01",
+          "af": 323200,
+          "pct": 90
+        },
+        {
+          "month": "2026-02",
+          "af": 314882,
+          "pct": 87
+        },
+        {
+          "month": "2026-03",
+          "af": 334282,
+          "pct": 93
+        },
+        {
+          "month": "2026-04",
+          "af": 353284,
+          "pct": 98
+        }
+      ]
+    },
+    {
+      "id": "camanche",
+      "cdec": "CMN",
+      "name": "Camanche",
+      "capacityAF": 417120,
+      "lat": 38.2167,
+      "lng": -120.9833,
+      "currentAF": 375510,
+      "currentPct": 90,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 389890,
+          "pct": 93
+        },
+        {
+          "month": "2024-06",
+          "af": 388940,
+          "pct": 93
+        },
+        {
+          "month": "2024-07",
+          "af": 375860,
+          "pct": 90
+        },
+        {
+          "month": "2024-08",
+          "af": 367499,
+          "pct": 88
+        },
+        {
+          "month": "2024-09",
+          "af": 361470,
+          "pct": 87
+        },
+        {
+          "month": "2024-10",
+          "af": 333880,
+          "pct": 80
+        },
+        {
+          "month": "2024-11",
+          "af": 315730,
+          "pct": 76
+        },
+        {
+          "month": "2024-12",
+          "af": 305120,
+          "pct": 73
+        },
+        {
+          "month": "2025-01",
+          "af": 302990,
+          "pct": 73
+        },
+        {
+          "month": "2025-02",
+          "af": 320800,
+          "pct": 77
+        },
+        {
+          "month": "2025-03",
+          "af": 324110,
+          "pct": 78
+        },
+        {
+          "month": "2025-04",
+          "af": 338610,
+          "pct": 81
+        },
+        {
+          "month": "2025-05",
+          "af": 347750,
+          "pct": 83
+        },
+        {
+          "month": "2025-06",
+          "af": 334690,
+          "pct": 80
+        },
+        {
+          "month": "2025-07",
+          "af": 318820,
+          "pct": 76
+        },
+        {
+          "month": "2025-08",
+          "af": 313370,
+          "pct": 75
+        },
+        {
+          "month": "2025-09",
+          "af": 307510,
+          "pct": 74
+        },
+        {
+          "month": "2025-10",
+          "af": 304150,
+          "pct": 73
+        },
+        {
+          "month": "2025-11",
+          "af": 296530,
+          "pct": 71
+        },
+        {
+          "month": "2025-12",
+          "af": 316380,
+          "pct": 76
+        },
+        {
+          "month": "2026-01",
+          "af": 290000,
+          "pct": 70
+        },
+        {
+          "month": "2026-02",
+          "af": 297860,
+          "pct": 71
+        },
+        {
+          "month": "2026-03",
+          "af": 330250,
+          "pct": 79
+        },
+        {
+          "month": "2026-04",
+          "af": 370120,
+          "pct": 89
+        }
+      ]
+    },
+    {
+      "id": "newhogan",
+      "cdec": "NHG",
+      "name": "New Hogan",
+      "capacityAF": 317100,
+      "lat": 38.1572,
+      "lng": -120.8197,
+      "currentAF": 213221,
+      "currentPct": 67,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 235811,
+          "pct": 74
+        },
+        {
+          "month": "2024-06",
+          "af": 223173,
+          "pct": 70
+        },
+        {
+          "month": "2024-07",
+          "af": 207337,
+          "pct": 65
+        },
+        {
+          "month": "2024-08",
+          "af": 193521,
+          "pct": 61
+        },
+        {
+          "month": "2024-09",
+          "af": 182673,
+          "pct": 58
+        },
+        {
+          "month": "2024-10",
+          "af": 175437,
+          "pct": 55
+        },
+        {
+          "month": "2024-11",
+          "af": 168837,
+          "pct": 53
+        },
+        {
+          "month": "2024-12",
+          "af": 166549,
+          "pct": 53
+        },
+        {
+          "month": "2025-01",
+          "af": 163896,
+          "pct": 52
+        },
+        {
+          "month": "2025-02",
+          "af": 188228,
+          "pct": 59
+        },
+        {
+          "month": "2025-03",
+          "af": 210823,
+          "pct": 66
+        },
+        {
+          "month": "2025-04",
+          "af": 218887,
+          "pct": 69
+        },
+        {
+          "month": "2025-05",
+          "af": 208607,
+          "pct": 66
+        },
+        {
+          "month": "2025-06",
+          "af": 195938,
+          "pct": 62
+        },
+        {
+          "month": "2025-07",
+          "af": 181989,
+          "pct": 57
+        },
+        {
+          "month": "2025-08",
+          "af": 168390,
+          "pct": 53
+        },
+        {
+          "month": "2025-09",
+          "af": 157223,
+          "pct": 50
+        },
+        {
+          "month": "2025-10",
+          "af": 151233,
+          "pct": 48
+        },
+        {
+          "month": "2025-11",
+          "af": 153857,
+          "pct": 49
+        },
+        {
+          "month": "2025-12",
+          "af": 163720,
+          "pct": 52
+        },
+        {
+          "month": "2026-01",
+          "af": 178804,
+          "pct": 56
+        },
+        {
+          "month": "2026-02",
+          "af": 206737,
+          "pct": 65
+        },
+        {
+          "month": "2026-03",
+          "af": 209714,
+          "pct": 66
+        },
+        {
+          "month": "2026-04",
+          "af": 213289,
+          "pct": 67
+        }
+      ]
+    },
+    {
+      "id": "pardee",
+      "cdec": "PAR",
+      "name": "Pardee",
+      "capacityAF": 197950,
+      "lat": 38.25,
+      "lng": -120.85,
+      "currentAF": 200346,
+      "currentPct": 101,
+      "asOf": "2026-5-4",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 205090,
+          "pct": 104
+        },
+        {
+          "month": "2024-06",
+          "af": 194412,
+          "pct": 98
+        },
+        {
+          "month": "2024-07",
+          "af": 199664,
+          "pct": 101
+        },
+        {
+          "month": "2024-08",
+          "af": 197409,
+          "pct": 100
+        },
+        {
+          "month": "2024-09",
+          "af": 185610,
+          "pct": 94
+        },
+        {
+          "month": "2024-10",
+          "af": 148750,
+          "pct": 75
+        },
+        {
+          "month": "2024-11",
+          "af": 165570,
+          "pct": 84
+        },
+        {
+          "month": "2024-12",
+          "af": 179910,
+          "pct": 91
+        },
+        {
+          "month": "2025-01",
+          "af": 172443,
+          "pct": 87
+        },
+        {
+          "month": "2025-02",
+          "af": 172005,
+          "pct": 87
+        },
+        {
+          "month": "2025-03",
+          "af": 183848,
+          "pct": 93
+        },
+        {
+          "month": "2025-04",
+          "af": 187695,
+          "pct": 95
+        },
+        {
+          "month": "2025-05",
+          "af": 200170,
+          "pct": 101
+        },
+        {
+          "month": "2025-06",
+          "af": 199466,
+          "pct": 101
+        },
+        {
+          "month": "2025-07",
+          "af": 203818,
+          "pct": 103
+        },
+        {
+          "month": "2025-08",
+          "af": 196581,
+          "pct": 99
+        },
+        {
+          "month": "2025-09",
+          "af": 194520,
+          "pct": 98
+        },
+        {
+          "month": "2025-10",
+          "af": 184831,
+          "pct": 93
+        },
+        {
+          "month": "2025-11",
+          "af": 194800,
+          "pct": 98
+        },
+        {
+          "month": "2025-12",
+          "af": 182100,
+          "pct": 92
+        },
+        {
+          "month": "2026-01",
+          "af": 179478,
+          "pct": 91
+        },
+        {
+          "month": "2026-02",
+          "af": 186807,
+          "pct": 94
+        },
+        {
+          "month": "2026-03",
+          "af": 187589,
+          "pct": 95
+        },
+        {
+          "month": "2026-04",
+          "af": 201096,
+          "pct": 102
+        }
+      ]
+    },
+    {
+      "id": "sanluis",
+      "cdec": "SNL",
+      "name": "San Luis",
+      "capacityAF": 2041000,
+      "lat": 37.0633,
+      "lng": -121.0825,
+      "currentAF": 1724951,
+      "currentPct": 85,
+      "asOf": "2026-5-3",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 1210502,
+          "pct": 59
+        },
+        {
+          "month": "2024-06",
+          "af": 1001165,
+          "pct": 49
+        },
+        {
+          "month": "2024-07",
+          "af": 870528,
+          "pct": 43
+        },
+        {
+          "month": "2024-08",
+          "af": 929556,
+          "pct": 46
+        },
+        {
+          "month": "2024-09",
+          "af": 1011194,
+          "pct": 50
+        },
+        {
+          "month": "2024-10",
+          "af": 1061118,
+          "pct": 52
+        },
+        {
+          "month": "2024-11",
+          "af": 1171931,
+          "pct": 57
+        },
+        {
+          "month": "2024-12",
+          "af": 1408327,
+          "pct": 69
+        },
+        {
+          "month": "2025-01",
+          "af": 1543619,
+          "pct": 76
+        },
+        {
+          "month": "2025-02",
+          "af": 1665244,
+          "pct": 82
+        },
+        {
+          "month": "2025-03",
+          "af": 1817698,
+          "pct": 89
+        },
+        {
+          "month": "2025-04",
+          "af": 1679984,
+          "pct": 82
+        },
+        {
+          "month": "2025-05",
+          "af": 1302209,
+          "pct": 64
+        },
+        {
+          "month": "2025-06",
+          "af": 972567,
+          "pct": 48
+        },
+        {
+          "month": "2025-07",
+          "af": 773397,
+          "pct": 38
+        },
+        {
+          "month": "2025-08",
+          "af": 849501,
+          "pct": 42
+        },
+        {
+          "month": "2025-09",
+          "af": 1076669,
+          "pct": 53
+        },
+        {
+          "month": "2025-10",
+          "af": 1069396,
+          "pct": 52
+        },
+        {
+          "month": "2025-11",
+          "af": 1282603,
+          "pct": 63
+        },
+        {
+          "month": "2025-12",
+          "af": 1397244,
+          "pct": 68
+        },
+        {
+          "month": "2026-01",
+          "af": 1597129,
+          "pct": 78
+        },
+        {
+          "month": "2026-02",
+          "af": 1734572,
+          "pct": 85
+        },
+        {
+          "month": "2026-03",
+          "af": 1809264,
+          "pct": 89
+        },
+        {
+          "month": "2026-04",
+          "af": 1733128,
+          "pct": 85
+        }
+      ]
+    },
+    {
+      "id": "castaic",
+      "cdec": "CAS",
+      "name": "Castaic",
+      "capacityAF": 325000,
+      "lat": 34.5275,
+      "lng": -118.6125,
+      "currentAF": 274974,
+      "currentPct": 85,
+      "asOf": "2026-5-3",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 302336,
+          "pct": 93
+        },
+        {
+          "month": "2024-06",
+          "af": 302593,
+          "pct": 93
+        },
+        {
+          "month": "2024-07",
+          "af": 304638,
+          "pct": 94
+        },
+        {
+          "month": "2024-08",
+          "af": 291964,
+          "pct": 90
+        },
+        {
+          "month": "2024-09",
+          "af": 275360,
+          "pct": 85
+        },
+        {
+          "month": "2024-10",
+          "af": 251900,
+          "pct": 78
+        },
+        {
+          "month": "2024-11",
+          "af": 254269,
+          "pct": 78
+        },
+        {
+          "month": "2024-12",
+          "af": 245035,
+          "pct": 75
+        },
+        {
+          "month": "2025-01",
+          "af": 250758,
+          "pct": 77
+        },
+        {
+          "month": "2025-02",
+          "af": 252831,
+          "pct": 78
+        },
+        {
+          "month": "2025-03",
+          "af": 258376,
+          "pct": 80
+        },
+        {
+          "month": "2025-04",
+          "af": 274000,
+          "pct": 84
+        },
+        {
+          "month": "2025-05",
+          "af": 311106,
+          "pct": 96
+        },
+        {
+          "month": "2025-06",
+          "af": 303303,
+          "pct": 93
+        },
+        {
+          "month": "2025-07",
+          "af": 310734,
+          "pct": 96
+        },
+        {
+          "month": "2025-08",
+          "af": 285860,
+          "pct": 88
+        },
+        {
+          "month": "2025-09",
+          "af": 263829,
+          "pct": 81
+        },
+        {
+          "month": "2025-10",
+          "af": 269605,
+          "pct": 83
+        },
+        {
+          "month": "2025-11",
+          "af": 248868,
+          "pct": 77
+        },
+        {
+          "month": "2025-12",
+          "af": 258023,
+          "pct": 79
+        },
+        {
+          "month": "2026-01",
+          "af": 253200,
+          "pct": 78
+        },
+        {
+          "month": "2026-02",
+          "af": 264505,
+          "pct": 81
+        },
+        {
+          "month": "2026-03",
+          "af": 267579,
+          "pct": 82
+        },
+        {
+          "month": "2026-04",
+          "af": 274710,
+          "pct": 85
+        }
+      ]
+    },
+    {
+      "id": "perris",
+      "cdec": "PRR",
+      "name": "Perris",
+      "capacityAF": 131400,
+      "lat": 33.865,
+      "lng": -117.1717,
+      "currentAF": 117487,
+      "currentPct": 89,
+      "asOf": "2026-5-3",
+      "history": [
+        {
+          "month": "2024-05",
+          "af": 100886,
+          "pct": 77
+        },
+        {
+          "month": "2024-06",
+          "af": 100717,
+          "pct": 77
+        },
+        {
+          "month": "2024-07",
+          "af": 100191,
+          "pct": 76
+        },
+        {
+          "month": "2024-08",
+          "af": 100823,
+          "pct": 77
+        },
+        {
+          "month": "2024-09",
+          "af": 103853,
+          "pct": 79
+        },
+        {
+          "month": "2024-10",
+          "af": 104279,
+          "pct": 79
+        },
+        {
+          "month": "2024-11",
+          "af": 104855,
+          "pct": 80
+        },
+        {
+          "month": "2024-12",
+          "af": 105347,
+          "pct": 80
+        },
+        {
+          "month": "2025-01",
+          "af": 107561,
+          "pct": 82
+        },
+        {
+          "month": "2025-02",
+          "af": 109075,
+          "pct": 83
+        },
+        {
+          "month": "2025-03",
+          "af": 112255,
+          "pct": 85
+        },
+        {
+          "month": "2025-04",
+          "af": 112979,
+          "pct": 86
+        },
+        {
+          "month": "2025-05",
+          "af": 118156,
+          "pct": 90
+        },
+        {
+          "month": "2025-06",
+          "af": 119878,
+          "pct": 91
+        },
+        {
+          "month": "2025-07",
+          "af": 120687,
+          "pct": 92
+        },
+        {
+          "month": "2025-08",
+          "af": 121339,
+          "pct": 92
+        },
+        {
+          "month": "2025-09",
+          "af": 122830,
+          "pct": 93
+        },
+        {
+          "month": "2025-10",
+          "af": 126109,
+          "pct": 96
+        },
+        {
+          "month": "2025-11",
+          "af": 127139,
+          "pct": 97
+        },
+        {
+          "month": "2025-12",
+          "af": 124601,
+          "pct": 95
+        },
+        {
+          "month": "2026-01",
+          "af": 121475,
+          "pct": 92
+        },
+        {
+          "month": "2026-02",
+          "af": 118000,
+          "pct": 90
+        },
+        {
+          "month": "2026-03",
+          "af": 107151,
+          "pct": 82
+        },
+        {
+          "month": "2026-04",
+          "af": 117465,
+          "pct": 89
+        }
+      ]
+    }
+  ],
+  "monthly": [
+    {
+      "month": "2024-05",
+      "reservoirPct": 89,
+      "snowWaterInches": 11,
+      "snowPctOfNormal": 50,
+      "precipInches": 1.61,
+      "precipPctOfNormal": 107
+    },
+    {
+      "month": "2024-06",
+      "reservoirPct": 84,
+      "snowWaterInches": 3.2,
+      "snowPctOfNormal": 40,
+      "precipInches": 0,
+      "precipPctOfNormal": 0
+    },
+    {
+      "month": "2024-07",
+      "reservoirPct": 76,
+      "snowWaterInches": null,
+      "snowPctOfNormal": 0,
+      "precipInches": 0,
+      "precipPctOfNormal": 0
+    },
+    {
+      "month": "2024-08",
+      "reservoirPct": 69,
+      "snowWaterInches": null,
+      "snowPctOfNormal": 0,
+      "precipInches": 0.47,
+      "precipPctOfNormal": 300
+    },
+    {
+      "month": "2024-09",
+      "reservoirPct": 65,
+      "snowWaterInches": null,
+      "snowPctOfNormal": 0,
+      "precipInches": 0.35,
+      "precipPctOfNormal": 70
+    },
+    {
+      "month": "2024-10",
+      "reservoirPct": 61,
+      "snowWaterInches": null,
+      "snowPctOfNormal": 0,
+      "precipInches": 0.18,
+      "precipPctOfNormal": 9
+    },
+    {
+      "month": "2024-11",
+      "reservoirPct": 64,
+      "snowWaterInches": 1.9,
+      "snowPctOfNormal": 63,
+      "precipInches": 18.85,
+      "precipPctOfNormal": 300
+    },
+    {
+      "month": "2024-12",
+      "reservoirPct": 72,
+      "snowWaterInches": 4.7,
+      "snowPctOfNormal": 67,
+      "precipInches": 19.23,
+      "precipPctOfNormal": 275
+    },
+    {
+      "month": "2025-01",
+      "reservoirPct": 75,
+      "snowWaterInches": 7.2,
+      "snowPctOfNormal": 60,
+      "precipInches": 1.14,
+      "precipPctOfNormal": 14
+    },
+    {
+      "month": "2025-02",
+      "reservoirPct": 79,
+      "snowWaterInches": 13.4,
+      "snowPctOfNormal": 61,
+      "precipInches": 20.74,
+      "precipPctOfNormal": 277
+    },
+    {
+      "month": "2025-03",
+      "reservoirPct": 86,
+      "snowWaterInches": 17.5,
+      "snowPctOfNormal": 63,
+      "precipInches": 8.16,
+      "precipPctOfNormal": 136
+    },
+    {
+      "month": "2025-04",
+      "reservoirPct": 89,
+      "snowWaterInches": 20,
+      "snowPctOfNormal": 67,
+      "precipInches": 0.65,
+      "precipPctOfNormal": 19
+    },
+    {
+      "month": "2025-05",
+      "reservoirPct": 88,
+      "snowWaterInches": 4.7,
+      "snowPctOfNormal": 21,
+      "precipInches": 0.57,
+      "precipPctOfNormal": 38
+    },
+    {
+      "month": "2025-06",
+      "reservoirPct": 82,
+      "snowWaterInches": null,
+      "snowPctOfNormal": null,
+      "precipInches": 0,
+      "precipPctOfNormal": 0
+    },
+    {
+      "month": "2025-07",
+      "reservoirPct": 73,
+      "snowWaterInches": null,
+      "snowPctOfNormal": 0,
+      "precipInches": 1.64,
+      "precipPctOfNormal": 300
+    },
+    {
+      "month": "2025-08",
+      "reservoirPct": 67,
+      "snowWaterInches": null,
+      "snowPctOfNormal": 0,
+      "precipInches": 0.04,
+      "precipPctOfNormal": 40
+    },
+    {
+      "month": "2025-09",
+      "reservoirPct": 65,
+      "snowWaterInches": null,
+      "snowPctOfNormal": 0,
+      "precipInches": null,
+      "precipPctOfNormal": null
+    },
+    {
+      "month": "2025-10",
+      "reservoirPct": 62,
+      "snowWaterInches": null,
+      "snowPctOfNormal": 0,
+      "precipInches": 2.15,
+      "precipPctOfNormal": 108
+    },
+    {
+      "month": "2025-11",
+      "reservoirPct": 64,
+      "snowWaterInches": 1,
+      "snowPctOfNormal": 33,
+      "precipInches": 17.56,
+      "precipPctOfNormal": 300
+    },
+    {
+      "month": "2025-12",
+      "reservoirPct": 72,
+      "snowWaterInches": 1.9,
+      "snowPctOfNormal": 27,
+      "precipInches": 15.75,
+      "precipPctOfNormal": 225
+    },
+    {
+      "month": "2026-01",
+      "reservoirPct": 80,
+      "snowWaterInches": 7.3,
+      "snowPctOfNormal": 61,
+      "precipInches": 9.87,
+      "precipPctOfNormal": 120
+    },
+    {
+      "month": "2026-02",
+      "reservoirPct": 83,
+      "snowWaterInches": 10.5,
+      "snowPctOfNormal": 48,
+      "precipInches": 11.59,
+      "precipPctOfNormal": 155
+    },
+    {
+      "month": "2026-03",
+      "reservoirPct": 87,
+      "snowWaterInches": 10,
+      "snowPctOfNormal": 36,
+      "precipInches": 0.94,
+      "precipPctOfNormal": 16
+    },
+    {
+      "month": "2026-04",
+      "reservoirPct": 89,
+      "snowWaterInches": 3.3,
+      "snowPctOfNormal": 11,
+      "precipInches": 6.36,
+      "precipPctOfNormal": 182
+    },
+    {
+      "month": "2026-05",
+      "reservoirPct": null,
+      "snowWaterInches": 1.9,
+      "snowPctOfNormal": 9,
+      "precipInches": null,
+      "precipPctOfNormal": null
+    }
+  ]
+}
