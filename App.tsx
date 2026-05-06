@@ -137,8 +137,7 @@ const SHADOW_HERO = Platform.select({
   default: {},
 });
 
-const GROQ_PROXY_URL =
-  process.env.EXPO_PUBLIC_GROQ_PROXY_URL ?? "/api/groq";
+const GROQ_PROXY_URL = process.env.EXPO_PUBLIC_GROQ_PROXY_URL ?? "/api/groq";
 
 function langDirective(lang?: Lang): string {
   if (!lang || lang === "en") return "";
@@ -476,6 +475,11 @@ function GradientBg({
 // Module-level throttle so haptic can't fire faster than 100ms apart even
 // across rapid scroll/flick gestures over a list of Press tiles.
 let _lastVibeAt = 0;
+// Animate the Pressable itself so the caller's `style` (e.g. flex:1) lands on
+// the actual flex item. Wrapping in an inner Animated.View previously left
+// Pressable sized to its content, which collapsed flex:1 buttons in a row.
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 function Press({ children, onPress, style, disabled, haptic = true }: any) {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
@@ -495,7 +499,7 @@ function Press({ children, onPress, style, disabled, haptic = true }: any) {
     [onPress, haptic],
   );
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={handlePress}
       onPressIn={() => {
         Animated.parallel([
@@ -528,11 +532,10 @@ function Press({ children, onPress, style, disabled, haptic = true }: any) {
         ]).start();
       }}
       disabled={disabled}
+      style={[{ transform: [{ scale }], opacity }, style]}
     >
-      <Animated.View style={[{ transform: [{ scale }], opacity }, style]}>
-        {children}
-      </Animated.View>
-    </Pressable>
+      {children}
+    </AnimatedPressable>
   );
 }
 
@@ -1003,6 +1006,84 @@ const TIP_TR: { title: StringKey; body: StringKey }[] = [
   { title: "tip.reuse_ice.title", body: "tip.reuse_ice.body" },
   { title: "tip.capture_rain.title", body: "tip.capture_rain.body" },
 ];
+
+// Local library powering the home Tip-of-the-Day and Daily-Fact cards.
+// Day-indexed so a given calendar day shows a consistent tip/fact; the
+// refresh button on the tip card advances through the library. Bodies
+// reference translation keys so all 50 supported languages render natively.
+const DAILY_TIP_LIB: { e: string; key: StringKey }[] = [
+  { e: "🚿", key: "tip_lib.001" },
+  { e: "🪥", key: "tip_lib.002" },
+  { e: "🌱", key: "tip_lib.003" },
+  { e: "🚽", key: "tip_lib.004" },
+  { e: "🍽️", key: "tip_lib.005" },
+  { e: "🥬", key: "tip_lib.006" },
+  { e: "🚰", key: "tip_lib.007" },
+  { e: "🏊", key: "tip_lib.008" },
+  { e: "🧊", key: "tip_lib.009" },
+  { e: "🌧️", key: "tip_lib.010" },
+  { e: "🌳", key: "tip_lib.011" },
+  { e: "🧺", key: "tip_lib.012" },
+  { e: "🚙", key: "tip_lib.013" },
+  { e: "🥕", key: "tip_lib.014" },
+  { e: "🧼", key: "tip_lib.015" },
+  { e: "🐕", key: "tip_lib.016" },
+  { e: "❄️", key: "tip_lib.017" },
+  { e: "🌵", key: "tip_lib.018" },
+  { e: "💧", key: "tip_lib.019" },
+  { e: "🥤", key: "tip_lib.020" },
+  { e: "☔", key: "tip_lib.021" },
+  { e: "🛠️", key: "tip_lib.022" },
+  { e: "🚿", key: "tip_lib.023" },
+  { e: "🍳", key: "tip_lib.024" },
+  { e: "🌻", key: "tip_lib.025" },
+  { e: "🏡", key: "tip_lib.026" },
+  { e: "🌧️", key: "tip_lib.027" },
+  { e: "🚿", key: "tip_lib.028" },
+  { e: "🥛", key: "tip_lib.029" },
+  { e: "🧽", key: "tip_lib.030" },
+];
+
+// California-focused facts. One rotates onto the home screen each day.
+const DAILY_FACTS: StringKey[] = [
+  "fact_lib.001",
+  "fact_lib.002",
+  "fact_lib.003",
+  "fact_lib.004",
+  "fact_lib.005",
+  "fact_lib.006",
+  "fact_lib.007",
+  "fact_lib.008",
+  "fact_lib.009",
+  "fact_lib.010",
+  "fact_lib.011",
+  "fact_lib.012",
+  "fact_lib.013",
+  "fact_lib.014",
+  "fact_lib.015",
+  "fact_lib.016",
+  "fact_lib.017",
+  "fact_lib.018",
+  "fact_lib.019",
+  "fact_lib.020",
+  "fact_lib.021",
+  "fact_lib.022",
+  "fact_lib.023",
+  "fact_lib.024",
+  "fact_lib.025",
+  "fact_lib.026",
+  "fact_lib.027",
+  "fact_lib.028",
+  "fact_lib.029",
+  "fact_lib.030",
+];
+
+// Day-of-year (1–366), used to deterministically index the tip and fact libraries.
+const dayOfYear = (d: Date = new Date()) => {
+  const start = new Date(d.getFullYear(), 0, 0);
+  const diff = d.getTime() - start.getTime();
+  return Math.floor(diff / 86_400_000);
+};
 
 async function getNotifs(): Promise<Notif[]> {
   return JSON.parse((await AsyncStorage.getItem("notifs")) || "[]");
@@ -3691,27 +3772,15 @@ function HydrationCard() {
   );
 }
 
-// ─── AI TIP OF THE DAY ─────────────────────────────────
+// ─── TIP OF THE DAY ────────────────────────────────────
+// Library-driven so the card always renders, regardless of network state.
+// Day-of-year picks the seed tip; the refresh button advances the cycle.
 function AITipCard() {
   const { profile } = useApp();
   const t = useT(profile.lang);
-  const [tip, setTip] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const fetchTip = async () => {
-    setLoading(true);
-    const reply = await askGroq(
-      "You are a California water-conservation coach. Be friendly, concise, and specific.",
-      `Give me ONE personalized water-saving tip for today. ${profile.name ? `My name is ${profile.name}.` : ""} My household has ${profile.household} people. My daily goal is ${profile.goal} gallons. Output 1 actionable sentence (under 35 words) with a relevant emoji.`,
-      profile.lang,
-    );
-    setTip(reply);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchTip();
-  }, []);
+  const [cycle, setCycle] = useState(0);
+  const idx = (dayOfYear() + cycle) % DAILY_TIP_LIB.length;
+  const tip = DAILY_TIP_LIB[idx];
 
   return (
     <View style={{ marginHorizontal: 16, marginTop: 18 }}>
@@ -3722,18 +3791,13 @@ function AITipCard() {
         <View
           style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}
         >
-          <Text style={{ fontSize: 26 }}>💡</Text>
+          <Text style={{ fontSize: 26 }}>{tip.e}</Text>
           <View style={{ flex: 1 }}>
-            {loading ? (
-              <ActivityIndicator color={C.amber} />
-            ) : (
-              <Text style={{ color: C.text, fontSize: 14, lineHeight: 22 }}>
-                {tip || t("ai_tip.tap_to_get")}
-              </Text>
-            )}
+            <Text style={{ color: C.text, fontSize: 14, lineHeight: 22 }}>
+              {t(tip.key)}
+            </Text>
             <TouchableOpacity
-              onPress={fetchTip}
-              disabled={loading}
+              onPress={() => setCycle((c) => c + 1)}
               style={{
                 marginTop: 8,
                 alignSelf: "flex-start",
@@ -4290,7 +4354,7 @@ function HomeScreen() {
                 </Text>
               </View>
               <Text style={{ color: C.text, fontSize: 13, lineHeight: 21 }}>
-                {t("home.daily_fact_body")}
+                {t(DAILY_FACTS[dayOfYear() % DAILY_FACTS.length])}
               </Text>
             </View>
           </FadeInUp>
