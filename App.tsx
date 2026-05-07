@@ -42,8 +42,10 @@ import Svg, {
   Line,
   Text as SvgText,
   Polyline,
+  ClipPath,
 } from "react-native-svg";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import {
   SafeAreaProvider,
   SafeAreaView,
@@ -59,6 +61,14 @@ import React, {
   useMemo,
 } from "react";
 import { useT, translate, LANGUAGES, type Lang, type StringKey } from "./i18n";
+import { PRIVACY_DOC, TERMS_DOC } from "./docs/embedded";
+import {
+  signInWithGoogle,
+  signOut as fbSignOut,
+  onAuthChange,
+  initGoogleAuth,
+  type AuthUser,
+} from "./firebase-auth";
 
 const Tab = createBottomTabNavigator();
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -138,6 +148,7 @@ const SHADOW_HERO = Platform.select({
 });
 
 const GROQ_PROXY_URL = process.env.EXPO_PUBLIC_GROQ_PROXY_URL ?? "/api/groq";
+const CDEC_PROXY_URL = process.env.EXPO_PUBLIC_CDEC_PROXY_URL ?? "/api/cdec";
 
 function langDirective(lang?: Lang): string {
   if (!lang || lang === "en") return "";
@@ -1722,6 +1733,20 @@ const RESERVOIRS = [
       "EBMUD's primary drinking-water source for 1.4M East Bay residents — water travels 92 miles via the Mokelumne Aqueducts. Built 1929; one of the oldest large dams still in active municipal supply use. Seismic retrofit completed 2009.",
   },
   {
+    id: "bethany",
+    name: "Bethany Reservoir",
+    x: 55,
+    y: 212,
+    capacity: 5250,
+    pct: 96,
+    river: "CA Aqueduct",
+    built: 1968,
+    risk: "low",
+    sjArea: false,
+    notes:
+      "Small terminal forebay (~5,250 acre-feet) immediately downstream of the Harvey O. Banks Pumping Plant. Acts as the launch point for both the South Bay Aqueduct (East Bay supply) and the California Aqueduct mainline that runs south to LA. Levels stay near full year-round because it operates as a regulating forebay rather than long-term storage.",
+  },
+  {
     id: "sanluis",
     name: "San Luis Reservoir",
     x: 65,
@@ -1778,6 +1803,58 @@ const RESERVOIRS = [
       'Largest U.S. reservoir by volume — feeds the Colorado River Aqueduct that supplies 19M Southern Californians. Has lost ~150 ft of elevation since 2000. Below 950 ft, Hoover Dam stops generating power; below 895 ft, water cannot pass downstream ("dead pool"). Currently ~1,062 ft.',
   },
 ];
+
+// Reservoir metadata: CDEC station IDs, real-world coordinates, operating
+// agency, and a contact website. Used by the "find nearest reservoir" feature
+// and the reservoir-conditions report. CDEC station detail pages live at:
+//   https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=<CDEC>
+// Lake Mead is on the Colorado River and is not a CDEC station — its meta
+// uses the Bureau of Reclamation page instead.
+type ReservoirMeta = {
+  cdec: string | null;
+  lat: number;
+  lng: number;
+  operator: string;
+  website: string;
+};
+const RESERVOIR_META: Record<string, ReservoirMeta> = {
+  shasta:   { cdec: "SHA", lat: 40.7197, lng: -122.4197, operator: "U.S. Bureau of Reclamation",                    website: "https://www.usbr.gov/mp/ncao/shasta.html" },
+  trinity:  { cdec: "CLE", lat: 40.8000, lng: -122.7600, operator: "U.S. Bureau of Reclamation",                    website: "https://www.usbr.gov/mp/ncao/trinity.html" },
+  oroville: { cdec: "ORO", lat: 39.5392, lng: -121.4847, operator: "California Department of Water Resources",       website: "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Lake-Oroville" },
+  newmel:   { cdec: "NML", lat: 37.9486, lng: -120.5269, operator: "U.S. Bureau of Reclamation",                    website: "https://www.usbr.gov/mp/ccao/newmelones/" },
+  donpedro: { cdec: "DNP", lat: 37.7000, lng: -120.4200, operator: "Modesto & Turlock Irrigation Districts",         website: "https://www.donpedro-project.com/" },
+  hetch:    { cdec: "HTH", lat: 37.9472, lng: -119.7867, operator: "San Francisco Public Utilities Commission",      website: "https://www.sfpuc.org/learning/water-system-overview/hetch-hetchy" },
+  camanche: { cdec: "CMN", lat: 38.2167, lng: -120.9833, operator: "East Bay Municipal Utility District",            website: "https://www.ebmud.com/recreation/east-bay-reservoirs/camanche-reservoir/" },
+  newhogan: { cdec: "NHG", lat: 38.1572, lng: -120.8197, operator: "U.S. Army Corps of Engineers",                   website: "https://www.spk.usace.army.mil/Locations/Sacramento-District-Parks/New-Hogan-Lake/" },
+  pardee:   { cdec: "PAR", lat: 38.2500, lng: -120.8500, operator: "East Bay Municipal Utility District",            website: "https://www.ebmud.com/recreation/east-bay-reservoirs/pardee-reservoir/" },
+  bethany:  { cdec: "BTH", lat: 37.7864, lng: -121.6300, operator: "California Department of Water Resources",       website: "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Bethany-Reservoir" },
+  sanluis:  { cdec: "SNL", lat: 37.0633, lng: -121.0825, operator: "U.S. Bureau of Reclamation / CA DWR",            website: "https://www.usbr.gov/mp/ccao/sanluis/" },
+  castaic:  { cdec: "CAS", lat: 34.5275, lng: -118.6125, operator: "California Department of Water Resources",       website: "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Castaic-Lake" },
+  perris:   { cdec: "PRR", lat: 33.8650, lng: -117.1717, operator: "California Department of Water Resources",       website: "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Lake-Perris" },
+  mead:     { cdec: null,  lat: 36.0150, lng: -114.7374, operator: "U.S. Bureau of Reclamation",                    website: "https://www.usbr.gov/lc/hooverdam/" },
+};
+
+const cdecStationUrl = (id: string | null) =>
+  id ? `https://cdec.water.ca.gov/dynamicapp/staMeta?station_id=${id}` : null;
+const CDEC_HOME_URL = "https://cdec.water.ca.gov/";
+
+// Great-circle distance (km) via Haversine. Used by find-nearest. Coordinates
+// flow through this function once and never leave the device.
+function haversineKm(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
 
 // ─── WATER HISTORY ──
 // Recent 24 months sourced from CDEC (https://cdec.water.ca.gov) via
@@ -3011,6 +3088,11 @@ async function bumpLifetimeSaved(daySaved: number) {
 }
 
 // ─── APP CONTEXT ───────────────────────────────────────
+// Local-only account: email + a salted SHA-256 password hash. Everything is
+// kept in AsyncStorage on this device — no server. The "login" flow is purely
+// for UI continuity; we never transmit credentials.
+type Account = { email: string; pwHash: string; createdAt: number };
+
 type AppCtx = {
   profile: Profile;
   setProfile: (p: Profile) => Promise<void>;
@@ -3025,6 +3107,11 @@ type AppCtx = {
   refreshBadges: () => Promise<void>;
   recentUnlock: (typeof BADGES)[0] | null;
   dismissUnlock: () => void;
+  account: Account | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  continueAsGuest: () => Promise<void>;
 };
 const AppContext = createContext<AppCtx | null>(null);
 const useApp = () => {
@@ -3036,6 +3123,36 @@ const useApp = () => {
 // Global ref to AppContext so non-component awardBadge can update it
 let _badgeUnlockHandler: ((id: string) => Promise<boolean>) | null = null;
 
+// SHA-256 with a per-app salt. Keeps stored "passwords" from being plaintext
+// in AsyncStorage. NOTE: this is local-only; it is not a substitute for real
+// auth. We never transmit anything off-device.
+const PW_SALT = "h2o_to_you_v1__";
+async function hashPassword(password: string): Promise<string> {
+  const text = PW_SALT + password;
+  const cryptoObj: any =
+    (typeof globalThis !== "undefined" && (globalThis as any).crypto) || null;
+  if (cryptoObj?.subtle?.digest && typeof TextEncoder !== "undefined") {
+    const buf = await cryptoObj.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(text),
+    );
+    return Array.from(new Uint8Array(buf))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+  // Fallback: very small djb2 hash. Not cryptographic, but only reached on
+  // ancient platforms without WebCrypto. Still better than plaintext.
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return "djb2_" + (h >>> 0).toString(16);
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+const ACCOUNT_KEY = "account_v1";
+
 function AppProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfileState] = useState<Profile>(DEFAULT_PROFILE);
   const [notifs, setNotifs] = useState<Notif[]>([]);
@@ -3044,13 +3161,66 @@ function AppProvider({ children }: { children: React.ReactNode }) {
   const [recentUnlock, setRecentUnlock] = useState<(typeof BADGES)[0] | null>(
     null,
   );
+  const [account, setAccount] = useState<Account | null>(null);
 
   const loadProfile = useCallback(async () => {
     const p = await AsyncStorage.getItem("profile");
     if (p) setProfileState({ ...DEFAULT_PROFILE, ...JSON.parse(p) });
     const b = JSON.parse((await AsyncStorage.getItem("badges")) || "[]");
     setBadges(b);
+    const a = await AsyncStorage.getItem(ACCOUNT_KEY);
+    if (a) {
+      try {
+        setAccount(JSON.parse(a));
+      } catch {
+        setAccount(null);
+      }
+    }
     setLoaded(true);
+  }, []);
+
+  const signUp = useCallback(async (emailRaw: string, password: string) => {
+    const email = emailRaw.trim().toLowerCase();
+    if (!isValidEmail(email))
+      throw new Error(translate(profile.lang, "login.error_email"));
+    if (password.length < 8)
+      throw new Error(translate(profile.lang, "login.error_password"));
+    const stored = await AsyncStorage.getItem(ACCOUNT_KEY);
+    if (stored) {
+      const existing: Account = JSON.parse(stored);
+      if (existing.email === email)
+        throw new Error(translate(profile.lang, "login.error_email_taken"));
+    }
+    const pwHash = await hashPassword(password);
+    const a: Account = { email, pwHash, createdAt: Date.now() };
+    await AsyncStorage.setItem(ACCOUNT_KEY, JSON.stringify(a));
+    setAccount(a);
+  }, [profile.lang]);
+
+  const signIn = useCallback(async (emailRaw: string, password: string) => {
+    const email = emailRaw.trim().toLowerCase();
+    if (!isValidEmail(email))
+      throw new Error(translate(profile.lang, "login.error_email"));
+    const stored = await AsyncStorage.getItem(ACCOUNT_KEY);
+    if (!stored)
+      throw new Error(translate(profile.lang, "login.error_no_account"));
+    const existing: Account = JSON.parse(stored);
+    if (existing.email !== email)
+      throw new Error(translate(profile.lang, "login.error_no_account"));
+    const pwHash = await hashPassword(password);
+    if (existing.pwHash !== pwHash)
+      throw new Error(translate(profile.lang, "login.error_wrong_password"));
+    setAccount(existing);
+  }, [profile.lang]);
+
+  const signOut = useCallback(async () => {
+    setAccount(null);
+    // We deliberately keep the ACCOUNT_KEY record so a returning user can sign
+    // back in without losing data. Sign-out is just a session-state flip.
+  }, []);
+
+  const continueAsGuest = useCallback(async () => {
+    setAccount(null);
   }, []);
 
   const refreshBadges = useCallback(async () => {
@@ -3155,6 +3325,11 @@ function AppProvider({ children }: { children: React.ReactNode }) {
         refreshBadges,
         recentUnlock,
         dismissUnlock,
+        account,
+        signIn,
+        signUp,
+        signOut,
+        continueAsGuest,
       }}
     >
       {children}
@@ -3253,12 +3428,14 @@ function ScreenHeader({
   subtitle,
   onBell,
   onGear,
+  onSignOut,
   unread,
 }: {
   title: string;
   subtitle?: string;
   onBell?: () => void;
   onGear?: () => void;
+  onSignOut?: () => void;
   unread?: number;
 }) {
   return (
@@ -3282,6 +3459,11 @@ function ScreenHeader({
       {onGear ? (
         <Press onPress={onGear} style={st.headerIconBtn}>
           <Ionicons name="settings-outline" size={20} color={C.text} />
+        </Press>
+      ) : null}
+      {onSignOut ? (
+        <Press onPress={onSignOut} style={st.headerIconBtn}>
+          <Ionicons name="log-out-outline" size={20} color={C.text} />
         </Press>
       ) : null}
     </View>
@@ -3530,6 +3712,1109 @@ function ReservoirStrip() {
   );
 }
 
+// ─── DATA-COMPLIANCE NOTICE ────────────────────────────
+// Compact disclaimer reused by the rescond report and the map. Two paragraphs:
+// (1) CDEC values are provisional, (2) the app does not collect or sell data.
+// "Read full policy" jumps to the Privacy Policy doc.
+function ComplianceNotice({
+  onReadPolicy,
+}: {
+  onReadPolicy?: () => void;
+}) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
+  return (
+    <View
+      style={{
+        backgroundColor: C.surface,
+        borderColor: C.border,
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 12,
+        marginTop: 10,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+          marginBottom: 6,
+        }}
+      >
+        <Ionicons name="information-circle" size={14} color={C.gold} />
+        <Text
+          style={{
+            color: C.gold,
+            fontSize: 11,
+            fontWeight: "800",
+            letterSpacing: 0.6,
+          }}
+        >
+          {t("compliance.title").toUpperCase()}
+        </Text>
+      </View>
+      <Text style={{ color: C.muted, fontSize: 11, lineHeight: 16 }}>
+        {t("compliance.provisional")}
+      </Text>
+      <Text
+        style={{
+          color: C.muted,
+          fontSize: 11,
+          lineHeight: 16,
+          marginTop: 6,
+        }}
+      >
+        {t("compliance.privacy")}
+      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 14,
+          marginTop: 8,
+        }}
+      >
+        <TouchableOpacity onPress={() => Linking.openURL(CDEC_HOME_URL)}>
+          <Text
+            style={{
+              color: C.accent,
+              fontSize: 11,
+              fontWeight: "700",
+            }}
+          >
+            {t("compliance.cdec_link")} ↗
+          </Text>
+        </TouchableOpacity>
+        {onReadPolicy ? (
+          <TouchableOpacity onPress={onReadPolicy}>
+            <Text
+              style={{
+                color: C.accent,
+                fontSize: 11,
+                fontWeight: "700",
+              }}
+            >
+              {t("compliance.read_more")} →
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+// ─── PRIVACY / TERMS DOC VIEWER ────────────────────────
+// Slide-up sheet that renders the bundled PRIVACY.md / TERMS.md content with
+// minimal markdown styling (h1/h2/h3, blockquote, paragraphs). The .md files
+// are owned by the user; embedded.ts is regenerated by scripts/embed-docs.mjs.
+function DocViewerModal({
+  visible,
+  onClose,
+  title,
+  body,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  title: string;
+  body: string;
+}) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
+  const trimmed = body.trim();
+  const lines = trimmed ? trimmed.split(/\r?\n/) : [];
+
+  const renderLine = (raw: string, i: number) => {
+    if (!raw.trim()) return <View key={i} style={{ height: 10 }} />;
+    if (raw.startsWith("# ")) {
+      return (
+        <Text key={i} style={dvStyle.h1}>
+          {raw.slice(2)}
+        </Text>
+      );
+    }
+    if (raw.startsWith("## ")) {
+      return (
+        <Text key={i} style={dvStyle.h2}>
+          {raw.slice(3)}
+        </Text>
+      );
+    }
+    if (raw.startsWith("### ")) {
+      return (
+        <Text key={i} style={dvStyle.h3}>
+          {raw.slice(4)}
+        </Text>
+      );
+    }
+    if (raw.startsWith("> ")) {
+      return (
+        <Text key={i} style={dvStyle.quote}>
+          {raw.slice(2)}
+        </Text>
+      );
+    }
+    if (raw.startsWith("- ") || raw.startsWith("* ")) {
+      return (
+        <Text key={i} style={dvStyle.li}>
+          • {raw.slice(2)}
+        </Text>
+      );
+    }
+    return (
+      <Text key={i} style={dvStyle.p}>
+        {raw}
+      </Text>
+    );
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={st.modalOverlay}>
+        <View style={[st.modalBox, { maxHeight: SH * 0.92 }]}>
+          <View style={st.modalHandle} />
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 14,
+            }}
+          >
+            <Text style={st.modalTitle}>{title}</Text>
+            <TouchableOpacity
+              onPress={onClose}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close" size={22} color={C.muted} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+            {lines.length === 0 ? (
+              <Text style={dvStyle.p}>{t("policy.empty_doc")}</Text>
+            ) : (
+              lines.map((line, i) => renderLine(line, i))
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const dvStyle = StyleSheet.create({
+  h1: {
+    color: C.white,
+    fontSize: 22,
+    fontWeight: "800",
+    marginTop: 6,
+    marginBottom: 6,
+  },
+  h2: {
+    color: C.white,
+    fontSize: 17,
+    fontWeight: "800",
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  h3: {
+    color: C.text,
+    fontSize: 15,
+    fontWeight: "700",
+    marginTop: 10,
+    marginBottom: 2,
+  },
+  p: {
+    color: C.text,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  li: {
+    color: C.text,
+    fontSize: 13,
+    lineHeight: 20,
+    paddingLeft: 6,
+  },
+  quote: {
+    color: C.muted,
+    fontSize: 12,
+    lineHeight: 18,
+    fontStyle: "italic",
+    borderLeftWidth: 3,
+    borderLeftColor: C.border,
+    paddingLeft: 10,
+    marginVertical: 4,
+  },
+});
+
+// ─── FIND NEAREST RESERVOIR MODAL ──────────────────────
+// Permission-gated geolocation lookup. Requests location once, computes the
+// closest reservoir from RESERVOIR_META by Haversine, and shows links to the
+// CDEC station detail page and the operator's website. Coordinates are
+// computed on-device and never transmitted.
+type NearestEntry = {
+  id: string;
+  name: string;
+  distanceKm: number;
+  meta: ReservoirMeta;
+};
+
+function FindNearestModal({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
+  const [phase, setPhase] = useState<
+    "idle" | "locating" | "denied" | "unavailable" | "result" | "error"
+  >("idle");
+  const [results, setResults] = useState<NearestEntry[]>([]);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
+
+  const useMiles = profile.units === "gal";
+
+  const run = useCallback(async () => {
+    setPhase("locating");
+    setErrMsg(null);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setPhase("denied");
+        return;
+      }
+      const enabled = await Location.hasServicesEnabledAsync();
+      if (!enabled) {
+        setPhase("unavailable");
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      const ranked: NearestEntry[] = RESERVOIRS.filter(
+        (r) => RESERVOIR_META[r.id],
+      )
+        .map((r) => {
+          const meta = RESERVOIR_META[r.id];
+          const distanceKm = haversineKm(here.lat, here.lng, meta.lat, meta.lng);
+          return { id: r.id, name: r.name, distanceKm, meta };
+        })
+        .sort((a, b) => a.distanceKm - b.distanceKm)
+        .slice(0, 3);
+      setResults(ranked);
+      setPhase("result");
+    } catch (e: any) {
+      setErrMsg(e?.message ?? "Location lookup failed");
+      setPhase("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (visible) {
+      // start fresh every open
+      setPhase("idle");
+      setResults([]);
+      setErrMsg(null);
+      run();
+    }
+  }, [visible, run]);
+
+  const distanceLabel = (km: number) =>
+    useMiles
+      ? t("nearest.distance_mi", { mi: (km * 0.621371).toFixed(1) })
+      : t("nearest.distance_km", { km: km.toFixed(1) });
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={st.modalOverlay}>
+        <View style={[st.modalBox, { maxHeight: SH * 0.92 }]}>
+          <View style={st.modalHandle} />
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 14,
+            }}
+          >
+            <Text style={st.modalTitle}>{t("nearest.title")}</Text>
+            <TouchableOpacity
+              onPress={onClose}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close" size={22} color={C.muted} />
+            </TouchableOpacity>
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: 8,
+              backgroundColor: C.surface,
+              borderColor: C.border,
+              borderWidth: 1,
+              borderRadius: 10,
+              padding: 10,
+              marginBottom: 14,
+            }}
+          >
+            <Ionicons name="lock-closed" size={14} color={C.success} />
+            <Text style={{ color: C.muted, fontSize: 11, lineHeight: 16, flex: 1 }}>
+              {t("nearest.transparency_note")}
+            </Text>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {phase === "locating" ? (
+              <View style={{ alignItems: "center", paddingVertical: 28 }}>
+                <ActivityIndicator color={C.accent} />
+                <Text
+                  style={{ color: C.muted, fontSize: 12, marginTop: 10 }}
+                >
+                  {t("nearest.locating")}
+                </Text>
+              </View>
+            ) : null}
+
+            {phase === "denied" ? (
+              <View style={{ paddingVertical: 12 }}>
+                <Text
+                  style={{ color: C.text, fontSize: 14, fontWeight: "700" }}
+                >
+                  {t("nearest.permission_title")}
+                </Text>
+                <Text
+                  style={{
+                    color: C.muted,
+                    fontSize: 12,
+                    lineHeight: 18,
+                    marginTop: 6,
+                  }}
+                >
+                  {t("nearest.permission_denied")}
+                </Text>
+                <Press
+                  onPress={run}
+                  style={[st.btn, { marginTop: 14 }]}
+                >
+                  <Text style={st.btnText}>{t("nearest.try_again")}</Text>
+                </Press>
+              </View>
+            ) : null}
+
+            {phase === "unavailable" ? (
+              <View style={{ paddingVertical: 12 }}>
+                <Text
+                  style={{ color: C.muted, fontSize: 12, lineHeight: 18 }}
+                >
+                  {t("nearest.unavailable")}
+                </Text>
+              </View>
+            ) : null}
+
+            {phase === "error" ? (
+              <View style={{ paddingVertical: 12 }}>
+                <Text style={{ color: C.danger, fontSize: 12, lineHeight: 18 }}>
+                  {errMsg}
+                </Text>
+                <Press
+                  onPress={run}
+                  style={[st.btn, { marginTop: 14 }]}
+                >
+                  <Text style={st.btnText}>{t("nearest.try_again")}</Text>
+                </Press>
+              </View>
+            ) : null}
+
+            {phase === "result"
+              ? results.map((r, i) => {
+                  const cdecUrl = cdecStationUrl(r.meta.cdec);
+                  return (
+                    <View
+                      key={r.id}
+                      style={{
+                        backgroundColor: i === 0 ? C.accent + "10" : C.surface,
+                        borderColor: i === 0 ? C.accent + "55" : C.border,
+                        borderWidth: 1,
+                        borderRadius: 12,
+                        padding: 14,
+                        marginBottom: 10,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              color: C.white,
+                              fontSize: 16,
+                              fontWeight: "800",
+                            }}
+                          >
+                            {r.name}
+                          </Text>
+                          <Text
+                            style={{
+                              color: C.muted,
+                              fontSize: 11,
+                              marginTop: 2,
+                            }}
+                          >
+                            {r.meta.operator}
+                          </Text>
+                        </View>
+                        <Text
+                          style={{
+                            color: i === 0 ? C.accent : C.text,
+                            fontSize: 14,
+                            fontWeight: "800",
+                          }}
+                        >
+                          {distanceLabel(r.distanceKm)}
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: 14,
+                          marginTop: 10,
+                        }}
+                      >
+                        {cdecUrl ? (
+                          <TouchableOpacity
+                            onPress={() => Linking.openURL(cdecUrl)}
+                          >
+                            <Text
+                              style={{
+                                color: C.accent,
+                                fontSize: 12,
+                                fontWeight: "700",
+                              }}
+                            >
+                              {t("nearest.contact_cdec")} ↗
+                            </Text>
+                          </TouchableOpacity>
+                        ) : null}
+                        <TouchableOpacity
+                          onPress={() => Linking.openURL(r.meta.website)}
+                        >
+                          <Text
+                            style={{
+                              color: C.accent,
+                              fontSize: 12,
+                              fontWeight: "700",
+                            }}
+                          >
+                            {t("nearest.contact_operator")} ↗
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })
+              : null}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── LOGIN / SIGN-UP MODAL ─────────────────────────────
+// Local-only auth. Credentials are kept in AsyncStorage as a salted SHA-256
+// hash and never leave this device. The modal is intentionally opt-in: every
+// flow has a "continue without account" path so we never gate functionality.
+function LoginModal({
+  visible,
+  onClose,
+  onAuthed,
+  onPrivacy,
+  onTerms,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onAuthed?: () => void;
+  onPrivacy?: () => void;
+  onTerms?: () => void;
+}) {
+  const { profile, signIn, signUp, continueAsGuest } = useApp();
+  const t = useT(profile.lang);
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setErr(null);
+      setPassword("");
+    }
+  }, [visible]);
+
+  const submit = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      if (mode === "signin") {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password);
+      }
+      setEmail("");
+      setPassword("");
+      onAuthed?.();
+      onClose();
+    } catch (e: any) {
+      setErr(e?.message ?? "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const guest = async () => {
+    await continueAsGuest();
+    onClose();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={st.modalOverlay}
+      >
+        <View style={[st.modalBox, { maxHeight: SH * 0.92 }]}>
+          <View style={st.modalHandle} />
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 14,
+            }}
+          >
+            <Text style={st.modalTitle}>
+              {mode === "signin" ? t("login.title") : t("login.signup_title")}
+            </Text>
+            <TouchableOpacity
+              onPress={onClose}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close" size={22} color={C.muted} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                backgroundColor: C.surface,
+                borderColor: C.border,
+                borderWidth: 1,
+                borderRadius: 10,
+                padding: 10,
+                marginBottom: 14,
+              }}
+            >
+              <Ionicons name="lock-closed" size={14} color={C.success} />
+              <Text
+                style={{ color: C.muted, fontSize: 11, lineHeight: 16, flex: 1 }}
+              >
+                {t("login.local_only_note")}
+              </Text>
+            </View>
+
+            <Text style={st.formLabel}>{t("login.email_label")}</Text>
+            <TextInput
+              style={st.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder={t("login.email_placeholder")}
+              placeholderTextColor={C.muted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              textContentType="emailAddress"
+              editable={!busy}
+            />
+
+            <Text style={st.formLabel}>{t("login.password_label")}</Text>
+            <TextInput
+              style={st.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder={t("login.password_placeholder")}
+              placeholderTextColor={C.muted}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              textContentType={mode === "signup" ? "newPassword" : "password"}
+              editable={!busy}
+            />
+
+            {err ? (
+              <Text
+                style={{
+                  color: C.danger,
+                  fontSize: 12,
+                  marginTop: 4,
+                  marginBottom: 4,
+                }}
+              >
+                {err}
+              </Text>
+            ) : null}
+
+            <Press
+              onPress={submit}
+              disabled={busy || !email || !password}
+              style={[
+                st.btn,
+                {
+                  marginTop: 14,
+                  opacity: busy || !email || !password ? 0.5 : 1,
+                },
+              ]}
+            >
+              {busy ? (
+                <ActivityIndicator color={C.bg} />
+              ) : (
+                <Text style={st.btnText}>
+                  {mode === "signin"
+                    ? t("login.submit_signin")
+                    : t("login.submit_signup")}
+                </Text>
+              )}
+            </Press>
+
+            <TouchableOpacity
+              onPress={() => {
+                setMode((m) => (m === "signin" ? "signup" : "signin"));
+                setErr(null);
+              }}
+              style={{ alignItems: "center", marginTop: 14 }}
+            >
+              <Text style={{ color: C.accent, fontSize: 13, fontWeight: "700" }}>
+                {mode === "signin"
+                  ? t("login.toggle_to_signup")
+                  : t("login.toggle_to_signin")}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={guest}
+              style={{ alignItems: "center", marginTop: 12, paddingVertical: 6 }}
+            >
+              <Text style={{ color: C.muted, fontSize: 12 }}>
+                {t("login.continue_guest")} →
+              </Text>
+            </TouchableOpacity>
+
+            {(onPrivacy || onTerms) ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: 16,
+                  marginTop: 16,
+                  marginBottom: 6,
+                }}
+              >
+                {onPrivacy ? (
+                  <TouchableOpacity onPress={onPrivacy}>
+                    <Text style={{ color: C.muted, fontSize: 11 }}>
+                      {t("policy.privacy_title")}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+                {onTerms ? (
+                  <TouchableOpacity onPress={onTerms}>
+                    <Text style={{ color: C.muted, fontSize: 11 }}>
+                      {t("policy.terms_title")}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : null}
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+// ─── RESERVOIR CONDITIONS REPORT ───────────────────────
+// PDF-style daily reservoir snapshot. Layout mirrors the CDEC RESCOND report
+// (header, region groupings, fixed-width columns) but every value is fetched
+// live from /api/cdec — no PDF transcription. Falls back to the build-time
+// snapshot in RESERVOIRS if the live fetch fails.
+type ResCondRow = {
+  id: string;
+  cdec: string;
+  region: string;
+  river: string;
+  name: string;
+  capacityAF: number;
+  currentAF: number | null;
+  currentPct: number | null;
+  asOf: string | null;
+};
+
+const RESCOND_REGIONS: { code: "Northern" | "SJ Delta" | "SWP"; key: StringKey }[] = [
+  { code: "Northern", key: "rescond.region.northern" },
+  { code: "SJ Delta", key: "rescond.region.delta" },
+  { code: "SWP", key: "rescond.region.swp" },
+];
+
+function regionForId(id: string): "Northern" | "SJ Delta" | "SWP" {
+  if (["shasta", "trinity", "oroville"].includes(id)) return "Northern";
+  if (["newmel", "donpedro", "hetch", "camanche", "newhogan", "pardee"].includes(id))
+    return "SJ Delta";
+  return "SWP";
+}
+
+function fallbackRows(): ResCondRow[] {
+  // Derived from the bundled RESERVOIRS list. Used when /api/cdec is
+  // unreachable (offline, deployment without the function, etc.).
+  return RESERVOIRS.filter((r) => r.id !== "mead").map((r) => ({
+    id: r.id,
+    cdec: r.id.toUpperCase(),
+    region: regionForId(r.id),
+    river: r.river,
+    name: r.name,
+    capacityAF: r.capacity,
+    currentAF: Math.round((r.pct / 100) * r.capacity),
+    currentPct: r.pct,
+    asOf: null,
+  }));
+}
+
+const fmtTAF = (af: number | null): string =>
+  af == null ? "—" : (af / 1000).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+function ReservoirConditionsReport() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
+  const [rows, setRows] = useState<ResCondRow[] | null>(null);
+  const [status, setStatus] = useState<"loading" | "live" | "cached">("loading");
+  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const r = await fetch(CDEC_PROXY_URL, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      const apiRows: ResCondRow[] = (data.reservoirs ?? []).map((d: any) => ({
+        id: d.id,
+        cdec: d.cdec,
+        region: d.region,
+        river: d.river,
+        name: d.name,
+        capacityAF: d.capacityAF,
+        currentAF: d.currentAF ?? null,
+        currentPct: d.currentPct ?? null,
+        asOf: d.asOf ?? null,
+      }));
+      const anyLive = apiRows.some((r) => r.currentAF != null);
+      if (!anyLive) throw new Error("no live values");
+      setRows(apiRows);
+      setStatus("live");
+      setGeneratedAt(data.generatedAt ?? null);
+    } catch {
+      setRows(fallbackRows());
+      setStatus("cached");
+      setGeneratedAt(null);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const asOfDisplay = (() => {
+    if (status === "loading") return null;
+    if (status === "live") {
+      const recent = rows?.find((r) => r.asOf)?.asOf;
+      if (recent) return recent;
+      if (generatedAt) return generatedAt.slice(0, 10);
+    }
+    return null;
+  })();
+
+  const subtitle =
+    status === "loading"
+      ? t("rescond.subtitle_loading")
+      : status === "live" && asOfDisplay
+        ? t("rescond.subtitle_live", { date: asOfDisplay })
+        : t("rescond.subtitle_cached");
+
+  const grouped = (rows ?? fallbackRows()).reduce<
+    Record<string, ResCondRow[]>
+  >((acc, r) => {
+    (acc[r.region] ??= []).push(r);
+    return acc;
+  }, {});
+
+  return (
+    <View style={{ marginHorizontal: 16, marginTop: 18 }}>
+      <View style={[st.glassCard, { paddingVertical: 14, paddingHorizontal: 14 }]}>
+        {/* Header */}
+        <View style={{ alignItems: "center", paddingBottom: 10 }}>
+          <Text
+            style={{
+              color: C.white,
+              fontSize: 16,
+              fontWeight: "800",
+              letterSpacing: 0.5,
+              textAlign: "center",
+            }}
+          >
+            {t("rescond.title")}
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              marginTop: 4,
+            }}
+          >
+            <View
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor:
+                  status === "live"
+                    ? C.success
+                    : status === "loading"
+                      ? C.gold
+                      : C.muted,
+              }}
+            />
+            <Text style={{ color: C.muted, fontSize: 11 }}>{subtitle}</Text>
+          </View>
+        </View>
+
+        <View style={{ height: 1, backgroundColor: C.border, marginVertical: 6 }} />
+
+        {/* Column header */}
+        <View
+          style={{
+            flexDirection: "row",
+            paddingVertical: 6,
+            paddingHorizontal: 4,
+          }}
+        >
+          <Text style={[rcStyle.colHead, { flex: 1.6, textAlign: "left" }]}>
+            {t("rescond.col.reservoir")}
+          </Text>
+          <Text style={[rcStyle.colHead, { width: 64, textAlign: "right" }]}>
+            {t("rescond.col.cap")}
+          </Text>
+          <Text style={[rcStyle.colHead, { width: 64, textAlign: "right" }]}>
+            {t("rescond.col.stor")}
+          </Text>
+          <Text style={[rcStyle.colHead, { width: 50, textAlign: "right" }]}>
+            {t("rescond.col.pct")}
+          </Text>
+        </View>
+
+        <View style={{ height: 1, backgroundColor: C.border }} />
+
+        {/* Rows grouped by region */}
+        {RESCOND_REGIONS.map((region) => {
+          const items = grouped[region.code] ?? [];
+          if (!items.length) return null;
+          return (
+            <View key={region.code}>
+              <Text style={rcStyle.regionHead}>{t(region.key)}</Text>
+              {items.map((r, i) => {
+                const pct = r.currentPct;
+                const col =
+                  pct == null
+                    ? C.muted
+                    : pct < 50
+                      ? C.danger
+                      : pct < 70
+                        ? C.gold
+                        : C.success;
+                const cdecUrl = cdecStationUrl(r.cdec);
+                return (
+                  <TouchableOpacity
+                    key={r.id}
+                    activeOpacity={cdecUrl ? 0.6 : 1}
+                    onPress={() => {
+                      if (cdecUrl) Linking.openURL(cdecUrl);
+                    }}
+                    style={{
+                      flexDirection: "row",
+                      paddingVertical: 7,
+                      paddingHorizontal: 4,
+                      borderBottomWidth: i === items.length - 1 ? 0 : 1,
+                      borderBottomColor: C.borderSoft,
+                      alignItems: "center",
+                    }}
+                  >
+                    <View style={{ flex: 1.6 }}>
+                      <Text style={rcStyle.rowName}>{r.name}</Text>
+                      <Text style={rcStyle.rowSub}>
+                        {r.river} · {r.cdec}
+                        {cdecUrl ? "  ↗" : ""}
+                      </Text>
+                    </View>
+                    <Text style={[rcStyle.cell, { width: 64 }]}>
+                      {fmtTAF(r.capacityAF)}
+                    </Text>
+                    <Text style={[rcStyle.cell, { width: 64 }]}>
+                      {fmtTAF(r.currentAF)}
+                    </Text>
+                    <Text
+                      style={[
+                        rcStyle.cell,
+                        { width: 50, color: col, fontWeight: "800" },
+                      ]}
+                    >
+                      {pct == null ? "—" : pct + "%"}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          );
+        })}
+
+        <View style={{ height: 1, backgroundColor: C.border, marginTop: 6 }} />
+
+        {/* Footer */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 10,
+          }}
+        >
+          <Text
+            style={{
+              color: C.muted,
+              fontSize: 10,
+              flex: 1,
+              fontStyle: "italic",
+            }}
+          >
+            {t("rescond.source_note")}
+          </Text>
+          <Press
+            onPress={load}
+            disabled={refreshing}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: C.border,
+              backgroundColor: C.surface,
+              opacity: refreshing ? 0.5 : 1,
+            }}
+          >
+            <Ionicons
+              name="refresh"
+              size={12}
+              color={refreshing ? C.muted : C.accent}
+            />
+            <Text
+              style={{
+                color: refreshing ? C.muted : C.accent,
+                fontSize: 11,
+                fontWeight: "700",
+              }}
+            >
+              {t("rescond.refresh")}
+            </Text>
+          </Press>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const rcStyle = StyleSheet.create({
+  colHead: {
+    color: C.muted,
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+  },
+  regionHead: {
+    color: C.accent,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    paddingTop: 10,
+    paddingBottom: 4,
+    paddingHorizontal: 4,
+    textTransform: "uppercase",
+  },
+  rowName: {
+    color: C.text,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  rowSub: {
+    color: C.muted,
+    fontSize: 10,
+    marginTop: 1,
+  },
+  cell: {
+    color: C.text,
+    fontSize: 13,
+    textAlign: "right",
+    fontVariant: ["tabular-nums"],
+  },
+});
+
 // ─── LEADERBOARD CARD ──────────────────────────────────
 function LeaderboardCard() {
   const { profile } = useApp();
@@ -3673,6 +4958,379 @@ function LeaderboardCard() {
 }
 
 // ─── HYDRATION TRACKER ─────────────────────────────────
+// ─── DAILY WATER BUCKET ────────────────────────────────
+// Animated bucket: water level reflects today's logged usage vs. the
+// daily goal. Tapping the bucket cycles between three readouts (percent,
+// poured-in, room-left) and triggers a small wobble.
+function WaterBucketCard() {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
+  const [used, setUsed] = useState(0);
+  const [mode, setMode] = useState<0 | 1 | 2>(0);
+
+  useEffect(() => {
+    let alive = true;
+    const tick = async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const log = JSON.parse(
+        (await AsyncStorage.getItem(`log_${today}`)) || "[]",
+      );
+      const total = log.reduce(
+        (acc: number, e: any) => acc + (e?.gallons ?? 0),
+        0,
+      );
+      if (alive) setUsed((prev) => (prev === total ? prev : total));
+    };
+    tick();
+    const id = setInterval(tick, 4000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+
+  const goal = Math.max(profile.goal, 0.01);
+  const ratio = used / goal;
+  const fill = Math.min(ratio, 1);
+  const overflow = Math.max(0, ratio - 1);
+
+  const fillAnim = useRef(new Animated.Value(0)).current;
+  const waveAnim = useRef(new Animated.Value(0)).current;
+  const wobble = useRef(new Animated.Value(0)).current;
+  const [animFill, setAnimFill] = useState(0);
+  const [waveT, setWaveT] = useState(0);
+
+  useEffect(() => {
+    Animated.timing(fillAnim, {
+      toValue: fill,
+      duration: 800,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+    const sub = fillAnim.addListener(({ value }) => setAnimFill(value));
+    return () => fillAnim.removeListener(sub);
+  }, [fill, fillAnim]);
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(waveAnim, {
+        toValue: 1,
+        duration: 2400,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      }),
+    );
+    loop.start();
+    const sub = waveAnim.addListener(({ value }) => setWaveT(value));
+    return () => {
+      loop.stop();
+      waveAnim.removeListener(sub);
+    };
+  }, [waveAnim]);
+
+  const onTap = () => {
+    setMode((m) => ((m + 1) % 3) as 0 | 1 | 2);
+    wobble.setValue(0);
+    Animated.sequence([
+      Animated.timing(wobble, {
+        toValue: 1,
+        duration: 70,
+        useNativeDriver: true,
+      }),
+      Animated.timing(wobble, {
+        toValue: -1,
+        duration: 130,
+        useNativeDriver: true,
+      }),
+      Animated.timing(wobble, {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const wobbleRot = wobble.interpolate({
+    inputRange: [-1, 1],
+    outputRange: ["-3deg", "3deg"],
+  });
+
+  // bucket geometry — slight trapezoid, 132x156 viewbox
+  const W = 132;
+  const H = 156;
+  const RIM_W = 112;
+  const BASE_W = 92;
+  const RIM_X = (W - RIM_W) / 2;
+  const BASE_X = (W - BASE_W) / 2;
+  const RIM_Y = 22;
+  const BASE_Y = H - 8;
+
+  const widthAtY = (y: number) => {
+    const r = (y - RIM_Y) / (BASE_Y - RIM_Y);
+    return RIM_W + (BASE_W - RIM_W) * r;
+  };
+
+  const WATER_BOT_Y = BASE_Y - 2;
+  const WATER_TOP_FULL = RIM_Y + 4;
+  const surfaceY =
+    WATER_BOT_Y - (WATER_BOT_Y - WATER_TOP_FULL) * animFill;
+  const wAtSurface = widthAtY(surfaceY);
+  const xLeftAtSurface = (W - wAtSurface) / 2;
+
+  const SEG = 18;
+  const amp = animFill > 0.02 ? 3.2 : 0;
+  const phase = waveT * Math.PI * 2;
+
+  const buildWavePath = (phaseShift: number, ampMul: number) => {
+    let d = `M ${xLeftAtSurface} ${surfaceY}`;
+    for (let i = 0; i <= SEG; i++) {
+      const x = xLeftAtSurface + (wAtSurface * i) / SEG;
+      const y =
+        surfaceY +
+        amp *
+          ampMul *
+          Math.sin((i / SEG) * Math.PI * 2 + phase + phaseShift);
+      d += ` L ${x} ${y}`;
+    }
+    d += ` L ${BASE_X + BASE_W} ${BASE_Y}`;
+    d += ` L ${BASE_X} ${BASE_Y}`;
+    d += " Z";
+    return d;
+  };
+
+  const waterColor =
+    ratio < 0.5
+      ? C.accent
+      : ratio < 0.85
+        ? C.teal
+        : ratio < 1
+          ? C.gold
+          : C.danger;
+
+  const pctNum = Math.round(ratio * 100);
+  const pctText = pctNum + "%";
+  const display =
+    mode === 0
+      ? pctText
+      : mode === 1
+        ? fmtVol(used, profile.units, 1)
+        : fmtVol(Math.max(goal - used, 0), profile.units, 1);
+  const modeLabel =
+    mode === 0
+      ? t("bucket.mode_pct")
+      : mode === 1
+        ? t("bucket.mode_used")
+        : t("bucket.mode_left");
+
+  const subtitle =
+    overflow > 0
+      ? `+${fmtVol(used - goal, profile.units, 1)} ${t("bucket.over")}`
+      : ratio >= 1
+        ? t("bucket.met")
+        : `${pctNum}% ${t("bucket.under")}`;
+
+  // visual reference ticks at 25/50/75%
+  const ticks = [0.25, 0.5, 0.75].map((p) => {
+    const y = WATER_BOT_Y - (WATER_BOT_Y - WATER_TOP_FULL) * p;
+    const w = widthAtY(y);
+    const x1 = (W - w) / 2;
+    const x2 = x1 + w;
+    return { p, y, x1, x2 };
+  });
+
+  return (
+    <View style={{ marginHorizontal: 16, marginTop: 18 }}>
+      <Text style={s.sectionInline}>{t("bucket.title")}</Text>
+      <Pressable onPress={onTap}>
+        <Animated.View
+          style={[
+            st.glassCard,
+            {
+              marginTop: 10,
+              padding: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 14,
+              transform: [{ rotate: wobbleRot }],
+            },
+          ]}
+        >
+          <View style={{ width: W, height: H }}>
+            <Svg width={W} height={H}>
+              <Defs>
+                <ClipPath id="bucketClip">
+                  <Path
+                    d={`M ${RIM_X} ${RIM_Y} L ${BASE_X} ${BASE_Y} L ${BASE_X + BASE_W} ${BASE_Y} L ${RIM_X + RIM_W} ${RIM_Y} Z`}
+                  />
+                </ClipPath>
+                <SvgGradient
+                  id="bucketWaterGrad"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <Stop offset="0" stopColor={waterColor} stopOpacity="0.95" />
+                  <Stop offset="1" stopColor={waterColor} stopOpacity="0.55" />
+                </SvgGradient>
+              </Defs>
+
+              {/* handle behind rim */}
+              <Path
+                d={`M ${RIM_X + 8} ${RIM_Y - 1} Q ${W / 2} ${RIM_Y - 18} ${RIM_X + RIM_W - 8} ${RIM_Y - 1}`}
+                fill="none"
+                stroke={C.border}
+                strokeWidth={2}
+              />
+
+              {/* empty bucket interior */}
+              <Path
+                d={`M ${RIM_X} ${RIM_Y} L ${BASE_X} ${BASE_Y} L ${BASE_X + BASE_W} ${BASE_Y} L ${RIM_X + RIM_W} ${RIM_Y} Z`}
+                fill={C.surface}
+              />
+
+              {/* tick marks at 25/50/75 */}
+              <G clipPath="url(#bucketClip)">
+                {ticks.map((tk) => (
+                  <Line
+                    key={tk.p}
+                    x1={tk.x1 + 6}
+                    y1={tk.y}
+                    x2={tk.x1 + 14}
+                    y2={tk.y}
+                    stroke={C.border}
+                    strokeWidth={1.2}
+                  />
+                ))}
+              </G>
+
+              {/* water layers (clipped to bucket) */}
+              <G clipPath="url(#bucketClip)">
+                <Path d={buildWavePath(0, 1)} fill="url(#bucketWaterGrad)" />
+                <Path
+                  d={buildWavePath(Math.PI, 0.7)}
+                  fill={C.white}
+                  opacity={0.1}
+                />
+              </G>
+
+              {/* overflow stripe at the rim */}
+              {overflow > 0 ? (
+                <G clipPath="url(#bucketClip)">
+                  <Rect
+                    x={RIM_X}
+                    y={RIM_Y}
+                    width={RIM_W}
+                    height={5}
+                    fill={C.danger}
+                    opacity={0.85}
+                  />
+                </G>
+              ) : null}
+
+              {/* bucket outline */}
+              <Path
+                d={`M ${RIM_X} ${RIM_Y} L ${BASE_X} ${BASE_Y} L ${BASE_X + BASE_W} ${BASE_Y} L ${RIM_X + RIM_W} ${RIM_Y}`}
+                fill="none"
+                stroke={waterColor}
+                strokeWidth={2.5}
+                strokeLinecap="round"
+              />
+              {/* base curve */}
+              <Path
+                d={`M ${BASE_X} ${BASE_Y} Q ${W / 2} ${BASE_Y + 4} ${BASE_X + BASE_W} ${BASE_Y}`}
+                fill="none"
+                stroke={waterColor}
+                strokeWidth={2}
+                opacity={0.6}
+              />
+              {/* rim ellipse */}
+              <Path
+                d={`M ${RIM_X} ${RIM_Y} A ${RIM_W / 2} 4 0 0 0 ${RIM_X + RIM_W} ${RIM_Y}`}
+                fill="none"
+                stroke={C.borderSoft}
+                strokeWidth={2}
+              />
+              <Path
+                d={`M ${RIM_X} ${RIM_Y} A ${RIM_W / 2} 4 0 0 1 ${RIM_X + RIM_W} ${RIM_Y}`}
+                fill="none"
+                stroke={waterColor}
+                strokeWidth={2.5}
+              />
+
+              {/* center readout */}
+              <SvgText
+                x={W / 2}
+                y={H / 2 + 4}
+                fontSize={mode === 0 ? 26 : 18}
+                fontWeight="bold"
+                fill={C.white}
+                textAnchor="middle"
+              >
+                {display}
+              </SvgText>
+              <SvgText
+                x={W / 2}
+                y={H / 2 + 22}
+                fontSize={9}
+                fontWeight="bold"
+                fill={C.muted}
+                textAnchor="middle"
+              >
+                {modeLabel}
+              </SvgText>
+            </Svg>
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: C.white, fontSize: 15, fontWeight: "800" }}>
+              {fmtVol(used, profile.units, 1)} /{" "}
+              {fmtVol(profile.goal, profile.units, 0)}
+            </Text>
+            <Text
+              style={{
+                color: overflow > 0 ? C.danger : C.muted,
+                fontSize: 11,
+                marginTop: 2,
+              }}
+            >
+              {subtitle}
+            </Text>
+            <View
+              style={{
+                height: 6,
+                backgroundColor: C.border,
+                borderRadius: 3,
+                marginTop: 10,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  width: `${Math.min(100, ratio * 100)}%`,
+                  height: 6,
+                  backgroundColor: waterColor,
+                  borderRadius: 3,
+                }}
+              />
+            </View>
+            <Text
+              style={{
+                color: C.muted,
+                fontSize: 10,
+                marginTop: 8,
+                fontStyle: "italic",
+              }}
+            >
+              {t("bucket.tap_hint")}
+            </Text>
+          </View>
+        </Animated.View>
+      </Pressable>
+    </View>
+  );
+}
+
 function HydrationCard() {
   const { profile } = useApp();
   const t = useT(profile.lang);
@@ -3837,6 +5495,7 @@ function HomeScreen() {
   const [showNotifs, setShowNotifs] = useState(false);
   const [showGoal, setShowGoal] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
   const [showOnboard, setShowOnboard] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [showSim, setShowSim] = useState(false);
@@ -3845,35 +5504,46 @@ function HomeScreen() {
   const [journeyIsReplay, setJourneyIsReplay] = useState(false);
   const [showShower, setShowShower] = useState(false);
   const [showRebates, setShowRebates] = useState(false);
+  const [signedInUser, setSignedInUser] = useState<AuthUser | null>(null);
   const nav = useNavigation<any>();
 
-  // Onboarding gate: water-journey simulation → pre-quiz → welcome onboarding
+  useEffect(() => {
+    initGoogleAuth();
+    const unsub = onAuthChange(setSignedInUser);
+    return unsub;
+  }, []);
+
+  // Onboarding gate: water-journey simulation → pre-quiz → sign-in → welcome onboarding
   useEffect(() => {
     if (profile.onboarded) {
       setShowJourney(false);
       setShowQuiz(false);
+      setShowSignIn(false);
       setShowOnboard(false);
       return;
     }
     (async () => {
-      const journeySeen = await AsyncStorage.getItem("sim_intro_seen");
-      const quizDone = await AsyncStorage.getItem("quiz_done");
-      if (!journeySeen) {
-        setJourneyIsReplay(false);
-        setShowJourney(true);
-        setShowQuiz(false);
-        setShowOnboard(false);
-      } else if (!quizDone) {
-        setShowJourney(false);
-        setShowQuiz(true);
-        setShowOnboard(false);
-      } else {
-        setShowJourney(false);
-        setShowQuiz(false);
-        setShowOnboard(true);
-      }
+      const [journeySeen, quizDone, signInSeen] = await Promise.all([
+        AsyncStorage.getItem("sim_intro_seen"),
+        AsyncStorage.getItem("quiz_done"),
+        AsyncStorage.getItem("auth_prompted"),
+      ]);
+      setJourneyIsReplay(false);
+      setShowJourney(!journeySeen);
+      setShowQuiz(!!journeySeen && !quizDone);
+      setShowSignIn(!!journeySeen && !!quizDone && !signInSeen);
+      setShowOnboard(!!journeySeen && !!quizDone && !!signInSeen);
     })();
   }, [profile.onboarded]);
+
+  // After PreQuizModal or the journey replay finishes, route to the next
+  // unfinished onboarding step (sign-in if not yet prompted, otherwise the
+  // welcome onboarding modal).
+  const advanceAfterQuiz = useCallback(async () => {
+    const signInSeen = await AsyncStorage.getItem("auth_prompted");
+    if (!signInSeen) setShowSignIn(true);
+    else setShowOnboard(true);
+  }, []);
 
   // Login count + auto-show tour for newly onboarded users
   useEffect(() => {
@@ -3967,6 +5637,23 @@ function HomeScreen() {
         }
         onBell={() => setShowNotifs(true)}
         onGear={() => setShowSettings(true)}
+        onSignOut={
+          signedInUser
+            ? () =>
+                confirmAction(
+                  "Sign out?",
+                  `You're signed in as ${signedInUser.email}.`,
+                  async () => {
+                    try {
+                      await fbSignOut();
+                    } catch (e: any) {
+                      Alert.alert("Error", e?.message || "Failed to sign out");
+                    }
+                  },
+                  "Sign out",
+                )
+            : undefined
+        }
         unread={unreadCount}
       />
       <ScrollView
@@ -4258,6 +5945,11 @@ function HomeScreen() {
             <HydrationCard />
           </FadeInUp>
 
+          {/* DAILY BUCKET */}
+          <FadeInUp delay={470}>
+            <WaterBucketCard />
+          </FadeInUp>
+
           {/* RESERVOIRS */}
           <FadeInUp delay={500}>
             <ReservoirStrip />
@@ -4387,20 +6079,18 @@ function HomeScreen() {
         onSkip={async () => {
           await AsyncStorage.setItem("sim_intro_seen", "1");
           setShowJourney(false);
-          if (!journeyIsReplay) {
-            const quizDone = await AsyncStorage.getItem("quiz_done");
-            if (!quizDone) setShowQuiz(true);
-            else setShowOnboard(true);
-          }
+          if (journeyIsReplay) return;
+          const quizDone = await AsyncStorage.getItem("quiz_done");
+          if (!quizDone) setShowQuiz(true);
+          else await advanceAfterQuiz();
         }}
         onDone={async () => {
           await AsyncStorage.setItem("sim_intro_seen", "1");
           setShowJourney(false);
-          if (!journeyIsReplay) {
-            const quizDone = await AsyncStorage.getItem("quiz_done");
-            if (!quizDone) setShowQuiz(true);
-            else setShowOnboard(true);
-          }
+          if (journeyIsReplay) return;
+          const quizDone = await AsyncStorage.getItem("quiz_done");
+          if (!quizDone) setShowQuiz(true);
+          else await advanceAfterQuiz();
         }}
       />
       <AchievementsModal visible={showAch} onClose={() => setShowAch(false)} />
@@ -4409,7 +6099,7 @@ function HomeScreen() {
         onSkip={async () => {
           await AsyncStorage.setItem("quiz_done", "1");
           setShowQuiz(false);
-          setShowOnboard(true);
+          await advanceAfterQuiz();
         }}
         onDone={async (_answers, totalAnnual) => {
           await addNotif({
@@ -4421,6 +6111,14 @@ function HomeScreen() {
             }),
           });
           setShowQuiz(false);
+          await advanceAfterQuiz();
+        }}
+      />
+      <SignInModal
+        visible={showSignIn}
+        onDone={async () => {
+          await AsyncStorage.setItem("auth_prompted", "1");
+          setShowSignIn(false);
           setShowOnboard(true);
         }}
       />
@@ -6198,6 +7896,7 @@ function LearnScreen() {
   );
   const [news, setNews] = useState("");
   const [loadingNews, setLoadingNews] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   const fetchNews = async () => {
     setLoadingNews(true);
@@ -6388,6 +8087,14 @@ function LearnScreen() {
                 </View>
               );
             })()}
+
+            <ReservoirConditionsReport />
+
+            <View style={{ marginHorizontal: 16 }}>
+              <ComplianceNotice
+                onReadPolicy={() => setShowPrivacy(true)}
+              />
+            </View>
 
             <Text style={s.section}>{t("learn.coverage_severity")}</Text>
             {DROUGHT_LEVELS.map((d) => (
@@ -6747,6 +8454,12 @@ function LearnScreen() {
           </FadeInUp>
         )}
       </ScrollView>
+      <DocViewerModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        title={t("policy.privacy_title")}
+        body={PRIVACY_DOC}
+      />
     </SafeAreaView>
   );
 }
@@ -6943,11 +8656,14 @@ function SettingsModal({
   visible: boolean;
   onClose: () => void;
 }) {
-  const { profile, setProfile, clearNotifs } = useApp();
+  const { profile, setProfile, clearNotifs, account, signOut } = useApp();
   const t = useT(profile.lang);
   const [draft, setDraft] = useState<Profile>(profile);
   const [showAbout, setShowAbout] = useState(false);
   const [showLang, setShowLang] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     setDraft(profile);
@@ -7163,7 +8879,7 @@ function SettingsModal({
                 {
                   backgroundColor: C.purple + "15",
                   borderColor: C.purple + "55",
-                  marginBottom: 12,
+                  marginBottom: 8,
                 },
               ]}
             >
@@ -7174,6 +8890,98 @@ function SettingsModal({
                 {t("btn.about_contact")}
               </Text>
             </Press>
+            <Press
+              onPress={() => setShowPrivacy(true)}
+              style={[
+                st.dangerBtn,
+                {
+                  backgroundColor: C.surface,
+                  borderColor: C.border,
+                  marginBottom: 8,
+                },
+              ]}
+            >
+              <Ionicons name="shield-checkmark" size={16} color={C.accent} />
+              <Text
+                style={{ color: C.accent, fontWeight: "700", fontSize: 14 }}
+              >
+                {t("policy.privacy_settings_label")}
+              </Text>
+            </Press>
+            <Press
+              onPress={() => setShowTerms(true)}
+              style={[
+                st.dangerBtn,
+                {
+                  backgroundColor: C.surface,
+                  borderColor: C.border,
+                  marginBottom: 12,
+                },
+              ]}
+            >
+              <Ionicons name="document-text" size={16} color={C.accent} />
+              <Text
+                style={{ color: C.accent, fontWeight: "700", fontSize: 14 }}
+              >
+                {t("policy.terms_settings_label")}
+              </Text>
+            </Press>
+
+            {account ? (
+              <Press
+                onPress={() =>
+                  confirmAction(
+                    t("login.sign_out"),
+                    t("login.sign_out_confirm"),
+                    async () => {
+                      await signOut();
+                      onClose();
+                    },
+                    t("login.sign_out"),
+                    t("alert.cancel"),
+                  )
+                }
+                style={[
+                  st.dangerBtn,
+                  {
+                    backgroundColor: C.surface,
+                    borderColor: C.border,
+                    marginBottom: 12,
+                  },
+                ]}
+              >
+                <Ionicons name="log-out" size={16} color={C.muted} />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ color: C.text, fontWeight: "700", fontSize: 14 }}
+                  >
+                    {t("login.sign_out")}
+                  </Text>
+                  <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
+                    {t("login.signed_in_as", { email: account.email })}
+                  </Text>
+                </View>
+              </Press>
+            ) : (
+              <Press
+                onPress={() => setShowLogin(true)}
+                style={[
+                  st.dangerBtn,
+                  {
+                    backgroundColor: C.accent + "15",
+                    borderColor: C.accent + "55",
+                    marginBottom: 12,
+                  },
+                ]}
+              >
+                <Ionicons name="log-in" size={16} color={C.accent} />
+                <Text
+                  style={{ color: C.accent, fontWeight: "700", fontSize: 14 }}
+                >
+                  {t("login.title")}
+                </Text>
+              </Press>
+            )}
 
             {/* DANGER */}
             <Text style={st.settingHeader}>{t("set.data_header")}</Text>
@@ -7230,6 +9038,30 @@ function SettingsModal({
         </View>
       </KeyboardAvoidingView>
       <AboutModal visible={showAbout} onClose={() => setShowAbout(false)} />
+      <DocViewerModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        title={t("policy.privacy_title")}
+        body={PRIVACY_DOC}
+      />
+      <DocViewerModal
+        visible={showTerms}
+        onClose={() => setShowTerms(false)}
+        title={t("policy.terms_title")}
+        body={TERMS_DOC}
+      />
+      <LoginModal
+        visible={showLogin}
+        onClose={() => setShowLogin(false)}
+        onPrivacy={() => {
+          setShowLogin(false);
+          setShowPrivacy(true);
+        }}
+        onTerms={() => {
+          setShowLogin(false);
+          setShowTerms(true);
+        }}
+      />
       <Modal
         visible={showLang}
         transparent
@@ -8877,7 +10709,86 @@ function PreQuizModal({
   );
 }
 
-// ─── ONBOARDING MODAL ──────────────────────────────────
+// ─── SIGN IN MODAL ─────────────────────────────────────
+function SignInModal({
+  visible,
+  onDone,
+}: {
+  visible: boolean;
+  onDone: () => void;
+}) {
+  const { profile } = useApp();
+  const t = useT(profile.lang);
+  const [busy, setBusy] = useState(false);
+
+  const handleGoogle = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await signInWithGoogle();
+      onDone();
+    } catch (e: any) {
+      if (e?.message !== "CANCELLED") {
+        Alert.alert("Sign-in failed", e?.message || "Unknown error");
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onDone}
+    >
+      <View style={st.onboardOverlay}>
+        <View style={st.onboardBox}>
+          <Text
+            style={{ fontSize: 60, textAlign: "center", marginBottom: 12 }}
+          >
+            🔐
+          </Text>
+          <Text style={st.onboardTitle}>Sign in to save progress</Text>
+          <Text style={st.onboardSub}>
+            Your streak, badges, and goals will follow you across devices.
+          </Text>
+          <Press
+            onPress={handleGoogle}
+            style={[
+              st.btn,
+              {
+                marginTop: 20,
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 8,
+              },
+            ]}
+            disabled={busy}
+          >
+            {busy ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="logo-google" size={18} color="#fff" />
+                <Text style={st.btnText}>Sign in with Google</Text>
+              </>
+            )}
+          </Press>
+          <Press
+            onPress={onDone}
+            style={[st.btn, { marginTop: 10, backgroundColor: C.surface2 }]}
+            disabled={busy}
+          >
+            <Text style={[st.btnText, { color: C.text }]}>Skip for now</Text>
+          </Press>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 function OnboardingModal({
   visible,
   onDone,
@@ -11644,6 +13555,8 @@ function MapScreen() {
   const [persona, setPersona] = useState<Persona>("manager");
   const [refreshing, setRefreshing] = useState(false);
   const [flowTick, setFlowTick] = useState(0);
+  const [showNearest, setShowNearest] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   // Re-honor a `mode` route param when it changes (e.g. user taps Home →
   // Forecast again). Guarded so a no-op param doesn't trigger a re-render.
@@ -11755,6 +13668,37 @@ function MapScreen() {
             </Press>
           ))}
         </ScrollView>
+      </View>
+
+      <View
+        style={{
+          flexDirection: "row",
+          marginHorizontal: 16,
+          marginTop: 8,
+          marginBottom: 4,
+        }}
+      >
+        <Press
+          onPress={() => setShowNearest(true)}
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            borderRadius: 10,
+            backgroundColor: C.accent + "18",
+            borderWidth: 1,
+            borderColor: C.accent + "55",
+          }}
+        >
+          <Ionicons name="navigate" size={16} color={C.accent} />
+          <Text style={{ color: C.accent, fontWeight: "800", fontSize: 13 }}>
+            {t("nearest.button")}
+          </Text>
+        </Press>
       </View>
 
       <ScrollView
@@ -13525,7 +15469,22 @@ function MapScreen() {
                     })}
           </Text>
         </View>
+        <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
+          <ComplianceNotice
+            onReadPolicy={() => setShowPrivacy(true)}
+          />
+        </View>
       </ScrollView>
+      <FindNearestModal
+        visible={showNearest}
+        onClose={() => setShowNearest(false)}
+      />
+      <DocViewerModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        title={t("policy.privacy_title")}
+        body={PRIVACY_DOC}
+      />
     </SafeAreaView>
   );
 }

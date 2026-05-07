@@ -15,7 +15,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
 const OUT = join(ROOT, "data", "cdec.json");
 
-// 13 reservoirs that App.tsx tracks. CDEC station IDs from
+// CDEC-tracked reservoirs (App.tsx also includes Lake Mead, which is on the
+// Colorado River and not a CDEC station). Station IDs from
 // https://cdec.water.ca.gov/dynamicapp/staSearch
 // Capacities (TAF = thousand acre-feet) are well-known constants.
 const RESERVOIRS = [
@@ -28,6 +29,7 @@ const RESERVOIRS = [
   { id: "camanche", cdec: "CMN", name: "Camanche",      capacityAF:  417120, lat: 38.2167, lng: -120.9833 },
   { id: "newhogan", cdec: "NHG", name: "New Hogan",     capacityAF:  317100, lat: 38.1572, lng: -120.8197 },
   { id: "pardee",   cdec: "PAR", name: "Pardee",        capacityAF:  197950, lat: 38.2500, lng: -120.8500 },
+  { id: "bethany",  cdec: "BTH", name: "Bethany",       capacityAF:    5250, lat: 37.7864, lng: -121.6300 },
   { id: "sanluis",  cdec: "SNL", name: "San Luis",      capacityAF: 2041000, lat: 37.0633, lng: -121.0825 },
   { id: "castaic",  cdec: "CAS", name: "Castaic",       capacityAF:  325000, lat: 34.5275, lng: -118.6125 },
   { id: "perris",   cdec: "PRR", name: "Perris",        capacityAF:  131400, lat: 33.8650, lng: -117.1717 },
@@ -98,10 +100,9 @@ const monthKey = (dateStr) => {
 };
 
 async function fetchReservoirs() {
-  // Reservoirs run sequentially (12 stations × 2 calls = 24 round trips
-  // serialised) but each station's monthly + daily pair runs concurrently.
-  // We avoid 24-wide parallelism because CDEC has shown flakiness under
-  // load.
+  // Reservoirs run sequentially (one station at a time) but each station's
+  // monthly + daily pair runs concurrently. We avoid wide parallelism because
+  // CDEC has shown flakiness under load.
   const out = [];
   for (const r of RESERVOIRS) {
     process.stdout.write(`  ${r.cdec} `);

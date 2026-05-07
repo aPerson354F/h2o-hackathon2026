@@ -1,7 +1,7 @@
 {
   "expo": {
     "jsEngine": "hermes",
-    "name": "h2o",
+    "name": "h2otoyou",
     "slug": "h2ohack2026",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -25,7 +25,8 @@
         "NSPhotoLibraryAddUsageDescription": "H2O Watch may save annotated analysis results to your photos.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "bundleIdentifier": "com.aperson354f.h2ohack2026"
+      "bundleIdentifier": "com.flowstate.h2otoyou",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -39,7 +40,8 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
-      "package": "com.aperson354f.h2ohack2026"
+      "package": "com.flowstate.h2otoyou",
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       [
@@ -50,7 +52,23 @@
           "microphonePermission": false
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.651494317419-3k9fb93vnbbic1ihgrfvv0f2gul70mtv"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
     ],
     "web": {
       "favicon": "./assets/favicon.png"
@@ -60,6 +78,6 @@
         "projectId": "3b8281a7-a192-4f0e-8791-48f9cbb42851"
       }
     },
-    "owner": "aperson354f"
+    "owner": "flow_state"
   }
 }

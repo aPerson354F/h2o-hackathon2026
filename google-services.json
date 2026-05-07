@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "651494317419",
+    "project_id": "h2otoyou-ebad5",
+    "storage_bucket": "h2otoyou-ebad5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:651494317419:android:80f70df9a1c5263d64002e",
+        "android_client_info": {
+          "package_name": "com.flowstate.h2otoyou"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "651494317419-2egsibq9tpqp4pv7g2i8q5nl3cpha5e9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.flowstate.h2otoyou",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "651494317419-3k9fb93vnbbic1ihgrfvv0f2gul70mtv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCK7YlvUKtIcLw5tWp5C3hinFCQFGO5_PA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "651494317419-3k9fb93vnbbic1ihgrfvv0f2gul70mtv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
