@@ -27,8 +27,13 @@ export const config: VercelConfig = {
     { path: "/api/newsletter/send?frequency=monthly", schedule: "0 16 1 * *" },
   ],
   rewrites: [
-    { source: "/api/(.*)", destination: "/api/$1" },
-    { source: "/(.*)", destination: "/index.html" },
+    // Vercel rewrites run before filesystem lookup, so a plain "/(.*)" would
+    // intercept /api/* and prevent function handlers from ever being reached.
+    // Negative lookahead keeps API + static paths out of the SPA fallback.
+    {
+      source: "/((?!api/|_expo/|assets/|favicon\\.ico).*)",
+      destination: "/index.html",
+    },
   ],
   headers: [
     {
