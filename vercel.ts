@@ -15,7 +15,17 @@ export const config: VercelConfig = {
       maxDuration: 30,
       memory: 256,
     },
+    "api/newsletter/*.ts": {
+      maxDuration: 30,
+      memory: 256,
+    },
   },
+  crons: [
+    // 16:00 UTC = 09:00 PDT / 08:00 PST. Mondays.
+    { path: "/api/newsletter/send?frequency=weekly", schedule: "0 16 * * 1" },
+    // 1st of every month, 09:00 PT.
+    { path: "/api/newsletter/send?frequency=monthly", schedule: "0 16 1 * *" },
+  ],
   rewrites: [
     { source: "/api/(.*)", destination: "/api/$1" },
     { source: "/(.*)", destination: "/index.html" },
@@ -35,6 +45,14 @@ export const config: VercelConfig = {
     {
       source: "/api/cdec",
       headers: [
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "no-referrer" },
+      ],
+    },
+    {
+      source: "/api/newsletter/(.*)",
+      headers: [
+        { key: "Cache-Control", value: "no-store" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "no-referrer" },
       ],

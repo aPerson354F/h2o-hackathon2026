@@ -47,4 +47,8 @@ export function onAuthChange(
   return onAuthStateChanged(getAuth(), cb);
 }
 
+export function getCurrentUser(): FirebaseAuthTypes.User | null {
+  return getAuth().currentUser;
+}
+
 export type AuthUser = FirebaseAuthTypes.User;

@@ -66,9 +66,18 @@ import {
   signInWithGoogle,
   signOut as fbSignOut,
   onAuthChange,
+  getCurrentUser as fbCurrentUser,
   initGoogleAuth,
   type AuthUser,
 } from "./firebase-auth";
+import {
+  pullUserData,
+  pushUserData,
+  pullAllLogs,
+  pushDayLog,
+  type CloudStats,
+  type LogEntry as CloudLogEntry,
+} from "./firestore-sync";
 
 const Tab = createBottomTabNavigator();
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -149,6 +158,46 @@ const SHADOW_HERO = Platform.select({
 
 const GROQ_PROXY_URL = process.env.EXPO_PUBLIC_GROQ_PROXY_URL ?? "/api/groq";
 const CDEC_PROXY_URL = process.env.EXPO_PUBLIC_CDEC_PROXY_URL ?? "/api/cdec";
+const NEWSLETTER_BASE_URL =
+  process.env.EXPO_PUBLIC_NEWSLETTER_BASE_URL ?? "/api/newsletter";
+
+// React Native's runtime does not implement AbortSignal.timeout. This helper
+// gives the same shape on every platform.
+function timedSignal(ms: number): AbortSignal {
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), ms);
+  return ctrl.signal;
+}
+
+async function newsletterSubscribe(
+  email: string,
+  frequency: "weekly" | "monthly",
+  firstName?: string,
+): Promise<void> {
+  const r = await fetch(`${NEWSLETTER_BASE_URL}/subscribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, frequency, firstName }),
+    signal: timedSignal(10000),
+  });
+  if (!r.ok) {
+    const detail = await r.text().catch(() => "");
+    throw new Error(`Subscribe failed (${r.status}): ${detail.slice(0, 200)}`);
+  }
+}
+
+async function newsletterUnsubscribe(email: string): Promise<void> {
+  const r = await fetch(`${NEWSLETTER_BASE_URL}/unsubscribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+    signal: timedSignal(10000),
+  });
+  if (!r.ok) {
+    const detail = await r.text().catch(() => "");
+    throw new Error(`Unsubscribe failed (${r.status}): ${detail.slice(0, 200)}`);
+  }
+}
 
 function langDirective(lang?: Lang): string {
   if (!lang || lang === "en") return "";
@@ -167,6 +216,8 @@ type Notif = {
   emoji: string;
 };
 
+type NewsletterFrequency = "none" | "weekly" | "monthly";
+
 type Profile = {
   name: string;
   household: number;
@@ -177,6 +228,8 @@ type Profile = {
   alertsEnabled: boolean;
   onboarded: boolean;
   lang: Lang;
+  newsletterFrequency: NewsletterFrequency;
+  newsletterEmail: string;
 };
 
 const DEFAULT_PROFILE: Profile = {
@@ -189,6 +242,8 @@ const DEFAULT_PROFILE: Profile = {
   alertsEnabled: true,
   onboarded: false,
   lang: "en",
+  newsletterFrequency: "none",
+  newsletterEmail: "",
 };
 
 // ─── UNITS ─────────────────────────────────────────────
@@ -1818,20 +1873,112 @@ type ReservoirMeta = {
   website: string;
 };
 const RESERVOIR_META: Record<string, ReservoirMeta> = {
-  shasta:   { cdec: "SHA", lat: 40.7197, lng: -122.4197, operator: "U.S. Bureau of Reclamation",                    website: "https://www.usbr.gov/mp/ncao/shasta.html" },
-  trinity:  { cdec: "CLE", lat: 40.8000, lng: -122.7600, operator: "U.S. Bureau of Reclamation",                    website: "https://www.usbr.gov/mp/ncao/trinity.html" },
-  oroville: { cdec: "ORO", lat: 39.5392, lng: -121.4847, operator: "California Department of Water Resources",       website: "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Lake-Oroville" },
-  newmel:   { cdec: "NML", lat: 37.9486, lng: -120.5269, operator: "U.S. Bureau of Reclamation",                    website: "https://www.usbr.gov/mp/ccao/newmelones/" },
-  donpedro: { cdec: "DNP", lat: 37.7000, lng: -120.4200, operator: "Modesto & Turlock Irrigation Districts",         website: "https://www.donpedro-project.com/" },
-  hetch:    { cdec: "HTH", lat: 37.9472, lng: -119.7867, operator: "San Francisco Public Utilities Commission",      website: "https://www.sfpuc.org/learning/water-system-overview/hetch-hetchy" },
-  camanche: { cdec: "CMN", lat: 38.2167, lng: -120.9833, operator: "East Bay Municipal Utility District",            website: "https://www.ebmud.com/recreation/east-bay-reservoirs/camanche-reservoir/" },
-  newhogan: { cdec: "NHG", lat: 38.1572, lng: -120.8197, operator: "U.S. Army Corps of Engineers",                   website: "https://www.spk.usace.army.mil/Locations/Sacramento-District-Parks/New-Hogan-Lake/" },
-  pardee:   { cdec: "PAR", lat: 38.2500, lng: -120.8500, operator: "East Bay Municipal Utility District",            website: "https://www.ebmud.com/recreation/east-bay-reservoirs/pardee-reservoir/" },
-  bethany:  { cdec: "BTH", lat: 37.7864, lng: -121.6300, operator: "California Department of Water Resources",       website: "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Bethany-Reservoir" },
-  sanluis:  { cdec: "SNL", lat: 37.0633, lng: -121.0825, operator: "U.S. Bureau of Reclamation / CA DWR",            website: "https://www.usbr.gov/mp/ccao/sanluis/" },
-  castaic:  { cdec: "CAS", lat: 34.5275, lng: -118.6125, operator: "California Department of Water Resources",       website: "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Castaic-Lake" },
-  perris:   { cdec: "PRR", lat: 33.8650, lng: -117.1717, operator: "California Department of Water Resources",       website: "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Lake-Perris" },
-  mead:     { cdec: null,  lat: 36.0150, lng: -114.7374, operator: "U.S. Bureau of Reclamation",                    website: "https://www.usbr.gov/lc/hooverdam/" },
+  shasta: {
+    cdec: "SHA",
+    lat: 40.7197,
+    lng: -122.4197,
+    operator: "U.S. Bureau of Reclamation",
+    website: "https://www.usbr.gov/mp/ncao/shasta.html",
+  },
+  trinity: {
+    cdec: "CLE",
+    lat: 40.8,
+    lng: -122.76,
+    operator: "U.S. Bureau of Reclamation",
+    website: "https://www.usbr.gov/mp/ncao/trinity.html",
+  },
+  oroville: {
+    cdec: "ORO",
+    lat: 39.5392,
+    lng: -121.4847,
+    operator: "California Department of Water Resources",
+    website:
+      "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Lake-Oroville",
+  },
+  newmel: {
+    cdec: "NML",
+    lat: 37.9486,
+    lng: -120.5269,
+    operator: "U.S. Bureau of Reclamation",
+    website: "https://www.usbr.gov/mp/ccao/newmelones/",
+  },
+  donpedro: {
+    cdec: "DNP",
+    lat: 37.7,
+    lng: -120.42,
+    operator: "Modesto & Turlock Irrigation Districts",
+    website: "https://www.donpedro-project.com/",
+  },
+  hetch: {
+    cdec: "HTH",
+    lat: 37.9472,
+    lng: -119.7867,
+    operator: "San Francisco Public Utilities Commission",
+    website:
+      "https://www.sfpuc.org/learning/water-system-overview/hetch-hetchy",
+  },
+  camanche: {
+    cdec: "CMN",
+    lat: 38.2167,
+    lng: -120.9833,
+    operator: "East Bay Municipal Utility District",
+    website:
+      "https://www.ebmud.com/recreation/east-bay-reservoirs/camanche-reservoir/",
+  },
+  newhogan: {
+    cdec: "NHG",
+    lat: 38.1572,
+    lng: -120.8197,
+    operator: "U.S. Army Corps of Engineers",
+    website:
+      "https://www.spk.usace.army.mil/Locations/Sacramento-District-Parks/New-Hogan-Lake/",
+  },
+  pardee: {
+    cdec: "PAR",
+    lat: 38.25,
+    lng: -120.85,
+    operator: "East Bay Municipal Utility District",
+    website:
+      "https://www.ebmud.com/recreation/east-bay-reservoirs/pardee-reservoir/",
+  },
+  bethany: {
+    cdec: "BTH",
+    lat: 37.7864,
+    lng: -121.63,
+    operator: "California Department of Water Resources",
+    website:
+      "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Bethany-Reservoir",
+  },
+  sanluis: {
+    cdec: "SNL",
+    lat: 37.0633,
+    lng: -121.0825,
+    operator: "U.S. Bureau of Reclamation / CA DWR",
+    website: "https://www.usbr.gov/mp/ccao/sanluis/",
+  },
+  castaic: {
+    cdec: "CAS",
+    lat: 34.5275,
+    lng: -118.6125,
+    operator: "California Department of Water Resources",
+    website:
+      "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Castaic-Lake",
+  },
+  perris: {
+    cdec: "PRR",
+    lat: 33.865,
+    lng: -117.1717,
+    operator: "California Department of Water Resources",
+    website:
+      "https://water.ca.gov/Programs/State-Water-Project/SWP-Facilities/Lake-Perris",
+  },
+  mead: {
+    cdec: null,
+    lat: 36.015,
+    lng: -114.7374,
+    operator: "U.S. Bureau of Reclamation",
+    website: "https://www.usbr.gov/lc/hooverdam/",
+  },
 };
 
 const cdecStationUrl = (id: string | null) =>
@@ -3108,6 +3255,7 @@ type AppCtx = {
   recentUnlock: (typeof BADGES)[0] | null;
   dismissUnlock: () => void;
   account: Account | null;
+  firebaseUser: AuthUser | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -3143,7 +3291,8 @@ async function hashPassword(password: string): Promise<string> {
   // Fallback: very small djb2 hash. Not cryptographic, but only reached on
   // ancient platforms without WebCrypto. Still better than plaintext.
   let h = 5381;
-  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  for (let i = 0; i < text.length; i++)
+    h = ((h << 5) + h + text.charCodeAt(i)) | 0;
   return "djb2_" + (h >>> 0).toString(16);
 }
 
@@ -3162,6 +3311,17 @@ function AppProvider({ children }: { children: React.ReactNode }) {
     null,
   );
   const [account, setAccount] = useState<Account | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<AuthUser | null>(null);
+  const [stats, setStatsState] = useState<CloudStats>({
+    xp: 0,
+    streak: 0,
+    lifetimeSaved: 0,
+  });
+  const todayKey = () => new Date().toISOString().split("T")[0];
+  const [todayDate, setTodayDate] = useState<string>(todayKey());
+  const [todayLog, setTodayLog] = useState<CloudLogEntry[]>([]);
+  const cloudPushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cloudLogPushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadProfile = useCallback(async () => {
     const p = await AsyncStorage.getItem("profile");
@@ -3176,47 +3336,68 @@ function AppProvider({ children }: { children: React.ReactNode }) {
         setAccount(null);
       }
     }
+    const [xpRaw, streakRaw, lifetimeRaw] = await Promise.all([
+      AsyncStorage.getItem("xp"),
+      AsyncStorage.getItem("streak"),
+      AsyncStorage.getItem("lifetime_saved"),
+    ]);
+    setStatsState({
+      xp: parseInt(xpRaw ?? "0") || 0,
+      streak: parseInt(streakRaw ?? "0") || 0,
+      lifetimeSaved: parseFloat(lifetimeRaw ?? "0") || 0,
+    });
     setLoaded(true);
   }, []);
 
-  const signUp = useCallback(async (emailRaw: string, password: string) => {
-    const email = emailRaw.trim().toLowerCase();
-    if (!isValidEmail(email))
-      throw new Error(translate(profile.lang, "login.error_email"));
-    if (password.length < 8)
-      throw new Error(translate(profile.lang, "login.error_password"));
-    const stored = await AsyncStorage.getItem(ACCOUNT_KEY);
-    if (stored) {
-      const existing: Account = JSON.parse(stored);
-      if (existing.email === email)
-        throw new Error(translate(profile.lang, "login.error_email_taken"));
-    }
-    const pwHash = await hashPassword(password);
-    const a: Account = { email, pwHash, createdAt: Date.now() };
-    await AsyncStorage.setItem(ACCOUNT_KEY, JSON.stringify(a));
-    setAccount(a);
-  }, [profile.lang]);
+  const signUp = useCallback(
+    async (emailRaw: string, password: string) => {
+      const email = emailRaw.trim().toLowerCase();
+      if (!isValidEmail(email))
+        throw new Error(translate(profile.lang, "login.error_email"));
+      if (password.length < 8)
+        throw new Error(translate(profile.lang, "login.error_password"));
+      const stored = await AsyncStorage.getItem(ACCOUNT_KEY);
+      if (stored) {
+        const existing: Account = JSON.parse(stored);
+        if (existing.email === email)
+          throw new Error(translate(profile.lang, "login.error_email_taken"));
+      }
+      const pwHash = await hashPassword(password);
+      const a: Account = { email, pwHash, createdAt: Date.now() };
+      await AsyncStorage.setItem(ACCOUNT_KEY, JSON.stringify(a));
+      setAccount(a);
+    },
+    [profile.lang],
+  );
 
-  const signIn = useCallback(async (emailRaw: string, password: string) => {
-    const email = emailRaw.trim().toLowerCase();
-    if (!isValidEmail(email))
-      throw new Error(translate(profile.lang, "login.error_email"));
-    const stored = await AsyncStorage.getItem(ACCOUNT_KEY);
-    if (!stored)
-      throw new Error(translate(profile.lang, "login.error_no_account"));
-    const existing: Account = JSON.parse(stored);
-    if (existing.email !== email)
-      throw new Error(translate(profile.lang, "login.error_no_account"));
-    const pwHash = await hashPassword(password);
-    if (existing.pwHash !== pwHash)
-      throw new Error(translate(profile.lang, "login.error_wrong_password"));
-    setAccount(existing);
-  }, [profile.lang]);
+  const signIn = useCallback(
+    async (emailRaw: string, password: string) => {
+      const email = emailRaw.trim().toLowerCase();
+      if (!isValidEmail(email))
+        throw new Error(translate(profile.lang, "login.error_email"));
+      const stored = await AsyncStorage.getItem(ACCOUNT_KEY);
+      if (!stored)
+        throw new Error(translate(profile.lang, "login.error_no_account"));
+      const existing: Account = JSON.parse(stored);
+      if (existing.email !== email)
+        throw new Error(translate(profile.lang, "login.error_no_account"));
+      const pwHash = await hashPassword(password);
+      if (existing.pwHash !== pwHash)
+        throw new Error(translate(profile.lang, "login.error_wrong_password"));
+      setAccount(existing);
+    },
+    [profile.lang],
+  );
 
   const signOut = useCallback(async () => {
     setAccount(null);
-    // We deliberately keep the ACCOUNT_KEY record so a returning user can sign
-    // back in without losing data. Sign-out is just a session-state flip.
+    // Local account record is intentionally kept so a returning user can sign
+    // back in without losing data — sign-out is a session-state flip.
+    try {
+      await fbSignOut();
+    } catch (e) {
+      console.warn("[auth] firebase sign-out failed:", e);
+    }
   }, []);
 
   const continueAsGuest = useCallback(async () => {
@@ -3307,6 +3488,260 @@ function AppProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(id);
   }, [refreshNotifs]);
 
+  // ─── FIRESTORE SYNC ──
+  // Subscribe to Firebase auth state once at mount.
+  useEffect(() => {
+    initGoogleAuth();
+    return onAuthChange(setFirebaseUser);
+  }, []);
+
+  // Stats (xp / streak / lifetimeSaved) are written by ad-hoc helpers across
+  // the app via raw AsyncStorage. Rather than rewire every call site, we poll
+  // AsyncStorage here and only set state when the values actually change so
+  // the cloud-push effect picks up the diff.
+  useEffect(() => {
+    if (!loaded) return;
+    const id = setInterval(async () => {
+      const [xpRaw, streakRaw, lifetimeRaw] = await Promise.all([
+        AsyncStorage.getItem("xp"),
+        AsyncStorage.getItem("streak"),
+        AsyncStorage.getItem("lifetime_saved"),
+      ]);
+      const next: CloudStats = {
+        xp: parseInt(xpRaw ?? "0") || 0,
+        streak: parseInt(streakRaw ?? "0") || 0,
+        lifetimeSaved: parseFloat(lifetimeRaw ?? "0") || 0,
+      };
+      setStatsState((prev) =>
+        prev.xp === next.xp &&
+        prev.streak === next.streak &&
+        prev.lifetimeSaved === next.lifetimeSaved
+          ? prev
+          : next,
+      );
+    }, 4000);
+    return () => clearInterval(id);
+  }, [loaded]);
+
+  // Roll todayDate over on midnight crossings so the polling effect below
+  // starts watching the new day's log key.
+  useEffect(() => {
+    const id = setInterval(() => {
+      const today = todayKey();
+      setTodayDate((prev) => (prev === today ? prev : today));
+    }, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Poll today's log entries from AsyncStorage so cloud-sync sees activity
+  // logged anywhere in the app without rewiring callers.
+  useEffect(() => {
+    if (!loaded) return;
+    const id = setInterval(async () => {
+      const raw = (await AsyncStorage.getItem(`log_${todayDate}`)) || "[]";
+      let next: CloudLogEntry[];
+      try {
+        next = JSON.parse(raw);
+      } catch {
+        next = [];
+      }
+      setTodayLog((prev) => {
+        if (prev.length !== next.length) return next;
+        const last = next[next.length - 1];
+        const prevLast = prev[prev.length - 1];
+        if (
+          last?.time === prevLast?.time &&
+          last?.label === prevLast?.label &&
+          last?.gallons === prevLast?.gallons
+        ) {
+          return prev;
+        }
+        return next;
+      });
+    }, 4000);
+    return () => clearInterval(id);
+  }, [loaded, todayDate]);
+
+  // On Firebase sign-in, hydrate from Firestore. If the cloud doc is empty,
+  // upload current local state as the initial sync. Remote profile wins on
+  // hydrate; badges union (never lose a badge); stats max-merge (never lose
+  // earned XP, streak length, or lifetime gallons saved across devices).
+  useEffect(() => {
+    if (!firebaseUser || !loaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const remote = await pullUserData(firebaseUser.uid);
+        if (cancelled) return;
+        if (remote) {
+          if (remote.profile) {
+            const merged: Profile = {
+              ...DEFAULT_PROFILE,
+              ...profile,
+              ...(remote.profile as Partial<Profile>),
+            };
+            await setProfile(merged);
+          }
+          if (Array.isArray(remote.badges)) {
+            const union = Array.from(new Set([...badges, ...remote.badges]));
+            if (union.length !== badges.length) {
+              await AsyncStorage.setItem("badges", JSON.stringify(union));
+              setBadges(union);
+            }
+          }
+          if (remote.stats) {
+            const merged: CloudStats = {
+              xp: Math.max(stats.xp, remote.stats.xp ?? 0),
+              streak: Math.max(stats.streak, remote.stats.streak ?? 0),
+              lifetimeSaved: Math.max(
+                stats.lifetimeSaved,
+                remote.stats.lifetimeSaved ?? 0,
+              ),
+            };
+            const writes: Promise<void>[] = [];
+            if (merged.xp !== stats.xp)
+              writes.push(AsyncStorage.setItem("xp", String(merged.xp)));
+            if (merged.streak !== stats.streak)
+              writes.push(
+                AsyncStorage.setItem("streak", String(merged.streak)),
+              );
+            if (merged.lifetimeSaved !== stats.lifetimeSaved)
+              writes.push(
+                AsyncStorage.setItem(
+                  "lifetime_saved",
+                  merged.lifetimeSaved.toFixed(1),
+                ),
+              );
+            if (writes.length) {
+              await Promise.all(writes);
+              setStatsState(merged);
+            }
+          }
+        } else {
+          await pushUserData(firebaseUser.uid, {
+            profile: profile as unknown as Record<string, unknown>,
+            badges,
+            stats,
+          });
+        }
+      } catch (e: any) {
+        console.warn("[firestore] hydrate failed:", e?.message ?? e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Only re-run when sign-in identity or initial load state changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firebaseUser?.uid, loaded]);
+
+  // Debounced upload of profile + badges + stats whenever they change while
+  // signed in.
+  useEffect(() => {
+    if (!firebaseUser || !loaded) return;
+    if (cloudPushTimer.current) clearTimeout(cloudPushTimer.current);
+    cloudPushTimer.current = setTimeout(async () => {
+      try {
+        await pushUserData(firebaseUser.uid, {
+          profile: profile as unknown as Record<string, unknown>,
+          badges,
+          stats,
+        });
+      } catch (e: any) {
+        console.warn("[firestore] push failed:", e?.message ?? e);
+      }
+    }, 1500);
+    return () => {
+      if (cloudPushTimer.current) clearTimeout(cloudPushTimer.current);
+    };
+  }, [firebaseUser?.uid, profile, badges, stats, loaded]);
+
+  // Debounced upload of today's log subcollection doc on every change.
+  useEffect(() => {
+    if (!firebaseUser || !loaded) return;
+    if (cloudLogPushTimer.current) clearTimeout(cloudLogPushTimer.current);
+    cloudLogPushTimer.current = setTimeout(async () => {
+      try {
+        const total = todayLog.reduce((s, e) => s + (e.gallons ?? 0), 0);
+        await pushDayLog(firebaseUser.uid, todayDate, {
+          entries: todayLog,
+          total,
+        });
+      } catch (e: any) {
+        console.warn("[firestore] log push failed:", e?.message ?? e);
+      }
+    }, 1500);
+    return () => {
+      if (cloudLogPushTimer.current) clearTimeout(cloudLogPushTimer.current);
+    };
+  }, [firebaseUser?.uid, todayDate, todayLog, loaded]);
+
+  // On Firebase sign-in, also reconcile the daily-log subcollection. For each
+  // date that exists locally OR remotely, dedup-merge entries by (time,label,
+  // gallons), write merged back to AsyncStorage so the rest of the app sees
+  // the unified history, and push merged back to cloud only when local had
+  // entries the cloud lacked.
+  useEffect(() => {
+    if (!firebaseUser || !loaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const remoteLogs = await pullAllLogs(firebaseUser.uid);
+        if (cancelled) return;
+        const allKeys = await AsyncStorage.getAllKeys();
+        const localDates = allKeys
+          .filter((k) => k.startsWith("log_"))
+          .map((k) => k.slice(4));
+        const dates = Array.from(
+          new Set([...Object.keys(remoteLogs), ...localDates]),
+        );
+        for (const date of dates) {
+          if (cancelled) return;
+          const remoteEntries = remoteLogs[date]?.entries ?? [];
+          const localRaw =
+            (await AsyncStorage.getItem(`log_${date}`)) || "[]";
+          let localEntries: CloudLogEntry[];
+          try {
+            localEntries = JSON.parse(localRaw);
+          } catch {
+            localEntries = [];
+          }
+          const seen = new Set<string>();
+          const merged: CloudLogEntry[] = [];
+          for (const e of [...remoteEntries, ...localEntries]) {
+            if (!e || typeof e.label !== "string") continue;
+            const key = `${e.time}|${e.label}|${e.gallons}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            merged.push(e);
+          }
+          if (merged.length !== localEntries.length) {
+            await AsyncStorage.setItem(
+              `log_${date}`,
+              JSON.stringify(merged),
+            );
+          }
+          if (merged.length !== remoteEntries.length) {
+            const total = merged.reduce(
+              (s, e) => s + (e.gallons ?? 0),
+              0,
+            );
+            await pushDayLog(firebaseUser.uid, date, {
+              entries: merged,
+              total,
+            });
+          }
+        }
+      } catch (e: any) {
+        console.warn("[firestore] log hydrate failed:", e?.message ?? e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firebaseUser?.uid, loaded]);
+
   const unreadCount = notifs.filter((n) => !n.read).length;
 
   return (
@@ -3326,6 +3761,7 @@ function AppProvider({ children }: { children: React.ReactNode }) {
         recentUnlock,
         dismissUnlock,
         account,
+        firebaseUser,
         signIn,
         signUp,
         signOut,
@@ -3716,11 +4152,7 @@ function ReservoirStrip() {
 // Compact disclaimer reused by the rescond report and the map. Two paragraphs:
 // (1) CDEC values are provisional, (2) the app does not collect or sell data.
 // "Read full policy" jumps to the Privacy Policy doc.
-function ComplianceNotice({
-  onReadPolicy,
-}: {
-  onReadPolicy?: () => void;
-}) {
+function ComplianceNotice({ onReadPolicy }: { onReadPolicy?: () => void }) {
   const { profile } = useApp();
   const t = useT(profile.lang);
   return (
@@ -4004,7 +4436,12 @@ function FindNearestModal({
       )
         .map((r) => {
           const meta = RESERVOIR_META[r.id];
-          const distanceKm = haversineKm(here.lat, here.lng, meta.lat, meta.lng);
+          const distanceKm = haversineKm(
+            here.lat,
+            here.lng,
+            meta.lat,
+            meta.lng,
+          );
           return { id: r.id, name: r.name, distanceKm, meta };
         })
         .sort((a, b) => a.distanceKm - b.distanceKm)
@@ -4073,7 +4510,9 @@ function FindNearestModal({
             }}
           >
             <Ionicons name="lock-closed" size={14} color={C.success} />
-            <Text style={{ color: C.muted, fontSize: 11, lineHeight: 16, flex: 1 }}>
+            <Text
+              style={{ color: C.muted, fontSize: 11, lineHeight: 16, flex: 1 }}
+            >
               {t("nearest.transparency_note")}
             </Text>
           </View>
@@ -4082,9 +4521,7 @@ function FindNearestModal({
             {phase === "locating" ? (
               <View style={{ alignItems: "center", paddingVertical: 28 }}>
                 <ActivityIndicator color={C.accent} />
-                <Text
-                  style={{ color: C.muted, fontSize: 12, marginTop: 10 }}
-                >
+                <Text style={{ color: C.muted, fontSize: 12, marginTop: 10 }}>
                   {t("nearest.locating")}
                 </Text>
               </View>
@@ -4107,10 +4544,7 @@ function FindNearestModal({
                 >
                   {t("nearest.permission_denied")}
                 </Text>
-                <Press
-                  onPress={run}
-                  style={[st.btn, { marginTop: 14 }]}
-                >
+                <Press onPress={run} style={[st.btn, { marginTop: 14 }]}>
                   <Text style={st.btnText}>{t("nearest.try_again")}</Text>
                 </Press>
               </View>
@@ -4118,9 +4552,7 @@ function FindNearestModal({
 
             {phase === "unavailable" ? (
               <View style={{ paddingVertical: 12 }}>
-                <Text
-                  style={{ color: C.muted, fontSize: 12, lineHeight: 18 }}
-                >
+                <Text style={{ color: C.muted, fontSize: 12, lineHeight: 18 }}>
                   {t("nearest.unavailable")}
                 </Text>
               </View>
@@ -4131,10 +4563,7 @@ function FindNearestModal({
                 <Text style={{ color: C.danger, fontSize: 12, lineHeight: 18 }}>
                   {errMsg}
                 </Text>
-                <Press
-                  onPress={run}
-                  style={[st.btn, { marginTop: 14 }]}
-                >
+                <Press onPress={run} style={[st.btn, { marginTop: 14 }]}>
                   <Text style={st.btnText}>{t("nearest.try_again")}</Text>
                 </Press>
               </View>
@@ -4298,6 +4727,23 @@ function LoginModal({
     onClose();
   };
 
+  const handleGoogle = async () => {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await signInWithGoogle();
+      onAuthed?.();
+      onClose();
+    } catch (e: any) {
+      if (e?.message !== "CANCELLED") {
+        setErr(e?.message ?? "Google sign-in failed");
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -4334,6 +4780,49 @@ function LoginModal({
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
+            <Press
+              onPress={handleGoogle}
+              disabled={busy}
+              style={[
+                st.btn,
+                {
+                  marginBottom: 14,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: 8,
+                  opacity: busy ? 0.6 : 1,
+                },
+              ]}
+            >
+              <Ionicons name="logo-google" size={18} color="#fff" />
+              <Text style={st.btnText}>Sign in with Google</Text>
+            </Press>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 14,
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  height: 1,
+                  backgroundColor: C.border,
+                }}
+              />
+              <Text style={{ color: C.muted, fontSize: 11 }}>or email</Text>
+              <View
+                style={{
+                  flex: 1,
+                  height: 1,
+                  backgroundColor: C.border,
+                }}
+              />
+            </View>
+
             <View
               style={{
                 flexDirection: "row",
@@ -4349,7 +4838,12 @@ function LoginModal({
             >
               <Ionicons name="lock-closed" size={14} color={C.success} />
               <Text
-                style={{ color: C.muted, fontSize: 11, lineHeight: 16, flex: 1 }}
+                style={{
+                  color: C.muted,
+                  fontSize: 11,
+                  lineHeight: 16,
+                  flex: 1,
+                }}
               >
                 {t("login.local_only_note")}
               </Text>
@@ -4425,7 +4919,9 @@ function LoginModal({
               }}
               style={{ alignItems: "center", marginTop: 14 }}
             >
-              <Text style={{ color: C.accent, fontSize: 13, fontWeight: "700" }}>
+              <Text
+                style={{ color: C.accent, fontSize: 13, fontWeight: "700" }}
+              >
                 {mode === "signin"
                   ? t("login.toggle_to_signup")
                   : t("login.toggle_to_signin")}
@@ -4434,14 +4930,18 @@ function LoginModal({
 
             <TouchableOpacity
               onPress={guest}
-              style={{ alignItems: "center", marginTop: 12, paddingVertical: 6 }}
+              style={{
+                alignItems: "center",
+                marginTop: 12,
+                paddingVertical: 6,
+              }}
             >
               <Text style={{ color: C.muted, fontSize: 12 }}>
                 {t("login.continue_guest")} →
               </Text>
             </TouchableOpacity>
 
-            {(onPrivacy || onTerms) ? (
+            {onPrivacy || onTerms ? (
               <View
                 style={{
                   flexDirection: "row",
@@ -4491,7 +4991,10 @@ type ResCondRow = {
   asOf: string | null;
 };
 
-const RESCOND_REGIONS: { code: "Northern" | "SJ Delta" | "SWP"; key: StringKey }[] = [
+const RESCOND_REGIONS: {
+  code: "Northern" | "SJ Delta" | "SWP";
+  key: StringKey;
+}[] = [
   { code: "Northern", key: "rescond.region.northern" },
   { code: "SJ Delta", key: "rescond.region.delta" },
   { code: "SWP", key: "rescond.region.swp" },
@@ -4499,7 +5002,11 @@ const RESCOND_REGIONS: { code: "Northern" | "SJ Delta" | "SWP"; key: StringKey }
 
 function regionForId(id: string): "Northern" | "SJ Delta" | "SWP" {
   if (["shasta", "trinity", "oroville"].includes(id)) return "Northern";
-  if (["newmel", "donpedro", "hetch", "camanche", "newhogan", "pardee"].includes(id))
+  if (
+    ["newmel", "donpedro", "hetch", "camanche", "newhogan", "pardee"].includes(
+      id,
+    )
+  )
     return "SJ Delta";
   return "SWP";
 }
@@ -4521,13 +5028,17 @@ function fallbackRows(): ResCondRow[] {
 }
 
 const fmtTAF = (af: number | null): string =>
-  af == null ? "—" : (af / 1000).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  af == null
+    ? "—"
+    : (af / 1000).toLocaleString(undefined, { maximumFractionDigits: 0 });
 
 function ReservoirConditionsReport() {
   const { profile } = useApp();
   const t = useT(profile.lang);
   const [rows, setRows] = useState<ResCondRow[] | null>(null);
-  const [status, setStatus] = useState<"loading" | "live" | "cached">("loading");
+  const [status, setStatus] = useState<"loading" | "live" | "cached">(
+    "loading",
+  );
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -4536,7 +5047,7 @@ function ReservoirConditionsReport() {
     try {
       const r = await fetch(CDEC_PROXY_URL, {
         headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(15000),
+        signal: timedSignal(15000),
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = await r.json();
@@ -4586,16 +5097,19 @@ function ReservoirConditionsReport() {
         ? t("rescond.subtitle_live", { date: asOfDisplay })
         : t("rescond.subtitle_cached");
 
-  const grouped = (rows ?? fallbackRows()).reduce<
-    Record<string, ResCondRow[]>
-  >((acc, r) => {
-    (acc[r.region] ??= []).push(r);
-    return acc;
-  }, {});
+  const grouped = (rows ?? fallbackRows()).reduce<Record<string, ResCondRow[]>>(
+    (acc, r) => {
+      (acc[r.region] ??= []).push(r);
+      return acc;
+    },
+    {},
+  );
 
   return (
     <View style={{ marginHorizontal: 16, marginTop: 18 }}>
-      <View style={[st.glassCard, { paddingVertical: 14, paddingHorizontal: 14 }]}>
+      <View
+        style={[st.glassCard, { paddingVertical: 14, paddingHorizontal: 14 }]}
+      >
         {/* Header */}
         <View style={{ alignItems: "center", paddingBottom: 10 }}>
           <Text
@@ -4634,7 +5148,9 @@ function ReservoirConditionsReport() {
           </View>
         </View>
 
-        <View style={{ height: 1, backgroundColor: C.border, marginVertical: 6 }} />
+        <View
+          style={{ height: 1, backgroundColor: C.border, marginVertical: 6 }}
+        />
 
         {/* Column header */}
         <View
@@ -5072,8 +5588,7 @@ function WaterBucketCard() {
 
   const WATER_BOT_Y = BASE_Y - 2;
   const WATER_TOP_FULL = RIM_Y + 4;
-  const surfaceY =
-    WATER_BOT_Y - (WATER_BOT_Y - WATER_TOP_FULL) * animFill;
+  const surfaceY = WATER_BOT_Y - (WATER_BOT_Y - WATER_TOP_FULL) * animFill;
   const wAtSurface = widthAtY(surfaceY);
   const xLeftAtSurface = (W - wAtSurface) / 2;
 
@@ -5087,9 +5602,7 @@ function WaterBucketCard() {
       const x = xLeftAtSurface + (wAtSurface * i) / SEG;
       const y =
         surfaceY +
-        amp *
-          ampMul *
-          Math.sin((i / SEG) * Math.PI * 2 + phase + phaseShift);
+        amp * ampMul * Math.sin((i / SEG) * Math.PI * 2 + phase + phaseShift);
       d += ` L ${x} ${y}`;
     }
     d += ` L ${BASE_X + BASE_W} ${BASE_Y}`;
@@ -5163,13 +5676,7 @@ function WaterBucketCard() {
                     d={`M ${RIM_X} ${RIM_Y} L ${BASE_X} ${BASE_Y} L ${BASE_X + BASE_W} ${BASE_Y} L ${RIM_X + RIM_W} ${RIM_Y} Z`}
                   />
                 </ClipPath>
-                <SvgGradient
-                  id="bucketWaterGrad"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
+                <SvgGradient id="bucketWaterGrad" x1="0" y1="0" x2="0" y2="1">
                   <Stop offset="0" stopColor={waterColor} stopOpacity="0.95" />
                   <Stop offset="1" stopColor={waterColor} stopOpacity="0.55" />
                 </SvgGradient>
@@ -5485,6 +5992,8 @@ function HomeScreen() {
     refreshNotifs,
     badges,
     refreshBadges,
+    account,
+    signOut: appSignOut,
   } = useApp();
   const [todayGal, setTodayGal] = useState(0);
   const [xp, setXp] = useState(0);
@@ -5638,14 +6147,14 @@ function HomeScreen() {
         onBell={() => setShowNotifs(true)}
         onGear={() => setShowSettings(true)}
         onSignOut={
-          signedInUser
+          signedInUser || account
             ? () =>
                 confirmAction(
                   "Sign out?",
-                  `You're signed in as ${signedInUser.email}.`,
+                  `You're signed in as ${signedInUser?.email ?? account?.email ?? ""}.`,
                   async () => {
                     try {
-                      await fbSignOut();
+                      await appSignOut();
                     } catch (e: any) {
                       Alert.alert("Error", e?.message || "Failed to sign out");
                     }
@@ -6139,6 +6648,21 @@ function HomeScreen() {
           });
           setShowOnboard(false);
           await refreshNotifs();
+          if (
+            p.newsletterFrequency &&
+            p.newsletterFrequency !== "none" &&
+            p.newsletterEmail
+          ) {
+            try {
+              await newsletterSubscribe(
+                p.newsletterEmail,
+                p.newsletterFrequency,
+                p.name,
+              );
+            } catch (e: any) {
+              console.warn("Newsletter subscribe failed:", e?.message ?? e);
+            }
+          }
         }}
       />
     </SafeAreaView>
@@ -8091,9 +8615,7 @@ function LearnScreen() {
             <ReservoirConditionsReport />
 
             <View style={{ marginHorizontal: 16 }}>
-              <ComplianceNotice
-                onReadPolicy={() => setShowPrivacy(true)}
-              />
+              <ComplianceNotice onReadPolicy={() => setShowPrivacy(true)} />
             </View>
 
             <Text style={s.section}>{t("learn.coverage_severity")}</Text>
@@ -8666,11 +9188,56 @@ function SettingsModal({
   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
-    setDraft(profile);
-  }, [profile, visible]);
+    const fallbackEmail =
+      fbCurrentUser()?.email || account?.email || "";
+    setDraft({
+      ...profile,
+      newsletterEmail: profile.newsletterEmail || fallbackEmail,
+    });
+  }, [profile, visible, account?.email]);
 
   const save = async () => {
-    await setProfile(draft);
+    const oldFreq = profile.newsletterFrequency || "none";
+    const oldEmail = (profile.newsletterEmail || "").trim().toLowerCase();
+    const newFreq = draft.newsletterFrequency || "none";
+    const newEmail = (draft.newsletterEmail || "").trim().toLowerCase();
+
+    if (
+      newFreq !== "none" &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)
+    ) {
+      Alert.alert(
+        "Invalid email",
+        "Enter a valid email or set the newsletter frequency to Off.",
+      );
+      return;
+    }
+
+    await setProfile({
+      ...draft,
+      newsletterEmail: newFreq === "none" ? "" : newEmail,
+    });
+
+    const wasSubscribed = oldFreq !== "none" && !!oldEmail;
+    const wantSubscribed = newFreq === "weekly" || newFreq === "monthly";
+    const changed =
+      newFreq !== oldFreq || (wantSubscribed && newEmail !== oldEmail);
+    if (changed) {
+      try {
+        if (wasSubscribed && (!wantSubscribed || newEmail !== oldEmail)) {
+          await newsletterUnsubscribe(oldEmail);
+        }
+        if (wantSubscribed) {
+          await newsletterSubscribe(newEmail, newFreq, draft.name);
+        }
+      } catch (e: any) {
+        Alert.alert(
+          "Newsletter update issue",
+          e?.message ?? "Settings saved, but newsletter changes failed.",
+        );
+      }
+    }
+
     onClose();
   };
 
@@ -8684,7 +9251,10 @@ function SettingsModal({
         await setProfile(DEFAULT_PROFILE);
         await clearNotifs();
         onClose();
-        Alert.alert(t("alert.reset_complete"), t("set.reset_done"));
+        // The onboarding sequence (water-journey → quiz → sign-in → name) is
+        // the visible confirmation that reset succeeded. The old Alert here
+        // queued behind those modals and only fired after the user finished
+        // the tour, which felt like a delayed glitch.
       },
       t("btn.reset"),
       t("alert.cancel"),
@@ -8869,6 +9439,64 @@ function SettingsModal({
                 />
               </View>
             ))}
+
+            {/* NEWSLETTER */}
+            <Text style={st.settingHeader}>Water-state newsletter</Text>
+            <Text
+              style={{
+                color: C.muted,
+                fontSize: 11,
+                lineHeight: 16,
+                marginTop: -4,
+                marginBottom: 10,
+              }}
+            >
+              Get a snapshot of California reservoirs, snowpack, and
+              conservation tips delivered to your inbox. Unsubscribe anytime.
+            </Text>
+            <Text style={st.formLabel}>Frequency</Text>
+            <View
+              style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}
+            >
+              {(["none", "weekly", "monthly"] as const).map((f) => {
+                const active = draft.newsletterFrequency === f;
+                return (
+                  <Press
+                    key={f}
+                    onPress={() =>
+                      setDraft({ ...draft, newsletterFrequency: f })
+                    }
+                    style={[st.segBtn, { flex: 1 }, active && st.segBtnActive]}
+                  >
+                    <Text style={[st.segText, active && { color: C.bg }]}>
+                      {f === "none"
+                        ? "Off"
+                        : f === "weekly"
+                          ? "Weekly"
+                          : "Monthly"}
+                    </Text>
+                  </Press>
+                );
+              })}
+            </View>
+            {draft.newsletterFrequency !== "none" ? (
+              <>
+                <Text style={st.formLabel}>Email</Text>
+                <TextInput
+                  style={st.input}
+                  value={draft.newsletterEmail}
+                  onChangeText={(v) =>
+                    setDraft({ ...draft, newsletterEmail: v })
+                  }
+                  placeholder="you@example.com"
+                  placeholderTextColor={C.muted}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                />
+              </>
+            ) : null}
 
             {/* ABOUT */}
             <Text style={st.settingHeader}>{t("set.about_header")}</Text>
@@ -10745,9 +11373,7 @@ function SignInModal({
     >
       <View style={st.onboardOverlay}>
         <View style={st.onboardBox}>
-          <Text
-            style={{ fontSize: 60, textAlign: "center", marginBottom: 12 }}
-          >
+          <Text style={{ fontSize: 60, textAlign: "center", marginBottom: 12 }}>
             🔐
           </Text>
           <Text style={st.onboardTitle}>Sign in to save progress</Text>
@@ -10796,12 +11422,14 @@ function OnboardingModal({
   visible: boolean;
   onDone: (p: Partial<Profile>) => void;
 }) {
-  const { profile } = useApp();
+  const { profile, account } = useApp();
   const t = useT(profile.lang);
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [household, setHousehold] = useState(1);
   const [goal, setGoal] = useState(80);
+  const [nlFreq, setNlFreq] = useState<NewsletterFrequency>("none");
+  const [nlEmail, setNlEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -10810,9 +11438,11 @@ function OnboardingModal({
       setName("");
       setHousehold(1);
       setGoal(80);
+      setNlFreq("none");
+      setNlEmail(fbCurrentUser()?.email ?? account?.email ?? "");
       setSubmitting(false);
     }
-  }, [visible]);
+  }, [visible, account?.email]);
 
   return (
     <Modal
@@ -10953,11 +11583,107 @@ function OnboardingModal({
                   </Press>
                 ))}
               </View>
+              <Press onPress={() => setStep(4)} style={st.btn}>
+                <Text style={st.btnText}>{t("btn.continue")}</Text>
+              </Press>
+            </>
+          )}
+          {step === 4 && (
+            <>
+              <Text
+                style={{ fontSize: 40, textAlign: "center", marginBottom: 8 }}
+              >
+                📬
+              </Text>
+              <Text style={st.onboardTitle}>
+                Want California water updates?
+              </Text>
+              <Text style={st.onboardSub}>
+                We'll email a snapshot of reservoirs, snowpack, and
+                conservation tips. Unsubscribe anytime.
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                  marginTop: 16,
+                  marginBottom: 12,
+                }}
+              >
+                {(["none", "weekly", "monthly"] as const).map((f) => {
+                  const active = nlFreq === f;
+                  return (
+                    <Press
+                      key={f}
+                      onPress={() => setNlFreq(f)}
+                      style={[
+                        st.segBtn,
+                        { flex: 1 },
+                        active && st.segBtnActive,
+                      ]}
+                    >
+                      <Text style={[st.segText, active && { color: C.bg }]}>
+                        {f === "none"
+                          ? "No thanks"
+                          : f === "weekly"
+                            ? "Weekly"
+                            : "Monthly"}
+                      </Text>
+                    </Press>
+                  );
+                })}
+              </View>
+              {nlFreq !== "none" ? (
+                <>
+                  <Text style={st.formLabel}>Email</Text>
+                  <TextInput
+                    style={st.input}
+                    value={nlEmail}
+                    onChangeText={setNlEmail}
+                    placeholder="you@example.com"
+                    placeholderTextColor={C.muted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="email-address"
+                    textContentType="emailAddress"
+                    editable={!submitting}
+                  />
+                  <Text
+                    style={{
+                      color: C.muted,
+                      fontSize: 11,
+                      marginTop: -6,
+                      marginBottom: 8,
+                      lineHeight: 16,
+                    }}
+                  >
+                    By subscribing you agree to the Privacy Policy. Unsubscribe
+                    via the link in any email or in Settings.
+                  </Text>
+                </>
+              ) : null}
               <Press
                 onPress={() => {
                   if (submitting) return;
+                  const cleanEmail = nlEmail.trim().toLowerCase();
+                  if (
+                    nlFreq !== "none" &&
+                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)
+                  ) {
+                    Alert.alert(
+                      "Invalid email",
+                      "Enter a valid email or choose 'No thanks'.",
+                    );
+                    return;
+                  }
                   setSubmitting(true);
-                  onDone({ name: name.trim(), household, goal });
+                  onDone({
+                    name: name.trim(),
+                    household,
+                    goal,
+                    newsletterFrequency: nlFreq,
+                    newsletterEmail: nlFreq !== "none" ? cleanEmail : "",
+                  });
                 }}
                 disabled={submitting}
                 style={[st.btn, submitting && { opacity: 0.6 }]}
@@ -10978,7 +11704,7 @@ function OnboardingModal({
               marginTop: 18,
             }}
           >
-            {[0, 1, 2, 3].map((i) => (
+            {[0, 1, 2, 3, 4].map((i) => (
               <View key={i} style={[st.dot, step === i && st.dotActive]} />
             ))}
           </View>
@@ -12023,9 +12749,38 @@ type Rebate = {
   max_total?: number;
   saves_gal_yr: number;
   est_cost: number; // typical out-of-pocket project cost (post-rebate)
-  apply_url: string;
+  // Optional deep-link to a specific program page. If unset, the renderer
+  // falls back to utilityRebatesUrl(utility).
+  apply_url?: string;
   notes: string;
 };
+
+// Public-facing rebate landing page per California utility. These are the
+// general rebates URLs (deep program-specific URLs change too often). Each
+// page hosts the actual program named in the entry's `notes` field.
+const UTILITY_REBATES_URL: Record<string, string> = {
+  "LADWP": "https://www.ladwp.com/save-money/water-rebates",
+  "LADWP / SoCal Water$mart": "https://socalwatersmart.com",
+  "SFPUC": "https://sfpuc.gov/conservation/rebates",
+  "EBMUD": "https://www.ebmud.com/water-and-drought/conservation-and-rebates",
+  "Stockton-East WD": "https://www.sewd.net",
+  "Cal Water Stockton": "https://www.calwater.com/conservation/rebates/",
+  "San Diego County Water Authority": "https://www.watersmartsd.org",
+  "City of San Diego Water Dept.":
+    "https://www.sandiego.gov/public-utilities/customer-service/water-conservation",
+  "San Diego Water Dept.":
+    "https://www.sandiego.gov/public-utilities/customer-service/water-conservation",
+  "Coachella Valley WD": "https://www.cvwd.org",
+  "Sacramento Suburban WD": "https://sswd.org",
+  "Sac Suburban WD": "https://sswd.org",
+  "Sacramento Regional WA": "https://www.bewatersmart.info",
+  "Monterey Peninsula WMD": "https://www.mpwmd.net/water-conservation/rebates",
+  "Kern County Water Agency": "https://www.kcwa.com",
+  "DWR Statewide": "https://saveourwater.com",
+};
+const FALLBACK_REBATES_URL = "https://saveourwater.com";
+const utilityRebatesUrl = (utility: string): string =>
+  UTILITY_REBATES_URL[utility] ?? FALLBACK_REBATES_URL;
 
 // Real (and realistic-mock) CA utility rebates as of late 2025.
 const REBATES_DB: Rebate[] = [
@@ -12051,7 +12806,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 14000,
     est_cost: 350,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes:
       "Replace any pre-1994 toilet. Up to 2 per household. Self-install eligible.",
   },
@@ -12079,7 +12833,6 @@ const REBATES_DB: Rebate[] = [
     max_total: 5000,
     saves_gal_yr: 30000,
     est_cost: 8000,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes:
       "Convert lawn to drought-tolerant landscape. Pre-inspection required.",
   },
@@ -12094,7 +12847,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 8500,
     est_cost: 200,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "WaterSense-labeled weather-based controller.",
   },
   {
@@ -12108,7 +12860,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 5400,
     est_cost: 800,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Front-loaders only. Tier 3 ENERGY STAR rated.",
   },
 
@@ -12124,7 +12875,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 13000,
     est_cost: 350,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Vouchers redeemable at participating retailers.",
   },
   {
@@ -12139,7 +12889,6 @@ const REBATES_DB: Rebate[] = [
     max_total: 3000,
     saves_gal_yr: 22000,
     est_cost: 6500,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Replace 200+ sqft of irrigated grass with WaterSmart plants.",
   },
   {
@@ -12153,7 +12902,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 5200,
     est_cost: 750,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Tier 3 CEE rating. Combine with PG&E energy rebate.",
   },
   {
@@ -12167,7 +12915,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 1300,
     est_cost: 500,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Must use ≤3.5 gal/cycle.",
   },
 
@@ -12183,7 +12930,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 12500,
     est_cost: 200,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Free direct-install service for income-eligible households.",
   },
   {
@@ -12197,7 +12943,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 2400,
     est_cost: 0,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "FREE WaterSense kit shipped to your door.",
   },
   {
@@ -12211,7 +12956,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 5000,
     est_cost: 700,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Combine with PG&E for total ~$200 in rebates.",
   },
   {
@@ -12226,7 +12970,6 @@ const REBATES_DB: Rebate[] = [
     max_total: 2000,
     saves_gal_yr: 18000,
     est_cost: 5500,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Cap of 1,500 sqft per residence.",
   },
 
@@ -12243,7 +12986,6 @@ const REBATES_DB: Rebate[] = [
     max_total: 4000,
     saves_gal_yr: 25000,
     est_cost: 7000,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Up to 1,000 sqft. Includes design assistance.",
   },
   {
@@ -12257,7 +12999,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 13000,
     est_cost: 300,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Up to 2 per household.",
   },
   {
@@ -12271,7 +13012,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 7800,
     est_cost: 250,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "WaterSense-labeled. Pro-install bonus available.",
   },
 
@@ -12287,7 +13027,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 12500,
     est_cost: 250,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Pre-1994 toilets only.",
   },
   {
@@ -12302,7 +13041,6 @@ const REBATES_DB: Rebate[] = [
     max_total: 5000,
     saves_gal_yr: 40000,
     est_cost: 9000,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Higher savings due to extreme desert evapotranspiration.",
   },
 
@@ -12318,7 +13056,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 12000,
     est_cost: 250,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Mail-in rebate; receipt required.",
   },
   {
@@ -12333,7 +13070,6 @@ const REBATES_DB: Rebate[] = [
     max_total: 3000,
     saves_gal_yr: 18000,
     est_cost: 5000,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Includes free landscape design class.",
   },
   {
@@ -12347,7 +13083,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 7500,
     est_cost: 200,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "WaterSense models only.",
   },
 
@@ -12364,7 +13099,6 @@ const REBATES_DB: Rebate[] = [
     max_total: 4500,
     saves_gal_yr: 21000,
     est_cost: 6000,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Strict water rationing makes this rebate especially valuable.",
   },
 
@@ -12380,7 +13114,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 12000,
     est_cost: 280,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Limited to 1 per household per year.",
   },
   {
@@ -12395,7 +13128,6 @@ const REBATES_DB: Rebate[] = [
     max_total: 2000,
     saves_gal_yr: 19000,
     est_cost: 5000,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Conversion area must be visible from street.",
   },
 
@@ -12411,7 +13143,6 @@ const REBATES_DB: Rebate[] = [
     unit: "flat",
     saves_gal_yr: 7000,
     est_cost: 200,
-    apply_url: CONTACT_PLACEHOLDER_URL,
     notes: "Statewide bonus on top of local utility rebates.",
   },
 ];
@@ -12962,7 +13693,12 @@ function RebatesModal({
                       </View>
 
                       <Press
-                        onPress={() => openContactLink(r.apply_url, t)}
+                        onPress={() =>
+                          openContactLink(
+                            r.apply_url ?? utilityRebatesUrl(r.utility),
+                            t,
+                          )
+                        }
                         style={[
                           st.btn,
                           { backgroundColor: C.gold, paddingVertical: 12 },
@@ -15470,9 +16206,7 @@ function MapScreen() {
           </Text>
         </View>
         <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
-          <ComplianceNotice
-            onReadPolicy={() => setShowPrivacy(true)}
-          />
+          <ComplianceNotice onReadPolicy={() => setShowPrivacy(true)} />
         </View>
       </ScrollView>
       <FindNearestModal

@@ -8,19 +8,25 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_GROQ_PROXY_URL": "https://h2otoyou.vercel.app/api/groq"
+        "EXPO_PUBLIC_GROQ_PROXY_URL": "https://h2otoyou.vercel.app/api/groq",
+        "EXPO_PUBLIC_CDEC_PROXY_URL": "https://h2otoyou.vercel.app/api/cdec",
+        "EXPO_PUBLIC_NEWSLETTER_BASE_URL": "https://h2otoyou.vercel.app/api/newsletter"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_GROQ_PROXY_URL": "https://h2otoyou.vercel.app/api/groq"
+        "EXPO_PUBLIC_GROQ_PROXY_URL": "https://h2otoyou.vercel.app/api/groq",
+        "EXPO_PUBLIC_CDEC_PROXY_URL": "https://h2otoyou.vercel.app/api/cdec",
+        "EXPO_PUBLIC_NEWSLETTER_BASE_URL": "https://h2otoyou.vercel.app/api/newsletter"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_GROQ_PROXY_URL": "https://h2otoyou.vercel.app/api/groq"
+        "EXPO_PUBLIC_GROQ_PROXY_URL": "https://h2otoyou.vercel.app/api/groq",
+        "EXPO_PUBLIC_CDEC_PROXY_URL": "https://h2otoyou.vercel.app/api/cdec",
+        "EXPO_PUBLIC_NEWSLETTER_BASE_URL": "https://h2otoyou.vercel.app/api/newsletter"
       }
     }
   },
