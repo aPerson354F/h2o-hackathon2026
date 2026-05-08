@@ -56,3 +56,6 @@ challenge_data.json
 # CDEC reservoir conditions PDFs (downloaded snapshots — large; data is
 # baked into data/cdec.json instead).
 rescond_*.pdf
+
+# Local debug screenshots
+screen-capture*.png
