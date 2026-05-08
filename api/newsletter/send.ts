@@ -12,6 +12,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 //
 // The Resend Broadcasts API automatically appends a List-Unsubscribe header
 // and a one-click unsubscribe link, satisfying CAN-SPAM and RFC 8058.
+//
+// Test mode (?testMode=1&to=<email>) bypasses Broadcasts entirely and sends a
+// single email via /emails — useful while we're still on the resend.dev
+// sandbox (which forbids Broadcasts but allows direct sends to the Resend
+// account owner). Still gated by CRON_SECRET. Once a custom domain is
+// verified in Resend, switch back to the Broadcasts path.
 
 const RESEND_API_BASE = "https://api.resend.com";
 
@@ -183,6 +189,15 @@ export default async function handler(
       .json({ error: { message: "?frequency=weekly|monthly required" } });
   }
 
+  const testMode = req.query.testMode === "1";
+  const testTo =
+    typeof req.query.to === "string" ? req.query.to.trim() : "";
+  if (testMode && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testTo)) {
+    return res
+      .status(400)
+      .json({ error: { message: "?testMode=1 requires a valid ?to=<email>" } });
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   const audienceId =
     frequency === "weekly"
@@ -191,7 +206,7 @@ export default async function handler(
   const fromEmail =
     process.env.RESEND_FROM_EMAIL ?? "H2O to You <onboarding@resend.dev>";
 
-  if (!apiKey || !audienceId) {
+  if (!apiKey || (!testMode && !audienceId)) {
     return res
       .status(503)
       .json({ error: { message: "Newsletter not configured" } });
@@ -201,6 +216,39 @@ export default async function handler(
     const cdec = await fetchCdec(req);
     const summary = summarize(cdec);
     const { html, text, subject } = buildEmail({ ...summary, frequency });
+
+    // Test mode bypasses Broadcasts (which require a verified custom domain)
+    // and sends a single email via /emails. Combined with the resend.dev
+    // sandbox sender — which only delivers to the account owner — this lets
+    // us preview the rendered newsletter without buying a domain. Production
+    // sends still go through the Broadcasts path below.
+    if (testMode) {
+      const r = await fetch(`${RESEND_API_BASE}/emails`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [testTo],
+          subject: `[TEST] ${subject}`,
+          html,
+          text,
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!r.ok) {
+        const detail = await r.text();
+        return res
+          .status(502)
+          .json({ error: { message: "Resend test send failed", detail } });
+      }
+      const sent = (await r.json()) as { id?: string };
+      return res
+        .status(200)
+        .json({ ok: true, testMode: true, to: testTo, id: sent.id });
+    }
 
     const create = await fetch(`${RESEND_API_BASE}/broadcasts`, {
       method: "POST",
