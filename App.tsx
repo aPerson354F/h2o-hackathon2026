@@ -84,45 +84,349 @@ const { width: SW, height: SH } = Dimensions.get("window");
 const IS_SMALL = SW < 380;
 
 // ─── DESIGN SYSTEM ──────────────────────────────────────
-const C = {
-  bg: "#020617",
-  bgSoft: "#070f1f",
-  surface: "#0d1f35",
-  surface2: "#152a47",
-  card: "#102747",
-  cardLight: "#172f52",
-  border: "#1e3a5f",
-  borderSoft: "#162a47",
-  accent: "#38bdf8",
-  accentBright: "#7dd3fc",
-  accentDeep: "#0284c7",
-  accentDim: "#0ea5e9",
-  teal: "#2dd4bf",
-  emerald: "#10b981",
-  gold: "#fbbf24",
-  amber: "#f59e0b",
-  warn: "#fb923c",
-  danger: "#f87171",
-  rose: "#fb7185",
-  purple: "#a78bfa",
-  white: "#ffffff",
-  text: "#e2e8f0",
-  textSoft: "#cbd5e1",
-  muted: "#64748b",
-  mutedDim: "#475569",
-  success: "#22c55e",
+// Color palette is a runtime-mutable container so users can swap themes
+// without re-architecting every styled component. `applyTheme()` overwrites
+// C's keys in place; module-level StyleSheet objects are rebuilt via
+// `rebuildAllStyles()` and the navigation root is remounted via a version key
+// so cached style references pick up the new palette.
+type Palette = {
+  bg: string;
+  bgSoft: string;
+  surface: string;
+  surface2: string;
+  card: string;
+  cardLight: string;
+  border: string;
+  borderSoft: string;
+  accent: string;
+  accentBright: string;
+  accentDeep: string;
+  accentDim: string;
+  teal: string;
+  emerald: string;
+  gold: string;
+  amber: string;
+  warn: string;
+  danger: string;
+  rose: string;
+  purple: string;
+  white: string;
+  text: string;
+  textSoft: string;
+  muted: string;
+  mutedDim: string;
+  success: string;
 };
 
-const CHART_CFG = {
-  backgroundColor: C.card,
-  backgroundGradientFrom: C.card,
-  backgroundGradientTo: C.surface,
-  decimalPlaces: 0,
-  color: (o = 1) => `rgba(56,189,248,${o})`,
-  labelColor: () => C.muted,
-  propsForDots: { r: "4", strokeWidth: "2", stroke: C.accent },
-  propsForBackgroundLines: { stroke: C.border, strokeDasharray: "4 4" },
+type ThemeId =
+  | "ocean"
+  | "aurora"
+  | "forest"
+  | "sunset"
+  | "crimson"
+  | "mint"
+  | "lavender"
+  | "monochrome";
+
+const THEMES: Record<ThemeId, { name: string; palette: Palette }> = {
+  ocean: {
+    name: "Ocean",
+    palette: {
+      bg: "#020617",
+      bgSoft: "#070f1f",
+      surface: "#0d1f35",
+      surface2: "#152a47",
+      card: "#102747",
+      cardLight: "#172f52",
+      border: "#1e3a5f",
+      borderSoft: "#162a47",
+      accent: "#38bdf8",
+      accentBright: "#7dd3fc",
+      accentDeep: "#0284c7",
+      accentDim: "#0ea5e9",
+      teal: "#2dd4bf",
+      emerald: "#10b981",
+      gold: "#fbbf24",
+      amber: "#f59e0b",
+      warn: "#fb923c",
+      danger: "#f87171",
+      rose: "#fb7185",
+      purple: "#a78bfa",
+      white: "#ffffff",
+      text: "#e2e8f0",
+      textSoft: "#cbd5e1",
+      muted: "#64748b",
+      mutedDim: "#475569",
+      success: "#22c55e",
+    },
+  },
+  aurora: {
+    name: "Aurora",
+    palette: {
+      bg: "#0a0220",
+      bgSoft: "#160833",
+      surface: "#211048",
+      surface2: "#2c1860",
+      card: "#281452",
+      cardLight: "#38205a",
+      border: "#4a2880",
+      borderSoft: "#2c1860",
+      accent: "#d946ef",
+      accentBright: "#f0abfc",
+      accentDeep: "#a21caf",
+      accentDim: "#c026d3",
+      teal: "#06b6d4",
+      emerald: "#10b981",
+      gold: "#fbbf24",
+      amber: "#f59e0b",
+      warn: "#fb923c",
+      danger: "#f87171",
+      rose: "#fb7185",
+      purple: "#c4b5fd",
+      white: "#ffffff",
+      text: "#ede9fe",
+      textSoft: "#ddd6fe",
+      muted: "#8b7ab5",
+      mutedDim: "#6b5d8a",
+      success: "#22c55e",
+    },
+  },
+  forest: {
+    name: "Forest",
+    palette: {
+      bg: "#02110a",
+      bgSoft: "#051c13",
+      surface: "#0a2c1f",
+      surface2: "#103d2a",
+      card: "#0d3424",
+      cardLight: "#134630",
+      border: "#1c5d3f",
+      borderSoft: "#103d2a",
+      accent: "#34d399",
+      accentBright: "#6ee7b7",
+      accentDeep: "#047857",
+      accentDim: "#10b981",
+      teal: "#2dd4bf",
+      emerald: "#10b981",
+      gold: "#fbbf24",
+      amber: "#f59e0b",
+      warn: "#fb923c",
+      danger: "#f87171",
+      rose: "#fb7185",
+      purple: "#a78bfa",
+      white: "#ffffff",
+      text: "#d1fae5",
+      textSoft: "#a7f3d0",
+      muted: "#4d7a64",
+      mutedDim: "#355d4a",
+      success: "#22c55e",
+    },
+  },
+  sunset: {
+    name: "Sunset",
+    palette: {
+      bg: "#1a0a05",
+      bgSoft: "#251006",
+      surface: "#36180a",
+      surface2: "#4a200c",
+      card: "#401c0b",
+      cardLight: "#5a2810",
+      border: "#7a3a18",
+      borderSoft: "#4a200c",
+      accent: "#fb923c",
+      accentBright: "#fdba74",
+      accentDeep: "#c2410c",
+      accentDim: "#ea580c",
+      teal: "#2dd4bf",
+      emerald: "#10b981",
+      gold: "#fbbf24",
+      amber: "#f59e0b",
+      warn: "#facc15",
+      danger: "#ef4444",
+      rose: "#fb7185",
+      purple: "#a78bfa",
+      white: "#ffffff",
+      text: "#fed7aa",
+      textSoft: "#fdba74",
+      muted: "#92654a",
+      mutedDim: "#6b4a37",
+      success: "#22c55e",
+    },
+  },
+  crimson: {
+    name: "Crimson",
+    palette: {
+      bg: "#0f0204",
+      bgSoft: "#1a0408",
+      surface: "#2c0810",
+      surface2: "#3d0c18",
+      card: "#380a14",
+      cardLight: "#4a121d",
+      border: "#6b1828",
+      borderSoft: "#3d0c18",
+      accent: "#f43f5e",
+      accentBright: "#fda4af",
+      accentDeep: "#be123c",
+      accentDim: "#e11d48",
+      teal: "#2dd4bf",
+      emerald: "#10b981",
+      gold: "#fbbf24",
+      amber: "#f59e0b",
+      warn: "#fb923c",
+      danger: "#ef4444",
+      rose: "#fb7185",
+      purple: "#a78bfa",
+      white: "#ffffff",
+      text: "#fce7f0",
+      textSoft: "#fbcfe8",
+      muted: "#8a4a5c",
+      mutedDim: "#6b3848",
+      success: "#22c55e",
+    },
+  },
+  mint: {
+    name: "Mint",
+    palette: {
+      bg: "#021416",
+      bgSoft: "#042024",
+      surface: "#08303a",
+      surface2: "#0c4150",
+      card: "#0a3a48",
+      cardLight: "#0e4d5e",
+      border: "#146278",
+      borderSoft: "#0c4150",
+      accent: "#5eead4",
+      accentBright: "#99f6e4",
+      accentDeep: "#0d9488",
+      accentDim: "#14b8a6",
+      teal: "#2dd4bf",
+      emerald: "#10b981",
+      gold: "#fbbf24",
+      amber: "#f59e0b",
+      warn: "#fb923c",
+      danger: "#f87171",
+      rose: "#fb7185",
+      purple: "#a78bfa",
+      white: "#ffffff",
+      text: "#ccfbf1",
+      textSoft: "#a7f3d0",
+      muted: "#538a85",
+      mutedDim: "#3a6864",
+      success: "#22c55e",
+    },
+  },
+  lavender: {
+    name: "Lavender",
+    palette: {
+      bg: "#0e0a1f",
+      bgSoft: "#15102d",
+      surface: "#221a45",
+      surface2: "#2e2458",
+      card: "#281f50",
+      cardLight: "#36296a",
+      border: "#483478",
+      borderSoft: "#2e2458",
+      accent: "#a78bfa",
+      accentBright: "#c4b5fd",
+      accentDeep: "#6d28d9",
+      accentDim: "#8b5cf6",
+      teal: "#2dd4bf",
+      emerald: "#10b981",
+      gold: "#fbbf24",
+      amber: "#f59e0b",
+      warn: "#fb923c",
+      danger: "#f87171",
+      rose: "#fb7185",
+      purple: "#c4b5fd",
+      white: "#ffffff",
+      text: "#ede9fe",
+      textSoft: "#ddd6fe",
+      muted: "#7a6db0",
+      mutedDim: "#594d8a",
+      success: "#22c55e",
+    },
+  },
+  monochrome: {
+    name: "Monochrome",
+    palette: {
+      bg: "#08080a",
+      bgSoft: "#111114",
+      surface: "#1c1c20",
+      surface2: "#2a2a30",
+      card: "#242428",
+      cardLight: "#303036",
+      border: "#3d3d44",
+      borderSoft: "#2a2a30",
+      accent: "#f5f5f5",
+      accentBright: "#ffffff",
+      accentDeep: "#a1a1aa",
+      accentDim: "#d4d4d8",
+      teal: "#2dd4bf",
+      emerald: "#10b981",
+      gold: "#fbbf24",
+      amber: "#f59e0b",
+      warn: "#fb923c",
+      danger: "#f87171",
+      rose: "#fb7185",
+      purple: "#a78bfa",
+      white: "#ffffff",
+      text: "#e5e5e5",
+      textSoft: "#d4d4d4",
+      muted: "#71717a",
+      mutedDim: "#52525b",
+      success: "#22c55e",
+    },
+  },
 };
+
+const THEME_KEY = "theme_id_v1";
+const DEFAULT_THEME: ThemeId = "ocean";
+
+// Live palette object — referenced everywhere as `C.<key>`. Keys are
+// reassigned in place by `applyTheme()` so inline style references
+// `style={{ backgroundColor: C.bg }}` re-evaluate to the new color on
+// the next render.
+const C: Palette = { ...THEMES[DEFAULT_THEME].palette };
+
+function applyTheme(id: ThemeId): void {
+  const t = THEMES[id] ?? THEMES[DEFAULT_THEME];
+  Object.assign(C, t.palette);
+}
+
+// CHART_CFG must be reassignable so its captured C.* values refresh on
+// theme change. Used as a value (no spread or close-over) in chart components.
+function buildChartCfg() {
+  return {
+    backgroundColor: C.card,
+    backgroundGradientFrom: C.card,
+    backgroundGradientTo: C.surface,
+    decimalPlaces: 0,
+    color: (o = 1) => {
+      const hex = C.accent.replace("#", "");
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return `rgba(${r},${g},${b},${o})`;
+    },
+    labelColor: () => C.muted,
+    propsForDots: { r: "4", strokeWidth: "2", stroke: C.accent },
+    propsForBackgroundLines: { stroke: C.border, strokeDasharray: "4 4" },
+  };
+}
+let CHART_CFG = buildChartCfg();
+
+// Rebuild every module-level StyleSheet/config that captured C values at
+// creation time. The module-level `let` bindings (`s`, `st`, `dvStyle`,
+// `rcStyle`) are reassigned, and any component re-rendered after this call
+// will read the new style objects.
+function rebuildAllStyles(): void {
+  CHART_CFG = buildChartCfg();
+  if (typeof buildShadowHero === "function") SHADOW_HERO = buildShadowHero();
+  if (typeof buildDvStyle === "function") dvStyle = buildDvStyle();
+  if (typeof buildRcStyle === "function") rcStyle = buildRcStyle();
+  if (typeof buildS === "function") s = buildS();
+  if (typeof buildSt === "function") st = buildSt();
+}
 
 const SHADOW = Platform.select({
   ios: {
@@ -140,21 +444,32 @@ const SHADOW = Platform.select({
   default: {},
 });
 
-// Stronger, accent-tinted elevation for hero/spotlight cards.
-const SHADOW_HERO = Platform.select({
-  ios: {
-    shadowColor: "#38bdf8",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
-    shadowRadius: 28,
-  },
-  android: { elevation: 14 },
-  web: {
-    boxShadow:
-      "0 18px 48px -12px rgba(56,189,248,0.35), 0 4px 12px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
-  } as any,
-  default: {},
-});
+// Stronger, accent-tinted elevation for hero/spotlight cards. The web
+// boxShadow needs an rgb triple from the active accent so it tints with the
+// current theme.
+function hexToRgb(hex: string): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `${r},${g},${b}`;
+}
+function buildShadowHero() {
+  return Platform.select({
+    ios: {
+      shadowColor: C.accent,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.35,
+      shadowRadius: 28,
+    },
+    android: { elevation: 14 },
+    web: {
+      boxShadow: `0 18px 48px -12px rgba(${hexToRgb(C.accent)},0.35), 0 4px 12px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)`,
+    } as any,
+    default: {},
+  });
+}
+let SHADOW_HERO = buildShadowHero();
 
 const GROQ_PROXY_URL = process.env.EXPO_PUBLIC_GROQ_PROXY_URL ?? "/api/groq";
 const CDEC_PROXY_URL = process.env.EXPO_PUBLIC_CDEC_PROXY_URL ?? "/api/cdec";
@@ -3260,6 +3575,9 @@ type AppCtx = {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   continueAsGuest: () => Promise<void>;
+  themeId: ThemeId;
+  setThemeId: (id: ThemeId) => Promise<void>;
+  themeVersion: number;
 };
 const AppContext = createContext<AppCtx | null>(null);
 const useApp = () => {
@@ -3301,6 +3619,10 @@ function isValidEmail(email: string): boolean {
 }
 
 const ACCOUNT_KEY = "account_v1";
+// Persisted once the user accepts the privacy policy + terms during a
+// sign-in flow. Keyed `_v1` so future legal updates can force re-consent
+// by bumping the suffix.
+const LEGAL_AGREED_KEY = "legal_agreed_v1";
 
 function AppProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfileState] = useState<Profile>(DEFAULT_PROFILE);
@@ -3320,10 +3642,32 @@ function AppProvider({ children }: { children: React.ReactNode }) {
   const todayKey = () => new Date().toISOString().split("T")[0];
   const [todayDate, setTodayDate] = useState<string>(todayKey());
   const [todayLog, setTodayLog] = useState<CloudLogEntry[]>([]);
+  const [themeId, setThemeIdState] = useState<ThemeId>(DEFAULT_THEME);
+  const [themeVersion, setThemeVersion] = useState(0);
   const cloudPushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cloudLogPushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const setThemeId = useCallback(async (id: ThemeId) => {
+    if (!THEMES[id]) return;
+    applyTheme(id);
+    rebuildAllStyles();
+    setThemeIdState(id);
+    setThemeVersion((v) => v + 1);
+    await AsyncStorage.setItem(THEME_KEY, id);
+  }, []);
+
   const loadProfile = useCallback(async () => {
+    // Load and apply theme BEFORE marking loaded so the first render uses
+    // the persisted palette. Module-level styles are rebuilt synchronously.
+    const storedTheme = (await AsyncStorage.getItem(THEME_KEY)) as
+      | ThemeId
+      | null;
+    if (storedTheme && THEMES[storedTheme] && storedTheme !== DEFAULT_THEME) {
+      applyTheme(storedTheme);
+      rebuildAllStyles();
+      setThemeIdState(storedTheme);
+    }
+
     const p = await AsyncStorage.getItem("profile");
     if (p) setProfileState({ ...DEFAULT_PROFILE, ...JSON.parse(p) });
     const b = JSON.parse((await AsyncStorage.getItem("badges")) || "[]");
@@ -3766,6 +4110,9 @@ function AppProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         continueAsGuest,
+        themeId,
+        setThemeId,
+        themeVersion,
       }}
     >
       {children}
@@ -4339,50 +4686,53 @@ function DocViewerModal({
   );
 }
 
-const dvStyle = StyleSheet.create({
-  h1: {
-    color: C.white,
-    fontSize: 22,
-    fontWeight: "800",
-    marginTop: 6,
-    marginBottom: 6,
-  },
-  h2: {
-    color: C.white,
-    fontSize: 17,
-    fontWeight: "800",
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  h3: {
-    color: C.text,
-    fontSize: 15,
-    fontWeight: "700",
-    marginTop: 10,
-    marginBottom: 2,
-  },
-  p: {
-    color: C.text,
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  li: {
-    color: C.text,
-    fontSize: 13,
-    lineHeight: 20,
-    paddingLeft: 6,
-  },
-  quote: {
-    color: C.muted,
-    fontSize: 12,
-    lineHeight: 18,
-    fontStyle: "italic",
-    borderLeftWidth: 3,
-    borderLeftColor: C.border,
-    paddingLeft: 10,
-    marginVertical: 4,
-  },
-});
+function buildDvStyle() {
+  return StyleSheet.create({
+    h1: {
+      color: C.white,
+      fontSize: 22,
+      fontWeight: "800",
+      marginTop: 6,
+      marginBottom: 6,
+    },
+    h2: {
+      color: C.white,
+      fontSize: 17,
+      fontWeight: "800",
+      marginTop: 12,
+      marginBottom: 4,
+    },
+    h3: {
+      color: C.text,
+      fontSize: 15,
+      fontWeight: "700",
+      marginTop: 10,
+      marginBottom: 2,
+    },
+    p: {
+      color: C.text,
+      fontSize: 13,
+      lineHeight: 20,
+    },
+    li: {
+      color: C.text,
+      fontSize: 13,
+      lineHeight: 20,
+      paddingLeft: 6,
+    },
+    quote: {
+      color: C.muted,
+      fontSize: 12,
+      lineHeight: 18,
+      fontStyle: "italic",
+      borderLeftWidth: 3,
+      borderLeftColor: C.border,
+      paddingLeft: 10,
+      marginVertical: 4,
+    },
+  });
+}
+let dvStyle = buildDvStyle();
 
 // ─── FIND NEAREST RESERVOIR MODAL ──────────────────────
 // Permission-gated geolocation lookup. Requests location once, computes the
@@ -4694,15 +5044,34 @@ function LoginModal({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Legal gate — sign-in cannot proceed until the user accepts the privacy
+  // policy and terms. Acceptance is persisted so returning users are not
+  // re-prompted on every sign-out/sign-in cycle.
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setErr(null);
       setPassword("");
+      AsyncStorage.getItem(LEGAL_AGREED_KEY).then((v) => {
+        if (v === "1") setAgreed(true);
+      });
     }
   }, [visible]);
 
+  const toggleAgreed = () => {
+    setAgreed((prev) => {
+      const next = !prev;
+      if (next) AsyncStorage.setItem(LEGAL_AGREED_KEY, "1");
+      return next;
+    });
+  };
+
   const submit = async () => {
+    if (!agreed) {
+      setErr("Please accept the Privacy Policy and Terms of Service to continue.");
+      return;
+    }
     setBusy(true);
     setErr(null);
     try {
@@ -4729,6 +5098,10 @@ function LoginModal({
 
   const handleGoogle = async () => {
     if (busy) return;
+    if (!agreed) {
+      setErr("Please accept the Privacy Policy and Terms of Service to continue.");
+      return;
+    }
     setBusy(true);
     setErr(null);
     try {
@@ -4781,47 +5154,108 @@ function LoginModal({
             showsVerticalScrollIndicator={false}
           >
             <Press
-              onPress={handleGoogle}
-              disabled={busy}
-              style={[
-                st.btn,
-                {
-                  marginBottom: 14,
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  gap: 8,
-                  opacity: busy ? 0.6 : 1,
-                },
-              ]}
-            >
-              <Ionicons name="logo-google" size={18} color="#fff" />
-              <Text style={st.btnText}>Sign in with Google</Text>
-            </Press>
-
-            <View
+              onPress={toggleAgreed}
               style={{
                 flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
+                alignItems: "flex-start",
+                gap: 10,
                 marginBottom: 14,
+                padding: 12,
+                backgroundColor: C.surface,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: agreed ? C.accent : C.border,
               }}
             >
               <View
                 style={{
-                  flex: 1,
-                  height: 1,
-                  backgroundColor: C.border,
+                  width: 22,
+                  height: 22,
+                  borderRadius: 6,
+                  borderWidth: 2,
+                  borderColor: agreed ? C.accent : C.muted,
+                  backgroundColor: agreed ? C.accent : "transparent",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: 1,
                 }}
-              />
-              <Text style={{ color: C.muted, fontSize: 11 }}>or email</Text>
-              <View
+              >
+                {agreed ? (
+                  <Ionicons name="checkmark" size={14} color={C.bg} />
+                ) : null}
+              </View>
+              <Text
                 style={{
                   flex: 1,
-                  height: 1,
-                  backgroundColor: C.border,
+                  color: C.text,
+                  fontSize: 12,
+                  lineHeight: 18,
                 }}
-              />
-            </View>
+              >
+                I agree to the{" "}
+                <Text
+                  onPress={onPrivacy}
+                  style={{ color: C.accent, fontWeight: "700" }}
+                >
+                  {t("policy.privacy_title")}
+                </Text>
+                {" "}and{" "}
+                <Text
+                  onPress={onTerms}
+                  style={{ color: C.accent, fontWeight: "700" }}
+                >
+                  {t("policy.terms_title")}
+                </Text>
+                .
+              </Text>
+            </Press>
+
+            {Platform.OS !== "web" ? (
+              <>
+                <Press
+                  onPress={handleGoogle}
+                  disabled={busy || !agreed}
+                  style={[
+                    st.btn,
+                    {
+                      marginBottom: 14,
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      gap: 8,
+                      opacity: busy || !agreed ? 0.5 : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons name="logo-google" size={18} color="#fff" />
+                  <Text style={st.btnText}>Sign in with Google</Text>
+                </Press>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 14,
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      height: 1,
+                      backgroundColor: C.border,
+                    }}
+                  />
+                  <Text style={{ color: C.muted, fontSize: 11 }}>or email</Text>
+                  <View
+                    style={{
+                      flex: 1,
+                      height: 1,
+                      backgroundColor: C.border,
+                    }}
+                  />
+                </View>
+              </>
+            ) : null}
 
             <View
               style={{
@@ -4892,12 +5326,12 @@ function LoginModal({
 
             <Press
               onPress={submit}
-              disabled={busy || !email || !password}
+              disabled={busy || !email || !password || !agreed}
               style={[
                 st.btn,
                 {
                   marginTop: 14,
-                  opacity: busy || !email || !password ? 0.5 : 1,
+                  opacity: busy || !email || !password || !agreed ? 0.5 : 1,
                 },
               ]}
             >
@@ -5296,40 +5730,43 @@ function ReservoirConditionsReport() {
   );
 }
 
-const rcStyle = StyleSheet.create({
-  colHead: {
-    color: C.muted,
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.6,
-  },
-  regionHead: {
-    color: C.accent,
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.2,
-    paddingTop: 10,
-    paddingBottom: 4,
-    paddingHorizontal: 4,
-    textTransform: "uppercase",
-  },
-  rowName: {
-    color: C.text,
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  rowSub: {
-    color: C.muted,
-    fontSize: 10,
-    marginTop: 1,
-  },
-  cell: {
-    color: C.text,
-    fontSize: 13,
-    textAlign: "right",
-    fontVariant: ["tabular-nums"],
-  },
-});
+function buildRcStyle() {
+  return StyleSheet.create({
+    colHead: {
+      color: C.muted,
+      fontSize: 10,
+      fontWeight: "700",
+      letterSpacing: 0.6,
+    },
+    regionHead: {
+      color: C.accent,
+      fontSize: 10,
+      fontWeight: "800",
+      letterSpacing: 1.2,
+      paddingTop: 10,
+      paddingBottom: 4,
+      paddingHorizontal: 4,
+      textTransform: "uppercase",
+    },
+    rowName: {
+      color: C.text,
+      fontSize: 13,
+      fontWeight: "700",
+    },
+    rowSub: {
+      color: C.muted,
+      fontSize: 10,
+      marginTop: 1,
+    },
+    cell: {
+      color: C.text,
+      fontSize: 13,
+      textAlign: "right",
+      fontVariant: ["tabular-nums"],
+    },
+  });
+}
+let rcStyle = buildRcStyle();
 
 // ─── LEADERBOARD CARD ──────────────────────────────────
 function LeaderboardCard() {
@@ -9178,7 +9615,7 @@ function SettingsModal({
   visible: boolean;
   onClose: () => void;
 }) {
-  const { profile, setProfile, clearNotifs, account, signOut } = useApp();
+  const { profile, setProfile, clearNotifs, account, signOut, themeId, setThemeId } = useApp();
   const t = useT(profile.lang);
   const [draft, setDraft] = useState<Profile>(profile);
   const [showAbout, setShowAbout] = useState(false);
@@ -9395,6 +9832,104 @@ function SettingsModal({
               </View>
               <Ionicons name="chevron-forward" size={16} color={C.muted} />
             </Press>
+
+            {/* APPEARANCE */}
+            <Text style={st.settingHeader}>APPEARANCE</Text>
+            <Text
+              style={{
+                color: C.muted,
+                fontSize: 11,
+                lineHeight: 16,
+                marginTop: -4,
+                marginBottom: 10,
+              }}
+            >
+              Tap a theme to apply. Settings will close so the new palette
+              takes effect everywhere.
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 10,
+                marginBottom: 12,
+              }}
+            >
+              {(Object.keys(THEMES) as ThemeId[]).map((id) => {
+                const t = THEMES[id];
+                const active = themeId === id;
+                return (
+                  <Press
+                    key={id}
+                    onPress={() => {
+                      setThemeId(id);
+                      onClose();
+                    }}
+                    style={{
+                      width: (SW - 50) / 2,
+                      backgroundColor: t.palette.card,
+                      borderWidth: 2,
+                      borderColor: active ? t.palette.accent : t.palette.border,
+                      borderRadius: 14,
+                      padding: 12,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 6,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 9,
+                          backgroundColor: t.palette.accent,
+                        }}
+                      />
+                      <View
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: 7,
+                          backgroundColor: t.palette.accentDeep,
+                        }}
+                      />
+                      <View
+                        style={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: 6,
+                          backgroundColor: t.palette.surface2,
+                          borderWidth: 1,
+                          borderColor: t.palette.border,
+                        }}
+                      />
+                      {active ? (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={16}
+                          color={t.palette.accent}
+                          style={{ marginLeft: "auto" }}
+                        />
+                      ) : null}
+                    </View>
+                    <Text
+                      style={{
+                        color: t.palette.text,
+                        fontSize: 13,
+                        fontWeight: "800",
+                      }}
+                    >
+                      {t.name}
+                    </Text>
+                  </Press>
+                );
+              })}
+            </View>
 
             {/* NOTIFICATIONS */}
             <Text style={st.settingHeader}>
@@ -11348,9 +11883,37 @@ function SignInModal({
   const { profile } = useApp();
   const t = useT(profile.lang);
   const [busy, setBusy] = useState(false);
+  // Legal gate identical to LoginModal — Google sign-in is the only auth
+  // path here, so it stays disabled until the user accepts the policies.
+  const [agreed, setAgreed] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      AsyncStorage.getItem(LEGAL_AGREED_KEY).then((v) => {
+        if (v === "1") setAgreed(true);
+      });
+    }
+  }, [visible]);
+
+  const toggleAgreed = () => {
+    setAgreed((prev) => {
+      const next = !prev;
+      if (next) AsyncStorage.setItem(LEGAL_AGREED_KEY, "1");
+      return next;
+    });
+  };
 
   const handleGoogle = async () => {
     if (busy) return;
+    if (!agreed) {
+      Alert.alert(
+        "Accept policies",
+        "Please accept the Privacy Policy and Terms of Service to sign in.",
+      );
+      return;
+    }
     setBusy(true);
     try {
       await signInWithGoogle();
@@ -11380,28 +11943,102 @@ function SignInModal({
           <Text style={st.onboardSub}>
             Your streak, badges, and goals will follow you across devices.
           </Text>
+
           <Press
-            onPress={handleGoogle}
-            style={[
-              st.btn,
-              {
-                marginTop: 20,
-                flexDirection: "row",
-                justifyContent: "center",
-                gap: 8,
-              },
-            ]}
-            disabled={busy}
+            onPress={toggleAgreed}
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: 10,
+              marginTop: 18,
+              padding: 12,
+              backgroundColor: C.surface2,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: agreed ? C.accent : C.border,
+            }}
           >
-            {busy ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="logo-google" size={18} color="#fff" />
-                <Text style={st.btnText}>Sign in with Google</Text>
-              </>
-            )}
+            <View
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 6,
+                borderWidth: 2,
+                borderColor: agreed ? C.accent : C.muted,
+                backgroundColor: agreed ? C.accent : "transparent",
+                alignItems: "center",
+                justifyContent: "center",
+                marginTop: 1,
+              }}
+            >
+              {agreed ? (
+                <Ionicons name="checkmark" size={14} color={C.bg} />
+              ) : null}
+            </View>
+            <Text
+              style={{
+                flex: 1,
+                color: C.text,
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              I agree to the{" "}
+              <Text
+                onPress={() => setShowPrivacy(true)}
+                style={{ color: C.accent, fontWeight: "700" }}
+              >
+                {t("policy.privacy_title")}
+              </Text>
+              {" "}and{" "}
+              <Text
+                onPress={() => setShowTerms(true)}
+                style={{ color: C.accent, fontWeight: "700" }}
+              >
+                {t("policy.terms_title")}
+              </Text>
+              .
+            </Text>
           </Press>
+
+          {Platform.OS !== "web" ? (
+            <Press
+              onPress={handleGoogle}
+              style={[
+                st.btn,
+                {
+                  marginTop: 14,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: 8,
+                  opacity: busy || !agreed ? 0.5 : 1,
+                },
+              ]}
+              disabled={busy || !agreed}
+            >
+              {busy ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={18} color="#fff" />
+                  <Text style={st.btnText}>Sign in with Google</Text>
+                </>
+              )}
+            </Press>
+          ) : (
+            <Text
+              style={{
+                color: C.muted,
+                fontSize: 12,
+                textAlign: "center",
+                marginTop: 14,
+                lineHeight: 18,
+              }}
+            >
+              Google sign-in is mobile-only in this build. Your progress is
+              saved locally in this browser.
+            </Text>
+          )}
           <Press
             onPress={onDone}
             style={[st.btn, { marginTop: 10, backgroundColor: C.surface2 }]}
@@ -11411,6 +12048,19 @@ function SignInModal({
           </Press>
         </View>
       </View>
+
+      <DocViewerModal
+        visible={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        title={t("policy.privacy_title")}
+        body={PRIVACY_DOC}
+      />
+      <DocViewerModal
+        visible={showTerms}
+        onClose={() => setShowTerms(false)}
+        title={t("policy.terms_title")}
+        body={TERMS_DOC}
+      />
     </Modal>
   );
 }
@@ -18534,12 +19184,20 @@ class ErrorBoundary extends React.Component<
   }
 }
 
+function ThemedRoot() {
+  // Re-mount the entire navigation tree when the theme version bumps so
+  // every component reads the freshly-rebuilt module-level StyleSheet
+  // objects. The toast lives outside this remount so it isn't disrupted.
+  const { themeVersion } = useApp();
+  return <NavRoot key={themeVersion} />;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
         <AppProvider>
-          <NavRoot />
+          <ThemedRoot />
           <BadgeUnlockToast />
         </AppProvider>
       </SafeAreaProvider>
@@ -18548,26 +19206,30 @@ export default function App() {
 }
 
 // ─── STYLES ──────────────────────────────────────────────
-const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: C.bg },
-  section: {
-    color: C.muted,
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2,
-    marginHorizontal: 16,
-    marginTop: 18,
-    marginBottom: 10,
-  },
-  sectionInline: {
-    color: C.muted,
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2,
-  },
-});
+function buildS() {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: C.bg },
+    section: {
+      color: C.muted,
+      fontSize: 11,
+      fontWeight: "800",
+      letterSpacing: 2,
+      marginHorizontal: 16,
+      marginTop: 18,
+      marginBottom: 10,
+    },
+    sectionInline: {
+      color: C.muted,
+      fontSize: 11,
+      fontWeight: "800",
+      letterSpacing: 2,
+    },
+  });
+}
+let s = buildS();
 
-const st = StyleSheet.create({
+function buildSt() {
+  return StyleSheet.create({
   // Header
   header: {
     flexDirection: "row",
@@ -19396,4 +20058,6 @@ const st = StyleSheet.create({
     marginRight: 10,
     width: 200,
   },
-});
+  });
+}
+let st = buildSt();

@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import {
   getFirestore,
   doc,
@@ -9,6 +10,12 @@ import {
   serverTimestamp,
   type FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
+
+// See firebase-auth.ts for context — Firebase JS SDK isn't initialized on
+// web, so every Firestore entry point short-circuits to a benign no-op.
+// Cloud sync is therefore unavailable on the web build; local AsyncStorage
+// state remains the source of truth.
+const FIREBASE_WEB_DISABLED = Platform.OS === "web";
 
 // Cloud-side schema (kept intentionally narrow to limit churn). Iteration 1
 // synced profile + badges. Iteration 2 adds stats. Daily logs, notifications,
@@ -29,6 +36,7 @@ export type CloudUserData = {
 const userDoc = (uid: string) => doc(getFirestore(), "users", uid);
 
 export async function pullUserData(uid: string): Promise<CloudUserData | null> {
+  if (FIREBASE_WEB_DISABLED) return null;
   const snap = await getDoc(userDoc(uid));
   return snap.exists() ? (snap.data() as CloudUserData) : null;
 }
@@ -37,6 +45,7 @@ export async function pushUserData(
   uid: string,
   data: CloudUserData,
 ): Promise<void> {
+  if (FIREBASE_WEB_DISABLED) return;
   await setDoc(
     userDoc(uid),
     { ...data, updatedAt: serverTimestamp() },
@@ -48,6 +57,10 @@ export function subscribeUserData(
   uid: string,
   cb: (data: CloudUserData | null) => void,
 ): () => void {
+  if (FIREBASE_WEB_DISABLED) {
+    cb(null);
+    return () => {};
+  }
   return onSnapshot(userDoc(uid), (snap) => {
     cb(snap.exists() ? (snap.data() as CloudUserData) : null);
   });
@@ -76,6 +89,7 @@ const userLogDoc = (uid: string, date: string) =>
 export async function pullAllLogs(
   uid: string,
 ): Promise<Record<string, CloudDayLog>> {
+  if (FIREBASE_WEB_DISABLED) return {};
   const snap = await getDocs(userLogColl(uid));
   const out: Record<string, CloudDayLog> = {};
   snap.forEach((d) => {
@@ -93,6 +107,7 @@ export async function pushDayLog(
   date: string,
   data: CloudDayLog,
 ): Promise<void> {
+  if (FIREBASE_WEB_DISABLED) return;
   await setDoc(userLogDoc(uid, date), {
     ...data,
     updatedAt: serverTimestamp(),
