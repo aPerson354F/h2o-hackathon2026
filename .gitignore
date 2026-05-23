@@ -59,3 +59,6 @@ rescond_*.pdf
 
 # Local debug screenshots
 screen-capture*.png
+
+.vercel
+.env*.local

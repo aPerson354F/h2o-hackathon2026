@@ -80,6 +80,7 @@ import {
 } from "./firestore-sync";
 
 const Tab = createBottomTabNavigator();
+const HealthTab = createBottomTabNavigator();
 const { width: SW, height: SH } = Dimensions.get("window");
 const IS_SMALL = SW < 380;
 
@@ -567,6 +568,11 @@ const fmtVol = (gallons: number, units: "gal" | "L", digits = 1) =>
   units === "gal"
     ? `${gallons.toFixed(digits)} gal`
     : `${galToL(gallons).toFixed(digits)} L`;
+
+// ─── DATE/TIME HELPERS ─────────────────────────────────
+const todayKey = () => new Date().toISOString().split("T")[0];
+const formatLogTime = () =>
+  new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 // ─── GROQ HELPER ────────────────────────────────────────
 async function askGroq(
@@ -1488,7 +1494,7 @@ async function addNotif(n: Omit<Notif, "id" | "time" | "read">) {
   return newN;
 }
 
-async function generateNotifs(profile: Profile, t?: TFn) {
+async function generateNotifs(profile: Profile, t?: TFn, plant?: PlantState) {
   const list = await getNotifs();
   const now = new Date();
   const today = now.toISOString().split("T")[0];
@@ -1565,6 +1571,22 @@ async function generateNotifs(profile: Profile, t?: TFn) {
         time: Date.now(),
         read: false,
       });
+    }
+    // thirsty plant — fires when the Health-mode plant has dried below 30%.
+    // Piggybacks on the 6-hour slot so it caps at 4 alerts/day.
+    if (profile.remindersEnabled && plant && plant.growthXp > 0) {
+      const hydration = plantHydrationNow(plant);
+      if (hydration < 30) {
+        list.unshift({
+          id: "plant-" + slot,
+          type: "reminder",
+          emoji: "🌱",
+          title: "Your plant is thirsty",
+          body: `Hydration is at ${Math.round(hydration)}%. Log a drink to water your plant.`,
+          time: Date.now(),
+          read: false,
+        });
+      }
     }
     await AsyncStorage.setItem("lastNotifGen", slot);
   }
@@ -3549,6 +3571,109 @@ async function bumpLifetimeSaved(daySaved: number) {
   }
 }
 
+// ─── PLANT (HEALTH MODE) ───────────────────────────────
+// A virtual plant the user "waters" by logging drinks. Hydration drains
+// over time; growth XP accumulates with each drink and never decays.
+// Stage is purely a function of growth XP, so the plant only ever moves
+// forward — wilting (low hydration) is a visual signal, not a setback.
+type PlantStage = 0 | 1 | 2 | 3 | 4 | 5;
+type PlantState = {
+  hydration: number; // 0-100; decays over time, refills on watering
+  growthXp: number; // monotonically increasing; determines stage
+  lastWateredAt: number; // ms epoch; for decay calc
+  lastNotifAt: number; // ms epoch; throttle for "thirsty" notifs
+};
+const PLANT_STATE_KEY = "plant_state_v1";
+// Hydration drains 100 → 0 over ~24 hours of no drinks.
+const PLANT_DECAY_PER_HOUR = 100 / 24;
+// Each drink adds hydration proportional to gallons (1 gal ≈ 30%).
+const PLANT_HYDRATION_PER_GAL = 30;
+// Fixed XP per drink, independent of size — rewards the habit of logging,
+// not the volume of any single sip.
+const PLANT_GROWTH_PER_DRINK = 8;
+const PLANT_STAGE_THRESHOLDS = [0, 20, 60, 140, 280, 500] as const;
+const PLANT_STAGE_EMOJI = ["🫘", "🌱", "🌿", "🪴", "🌳", "🌸"] as const;
+const PLANT_STAGE_NAME = [
+  "Seed",
+  "Sprout",
+  "Seedling",
+  "Sapling",
+  "Tree",
+  "Bloom",
+] as const;
+const DEFAULT_PLANT: PlantState = {
+  hydration: 60,
+  growthXp: 0,
+  lastWateredAt: Date.now(),
+  lastNotifAt: 0,
+};
+
+function plantStage(xp: number): PlantStage {
+  let stage: PlantStage = 0;
+  for (let i = PLANT_STAGE_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (xp >= PLANT_STAGE_THRESHOLDS[i]) {
+      stage = i as PlantStage;
+      break;
+    }
+  }
+  return stage;
+}
+
+function plantHydrationNow(state: PlantState, now = Date.now()): number {
+  const hours = Math.max(0, (now - state.lastWateredAt) / 3_600_000);
+  return Math.max(0, state.hydration - PLANT_DECAY_PER_HOUR * hours);
+}
+
+async function loadPlantState(): Promise<PlantState> {
+  const raw = await AsyncStorage.getItem(PLANT_STATE_KEY);
+  if (!raw) return { ...DEFAULT_PLANT, lastWateredAt: Date.now() };
+  try {
+    const parsed = JSON.parse(raw) as Partial<PlantState>;
+    return { ...DEFAULT_PLANT, ...parsed };
+  } catch {
+    return { ...DEFAULT_PLANT, lastWateredAt: Date.now() };
+  }
+}
+
+async function savePlantState(state: PlantState): Promise<void> {
+  await AsyncStorage.setItem(PLANT_STATE_KEY, JSON.stringify(state));
+}
+
+// Health-mode presets and the labels we treat as drinks. The Conservation
+// Logger contributes "Drinking Water" entries; the Health quick-add row
+// uses the rest. Any string in this list counts toward today's hydration.
+const DRINK_LABELS = [
+  "Drinking Water",
+  "Glass",
+  "Bottle",
+  "Large",
+  "Custom Drink",
+] as const;
+type DrinkLabel = (typeof DRINK_LABELS)[number];
+const isDrinkEntry = (e: { label: string }) =>
+  (DRINK_LABELS as readonly string[]).includes(e.label);
+
+// Color + label triple for hydration thresholds. Centralized so the
+// HydrationBar fill, the PlantScreen status copy, and any other UI that
+// surfaces hydration state agree on the breakpoints.
+function hydrationStatus(pct: number): { color: string; label: string } {
+  if (pct > 60) return { color: C.success, label: "Healthy and happy" };
+  if (pct > 30) return { color: C.amber, label: "Getting thirsty" };
+  return { color: C.danger, label: "Needs water!" };
+}
+
+// One module-level "minute tick" so screens that need to re-render for
+// hydration decay don't each spin up their own setInterval. Returns the
+// current ms epoch and triggers a re-render every `intervalMs`.
+function useNow(intervalMs = 60_000): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
 // ─── APP CONTEXT ───────────────────────────────────────
 // Local-only account: email + a salted SHA-256 password hash. Everything is
 // kept in AsyncStorage on this device — no server. The "login" flow is purely
@@ -3578,7 +3703,26 @@ type AppCtx = {
   themeId: ThemeId;
   setThemeId: (id: ThemeId) => Promise<void>;
   themeVersion: number;
+  // Top-level navigation mode. "select" shows the splash picker; the two
+  // tab modes render their own bottom-tab navigators. Resets to "select"
+  // on every app launch (intentionally not persisted) so the user picks
+  // each session.
+  mode: AppMode;
+  setMode: (m: AppMode) => void;
+  // Plant state lives outside the conservation experience. Updated whenever
+  // the user logs a drink in either mode.
+  plant: PlantState;
+  waterPlantWith: (gallons: number) => Promise<void>;
+  // Today's intake log. The poll in AppProvider keeps this in sync with
+  // any out-of-band writes (e.g. the Conservation Logger's local state).
+  // Health screens derive their drink list by filtering this.
+  todayLog: CloudLogEntry[];
+  // Single canonical writer used by Health-mode quick-add. Writes to
+  // AsyncStorage and updates todayLog in one shot so consumers don't have
+  // to wait for the 4s poll.
+  appendLogEntry: (entry: CloudLogEntry) => Promise<void>;
 };
+type AppMode = "select" | "conservation" | "health";
 const AppContext = createContext<AppCtx | null>(null);
 const useApp = () => {
   const v = useContext(AppContext);
@@ -3639,13 +3783,59 @@ function AppProvider({ children }: { children: React.ReactNode }) {
     streak: 0,
     lifetimeSaved: 0,
   });
-  const todayKey = () => new Date().toISOString().split("T")[0];
   const [todayDate, setTodayDate] = useState<string>(todayKey());
   const [todayLog, setTodayLog] = useState<CloudLogEntry[]>([]);
   const [themeId, setThemeIdState] = useState<ThemeId>(DEFAULT_THEME);
   const [themeVersion, setThemeVersion] = useState(0);
+  // mode is intentionally session-only — defaults to "select" on every
+  // app launch so users see the splash picker each time.
+  const [mode, setMode] = useState<AppMode>("select");
+  const [plant, setPlant] = useState<PlantState>(DEFAULT_PLANT);
+  // Mirror plant in a ref so waterPlantWith can compute next state without
+  // doing I/O inside a setState updater (which StrictMode would double-fire).
+  const plantRef = useRef(plant);
+  useEffect(() => {
+    plantRef.current = plant;
+  }, [plant]);
   const cloudPushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cloudLogPushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const waterPlantWith = useCallback(async (gallons: number) => {
+    const prev = plantRef.current;
+    const now = Date.now();
+    const next: PlantState = {
+      hydration: Math.min(
+        100,
+        plantHydrationNow(prev, now) +
+          PLANT_HYDRATION_PER_GAL * Math.max(0, gallons),
+      ),
+      growthXp: prev.growthXp + PLANT_GROWTH_PER_DRINK,
+      lastWateredAt: now,
+      lastNotifAt: prev.lastNotifAt,
+    };
+    plantRef.current = next;
+    setPlant(next);
+    try {
+      await savePlantState(next);
+    } catch (e) {
+      console.warn("[plant] save failed:", e);
+    }
+  }, []);
+
+  const appendLogEntry = useCallback(async (entry: CloudLogEntry) => {
+    const today = todayKey();
+    const raw = (await AsyncStorage.getItem(`log_${today}`)) ?? "[]";
+    let list: CloudLogEntry[];
+    try {
+      list = JSON.parse(raw);
+      if (!Array.isArray(list)) list = [];
+    } catch {
+      list = [];
+    }
+    list.push(entry);
+    await AsyncStorage.setItem(`log_${today}`, JSON.stringify(list));
+    setTodayLog(list);
+  }, []);
 
   const setThemeId = useCallback(async (id: ThemeId) => {
     if (!THEMES[id]) return;
@@ -3672,6 +3862,7 @@ function AppProvider({ children }: { children: React.ReactNode }) {
     if (p) setProfileState({ ...DEFAULT_PROFILE, ...JSON.parse(p) });
     const b = JSON.parse((await AsyncStorage.getItem("badges")) || "[]");
     setBadges(b);
+    setPlant(await loadPlantState());
     const a = await AsyncStorage.getItem(ACCOUNT_KEY);
     if (a) {
       try {
@@ -3755,7 +3946,7 @@ function AppProvider({ children }: { children: React.ReactNode }) {
 
   const refreshNotifs = useCallback(async () => {
     const t: TFn = (key, params) => translate(profile.lang, key, params);
-    const n = await generateNotifs(profile, t);
+    const n = await generateNotifs(profile, t, plantRef.current);
     setNotifs(n);
   }, [profile]);
 
@@ -4113,6 +4304,12 @@ function AppProvider({ children }: { children: React.ReactNode }) {
         themeId,
         setThemeId,
         themeVersion,
+        mode,
+        setMode,
+        plant,
+        waterPlantWith,
+        todayLog,
+        appendLogEntry,
       }}
     >
       {children}
@@ -7146,7 +7343,7 @@ const tActivityLabel = (
     : englishLabel;
 
 function LoggerScreen() {
-  const { profile, refreshNotifs } = useApp();
+  const { profile, refreshNotifs, waterPlantWith } = useApp();
   const t = useT(profile.lang);
   const [log, setLog] = useState<
     { label: string; gallons: number; time: string; icon?: string }[]
@@ -7267,6 +7464,10 @@ function LoggerScreen() {
     // update lifetime savings counter
     const dayTotal = newLog.reduce((s: number, e: any) => s + e.gallons, 0);
     await bumpLifetimeSaved(Math.max(0, CA_DAILY_AVG - dayTotal));
+    // Cross-mode link: a logged drink also waters the Health-mode plant.
+    if (a.label === "Drinking Water") {
+      await waterPlantWith(a.gallons);
+    }
     refreshNotifs();
   };
 
@@ -9615,7 +9816,7 @@ function SettingsModal({
   visible: boolean;
   onClose: () => void;
 }) {
-  const { profile, setProfile, clearNotifs, account, signOut, themeId, setThemeId } = useApp();
+  const { profile, setProfile, clearNotifs, account, signOut, themeId, setThemeId, setMode } = useApp();
   const t = useT(profile.lang);
   const [draft, setDraft] = useState<Profile>(profile);
   const [showAbout, setShowAbout] = useState(false);
@@ -9831,6 +10032,36 @@ function SettingsModal({
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={C.muted} />
+            </Press>
+
+            {/* MODE */}
+            <Text style={st.settingHeader}>MODE</Text>
+            <Press
+              onPress={() => {
+                onClose();
+                setMode("select");
+              }}
+              style={[
+                st.dangerBtn,
+                {
+                  backgroundColor: C.success + "15",
+                  borderColor: C.success + "55",
+                  marginBottom: 12,
+                  justifyContent: "space-between",
+                },
+              ]}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <Ionicons name="swap-horizontal" size={16} color={C.success} />
+                <Text
+                  style={{ color: C.success, fontWeight: "700", fontSize: 14 }}
+                >
+                  Switch mode
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={C.success} />
             </Press>
 
             {/* APPEARANCE */}
@@ -18959,9 +19190,921 @@ function AchievementsModal({
   );
 }
 
+// ─── MODE SELECT (HEALTH vs CONSERVATION) ──────────────
+// Shown on every app launch. The user picks an experience and the rest of
+// the navigation tree follows. A "Switch Mode" entry in Settings returns
+// here mid-session.
+function ModeSelectScreen() {
+  const { setMode, profile } = useApp();
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar style="light" />
+      <SafeAreaView
+        style={{ flex: 1, paddingHorizontal: 20, paddingTop: insets.top + 10 }}
+      >
+        <View style={{ alignItems: "center", marginTop: 20, marginBottom: 28 }}>
+          <Text style={{ fontSize: 56 }}>💧</Text>
+          <Text
+            style={{
+              color: C.white,
+              fontSize: 26,
+              fontWeight: "900",
+              marginTop: 8,
+              letterSpacing: -0.5,
+            }}
+          >
+            H2O to You
+          </Text>
+          <Text
+            style={{
+              color: C.textSoft,
+              fontSize: 14,
+              marginTop: 6,
+              textAlign: "center",
+            }}
+          >
+            {profile.name ? `Welcome back, ${profile.name}` : "Pick how you want to start today"}
+          </Text>
+        </View>
+
+        <View style={{ flex: 1, gap: 16, justifyContent: "center" }}>
+          <Press
+            onPress={() => setMode("health")}
+            style={{
+              backgroundColor: C.card,
+              borderRadius: 24,
+              padding: 24,
+              borderWidth: 1.5,
+              borderColor: C.success + "55",
+              minHeight: 200,
+              ...SHADOW_HERO,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ fontSize: 56 }}>🌱</Text>
+              <Ionicons
+                name="chevron-forward"
+                size={28}
+                color={C.success}
+              />
+            </View>
+            <Text
+              style={{
+                color: C.white,
+                fontSize: 26,
+                fontWeight: "900",
+                marginTop: 14,
+                letterSpacing: -0.5,
+              }}
+            >
+              Health
+            </Text>
+            <Text
+              style={{
+                color: C.textSoft,
+                fontSize: 13,
+                lineHeight: 19,
+                marginTop: 6,
+              }}
+            >
+              Track your hydration and grow a virtual plant every time you
+              drink water.
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 6,
+                marginTop: 14,
+                flexWrap: "wrap",
+              }}
+            >
+              {["Hydration tracker", "Virtual plant", "Reminders"].map((tag) => (
+                <View
+                  key={tag}
+                  style={{
+                    backgroundColor: C.success + "22",
+                    borderRadius: 8,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: C.success,
+                      fontSize: 10,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </Press>
+
+          <Press
+            onPress={() => setMode("conservation")}
+            style={{
+              backgroundColor: C.card,
+              borderRadius: 24,
+              padding: 24,
+              borderWidth: 1.5,
+              borderColor: C.accent + "55",
+              minHeight: 200,
+              ...SHADOW_HERO,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ fontSize: 56 }}>🌊</Text>
+              <Ionicons
+                name="chevron-forward"
+                size={28}
+                color={C.accent}
+              />
+            </View>
+            <Text
+              style={{
+                color: C.white,
+                fontSize: 26,
+                fontWeight: "900",
+                marginTop: 14,
+                letterSpacing: -0.5,
+              }}
+            >
+              Conservation
+            </Text>
+            <Text
+              style={{
+                color: C.textSoft,
+                fontSize: 13,
+                lineHeight: 19,
+                marginTop: 6,
+              }}
+            >
+              Track your water footprint, explore California reservoirs,
+              learn the history, and chat with the AI guide.
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 6,
+                marginTop: 14,
+                flexWrap: "wrap",
+              }}
+            >
+              {[
+                "Footprint",
+                "Reservoirs",
+                "Camera",
+                "Stats",
+                "Learn",
+                "Chat",
+              ].map((tag) => (
+                <View
+                  key={tag}
+                  style={{
+                    backgroundColor: C.accent + "22",
+                    borderRadius: 8,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: C.accent,
+                      fontSize: 10,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </Press>
+        </View>
+
+        <Text
+          style={{
+            color: C.muted,
+            fontSize: 11,
+            textAlign: "center",
+            marginBottom: insets.bottom + 8,
+          }}
+        >
+          You can switch modes anytime from Settings.
+        </Text>
+      </SafeAreaView>
+    </View>
+  );
+}
+
+// ─── HEALTH SCREENS ─────────────────────────────────────
+// Health tabs share the underlying intake log with the Conservation Logger
+// (single source of truth in AsyncStorage `log_<YYYY-MM-DD>`), but only
+// surface drink-type entries. Writes go through context.appendLogEntry so
+// todayLog stays in sync without waiting for the 4s poll.
+const DRINK_PRESETS = [
+  { label: "Glass" as DrinkLabel, oz: 8, icon: "🥛" },
+  { label: "Bottle" as DrinkLabel, oz: 16, icon: "🍶" },
+  { label: "Large" as DrinkLabel, oz: 32, icon: "💧" },
+] as const;
+const OZ_TO_GAL = 1 / 128;
+
+function PlantArt({ stage, size }: { stage: PlantStage; size: number }) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: C.success + "15",
+        borderWidth: 2,
+        borderColor: C.success + "55",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Text style={{ fontSize: size * 0.55 }}>{PLANT_STAGE_EMOJI[stage]}</Text>
+    </View>
+  );
+}
+
+function HydrationBar({ pct, slim }: { pct: number; slim?: boolean }) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  const color = hydrationStatus(clamped).color;
+  const trackStyle = slim ? st.xpTrack : st.bigBarTrack;
+  const fillStyle = slim ? st.xpFill : st.bigBarFill;
+  return (
+    <View style={trackStyle}>
+      <View
+        style={[fillStyle, { width: `${clamped}%`, backgroundColor: color }]}
+      />
+    </View>
+  );
+}
+
+function DrinkPresetRow({
+  onDrink,
+}: {
+  onDrink: (oz: number, label: DrinkLabel) => void;
+}) {
+  return (
+    <View style={[st.quickRow, { paddingHorizontal: 16 }]}>
+      {DRINK_PRESETS.map((p) => (
+        <Press
+          key={p.label}
+          onPress={() => onDrink(p.oz, p.label)}
+          style={st.quickAction}
+        >
+          <Text style={{ fontSize: 32 }}>{p.icon}</Text>
+          <Text style={st.actLabel}>{p.label}</Text>
+          <Text style={st.actGallons}>{p.oz} oz</Text>
+        </Press>
+      ))}
+    </View>
+  );
+}
+
+function HealthHomeScreen() {
+  const navigation = useNavigation<any>();
+  const {
+    plant,
+    waterPlantWith,
+    refreshNotifs,
+    profile,
+    todayLog,
+    appendLogEntry,
+  } = useApp();
+  const [showSettings, setShowSettings] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const now = useNow();
+
+  const drinks = useMemo(() => {
+    const ds = todayLog.filter(isDrinkEntry);
+    return {
+      count: ds.length,
+      gallons: ds.reduce((s, e) => s + (e.gallons ?? 0), 0),
+    };
+  }, [todayLog]);
+
+  const drink = async (oz: number, label: DrinkLabel) => {
+    const gallons = oz * OZ_TO_GAL;
+    await appendLogEntry({
+      label,
+      gallons,
+      time: formatLogTime(),
+      icon: "🥤",
+    });
+    await waterPlantWith(gallons);
+    Vibration.vibrate(20);
+    refreshNotifs();
+  };
+
+  const stage = plantStage(plant.growthXp);
+  const hydration = plantHydrationNow(plant, now);
+  // Profile.goal is stored as glasses-equivalent; convert to ounces for the
+  // intake bar denominator.
+  const goalOz = profile.goal * 16;
+  const goalPct = Math.min(
+    100,
+    Math.round((drinks.gallons / OZ_TO_GAL / Math.max(1, goalOz)) * 100),
+  );
+
+  return (
+    <SafeAreaView style={s.screen}>
+      <StatusBar style="light" />
+      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+        <View style={st.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={st.headerTitle}>Hydration</Text>
+            <Text style={st.headerSubtitle}>
+              {profile.name ? `Hi ${profile.name}` : "Stay topped up today"}
+            </Text>
+          </View>
+          <Press
+            onPress={() => setShowNotifs(true)}
+            style={st.headerIconBtn}
+          >
+            <Ionicons name="notifications" size={20} color={C.text} />
+          </Press>
+          <Press
+            onPress={() => setShowSettings(true)}
+            style={st.headerIconBtn}
+          >
+            <Ionicons name="settings" size={20} color={C.text} />
+          </Press>
+        </View>
+
+        {/* PLANT HERO */}
+        <Press
+          onPress={() => navigation.navigate("Plant")}
+          style={[
+            st.heroCard,
+            { borderColor: C.success + "55", alignItems: "center" },
+          ]}
+        >
+          <PlantArt stage={stage} size={140} />
+          <Text
+            style={{
+              color: C.white,
+              fontSize: 22,
+              fontWeight: "900",
+              marginTop: 14,
+            }}
+          >
+            {PLANT_STAGE_NAME[stage]}
+          </Text>
+          <Text
+            style={{
+              color: C.muted,
+              fontSize: 12,
+              marginTop: 4,
+              marginBottom: 14,
+            }}
+          >
+            Tap to view your plant
+          </Text>
+          <View style={{ width: "100%" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 6,
+              }}
+            >
+              <Text
+                style={{
+                  color: C.textSoft,
+                  fontSize: 11,
+                  fontWeight: "700",
+                  letterSpacing: 1,
+                }}
+              >
+                HYDRATION
+              </Text>
+              <Text
+                style={{
+                  color: C.success,
+                  fontSize: 12,
+                  fontWeight: "800",
+                }}
+              >
+                {Math.round(hydration)}%
+              </Text>
+            </View>
+            <HydrationBar pct={hydration} />
+          </View>
+        </Press>
+
+        {/* TODAY INTAKE */}
+        <View
+          style={[
+            st.glassCard,
+            { marginHorizontal: 16, marginTop: 14, marginBottom: 6 },
+          ]}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 10,
+            }}
+          >
+            <Text
+              style={{
+                color: C.muted,
+                fontSize: 11,
+                fontWeight: "800",
+                letterSpacing: 2,
+              }}
+            >
+              TODAY
+            </Text>
+            <Text
+              style={{ color: C.success, fontSize: 12, fontWeight: "800" }}
+            >
+              {goalPct}% of goal
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              marginBottom: 10,
+            }}
+          >
+            <View>
+              <Text style={{ color: C.muted, fontSize: 10 }}>DRINKS</Text>
+              <Text
+                style={{
+                  color: C.white,
+                  fontSize: 28,
+                  fontWeight: "900",
+                  marginTop: 2,
+                }}
+              >
+                {drinks.count}
+              </Text>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={{ color: C.muted, fontSize: 10 }}>VOLUME</Text>
+              <Text
+                style={{
+                  color: C.white,
+                  fontSize: 18,
+                  fontWeight: "800",
+                  marginTop: 2,
+                }}
+              >
+                {(drinks.gallons / OZ_TO_GAL).toFixed(0)} oz
+              </Text>
+              <Text style={{ color: C.muted, fontSize: 10 }}>
+                {drinks.gallons.toFixed(2)} gal
+              </Text>
+            </View>
+          </View>
+          <HydrationBar pct={goalPct} slim />
+        </View>
+
+        <Text style={s.section}>QUICK ADD</Text>
+        <DrinkPresetRow onDrink={drink} />
+        <Text
+          style={{
+            color: C.muted,
+            fontSize: 11,
+            textAlign: "center",
+            marginTop: 6,
+            paddingHorizontal: 24,
+            lineHeight: 16,
+          }}
+        >
+          Tap a glass to log a drink. Each drink waters your plant 🌱
+        </Text>
+      </ScrollView>
+
+      <SettingsModal
+        visible={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+      <NotifsModal
+        visible={showNotifs}
+        onClose={() => setShowNotifs(false)}
+      />
+    </SafeAreaView>
+  );
+}
+
+function HydrateScreen() {
+  const { plant, waterPlantWith, refreshNotifs, todayLog, appendLogEntry } =
+    useApp();
+  const [customOz, setCustomOz] = useState("");
+  const now = useNow();
+
+  const recent = useMemo(
+    () => todayLog.filter(isDrinkEntry).slice().reverse(),
+    [todayLog],
+  );
+
+  const drink = async (oz: number, label: DrinkLabel) => {
+    const gallons = oz * OZ_TO_GAL;
+    await appendLogEntry({
+      label,
+      gallons,
+      time: formatLogTime(),
+      icon: "🥤",
+    });
+    await waterPlantWith(gallons);
+    Vibration.vibrate(20);
+    refreshNotifs();
+  };
+
+  const submitCustom = async () => {
+    const oz = parseFloat(customOz);
+    if (!oz || oz <= 0) {
+      Alert.alert("Invalid amount", "Enter ounces greater than zero.");
+      return;
+    }
+    await drink(oz, "Custom Drink");
+    setCustomOz("");
+  };
+
+  const totalOz = recent.reduce((s, e) => s + e.gallons / OZ_TO_GAL, 0);
+  const hydration = plantHydrationNow(plant, now);
+  const stage = plantStage(plant.growthXp);
+
+  return (
+    <SafeAreaView style={s.screen}>
+      <StatusBar style="light" />
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <View style={st.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={st.headerTitle}>Drink log</Text>
+            <Text style={st.headerSubtitle}>
+              {recent.length} drink{recent.length === 1 ? "" : "s"} ·{" "}
+              {totalOz.toFixed(0)} oz today
+            </Text>
+          </View>
+        </View>
+
+        <View
+          style={[
+            st.glassCard,
+            { marginHorizontal: 16, marginBottom: 14 },
+          ]}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 10,
+            }}
+          >
+            <PlantArt stage={stage} size={44} />
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  color: C.white,
+                  fontSize: 14,
+                  fontWeight: "800",
+                }}
+              >
+                Plant hydration
+              </Text>
+              <Text style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>
+                {Math.round(hydration)}% — every drink helps
+              </Text>
+            </View>
+          </View>
+          <HydrationBar pct={hydration} />
+        </View>
+
+        <Text style={s.section}>QUICK ADD</Text>
+        <DrinkPresetRow onDrink={drink} />
+
+        <Text style={s.section}>CUSTOM</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 10,
+            paddingHorizontal: 16,
+            marginBottom: 12,
+            alignItems: "center",
+          }}
+        >
+          <TextInput
+            style={[st.input, { flex: 1, marginBottom: 0 }]}
+            value={customOz}
+            onChangeText={setCustomOz}
+            placeholder="Ounces"
+            placeholderTextColor={C.muted}
+            keyboardType="numeric"
+          />
+          <Press
+            onPress={submitCustom}
+            style={[
+              st.btn,
+              {
+                paddingHorizontal: 20,
+                paddingVertical: 12,
+                opacity: customOz.length > 0 ? 1 : 0.5,
+              },
+            ]}
+            disabled={customOz.length === 0}
+          >
+            <Text style={st.btnText}>Log</Text>
+          </Press>
+        </View>
+
+        <Text style={s.section}>TODAY</Text>
+        {recent.length === 0 ? (
+          <Text
+            style={{
+              color: C.muted,
+              fontSize: 12,
+              textAlign: "center",
+              marginTop: 14,
+              paddingHorizontal: 24,
+            }}
+          >
+            No drinks logged yet. Tap a glass above to start.
+          </Text>
+        ) : (
+          <View style={{ paddingHorizontal: 16, gap: 8 }}>
+            {recent.map((e, i) => (
+              <View key={i} style={st.logRow}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <Text style={{ fontSize: 22 }}>{e.icon ?? "🥤"}</Text>
+                  <View>
+                    <Text
+                      style={{
+                        color: C.white,
+                        fontSize: 13,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {e.label}
+                    </Text>
+                    <Text
+                      style={{ color: C.muted, fontSize: 11, marginTop: 2 }}
+                    >
+                      {e.time}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  style={{
+                    color: C.success,
+                    fontSize: 13,
+                    fontWeight: "800",
+                  }}
+                >
+                  {(e.gallons / OZ_TO_GAL).toFixed(0)} oz
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function PlantScreen() {
+  const { plant } = useApp();
+  const now = useNow();
+
+  const stage = plantStage(plant.growthXp);
+  const hydration = plantHydrationNow(plant, now);
+  const status = hydrationStatus(hydration);
+  const nextThreshold =
+    PLANT_STAGE_THRESHOLDS[Math.min(stage + 1, PLANT_STAGE_THRESHOLDS.length - 1)];
+  const prevThreshold = PLANT_STAGE_THRESHOLDS[stage];
+  const stageProgress =
+    stage < PLANT_STAGE_THRESHOLDS.length - 1
+      ? Math.round(
+          ((plant.growthXp - prevThreshold) /
+            Math.max(1, nextThreshold - prevThreshold)) *
+            100,
+        )
+      : 100;
+
+  return (
+    <SafeAreaView style={s.screen}>
+      <StatusBar style="light" />
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <View style={st.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={st.headerTitle}>Your plant</Text>
+            <Text style={st.headerSubtitle}>
+              {PLANT_STAGE_NAME[stage]} · {plant.growthXp} XP
+            </Text>
+          </View>
+        </View>
+
+        <View
+          style={[
+            st.heroCard,
+            { borderColor: C.success + "55", alignItems: "center" },
+          ]}
+        >
+          <PlantArt stage={stage} size={200} />
+          <Text
+            style={{
+              color: C.white,
+              fontSize: 28,
+              fontWeight: "900",
+              marginTop: 16,
+              letterSpacing: -0.5,
+            }}
+          >
+            {PLANT_STAGE_NAME[stage]}
+          </Text>
+          <Text
+            style={{
+              color: status.color,
+              fontSize: 13,
+              fontWeight: "700",
+              marginTop: 6,
+            }}
+          >
+            {status.label}
+          </Text>
+        </View>
+
+        <View
+          style={[
+            st.glassCard,
+            { marginHorizontal: 16, marginTop: 14, marginBottom: 8 },
+          ]}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 6,
+            }}
+          >
+            <Text
+              style={{
+                color: C.muted,
+                fontSize: 11,
+                fontWeight: "800",
+                letterSpacing: 1.5,
+              }}
+            >
+              HYDRATION
+            </Text>
+            <Text
+              style={{ color: C.success, fontSize: 12, fontWeight: "800" }}
+            >
+              {Math.round(hydration)}%
+            </Text>
+          </View>
+          <HydrationBar pct={hydration} />
+          <Text
+            style={{
+              color: C.muted,
+              fontSize: 11,
+              marginTop: 8,
+              lineHeight: 16,
+            }}
+          >
+            Hydration drains slowly through the day. Log a drink in the
+            Hydrate tab to refill it.
+          </Text>
+        </View>
+
+        <View
+          style={[
+            st.glassCard,
+            { marginHorizontal: 16, marginTop: 8, marginBottom: 8 },
+          ]}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 6,
+            }}
+          >
+            <Text
+              style={{
+                color: C.muted,
+                fontSize: 11,
+                fontWeight: "800",
+                letterSpacing: 1.5,
+              }}
+            >
+              GROWTH
+            </Text>
+            <Text
+              style={{ color: C.accent, fontSize: 12, fontWeight: "800" }}
+            >
+              {stage < PLANT_STAGE_THRESHOLDS.length - 1
+                ? `${plant.growthXp} / ${nextThreshold} XP`
+                : "Max stage"}
+            </Text>
+          </View>
+          <View style={st.bigBarTrack}>
+            <View
+              style={[
+                st.bigBarFill,
+                { width: `${stageProgress}%`, backgroundColor: C.accent },
+              ]}
+            />
+          </View>
+          <Text
+            style={{
+              color: C.muted,
+              fontSize: 11,
+              marginTop: 8,
+              lineHeight: 16,
+            }}
+          >
+            Each drink adds {PLANT_GROWTH_PER_DRINK} XP. Keep watering to
+            reach the next stage.
+          </Text>
+        </View>
+
+        <Text style={s.section}>STAGES</Text>
+        <View
+          style={{
+            paddingHorizontal: 16,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
+          {PLANT_STAGE_EMOJI.map((emoji, i) => {
+            const reached = plant.growthXp >= PLANT_STAGE_THRESHOLDS[i];
+            const current = i === stage;
+            return (
+              <View
+                key={i}
+                style={{
+                  width: (SW - 56) / 3,
+                  backgroundColor: C.card,
+                  borderRadius: 14,
+                  padding: 12,
+                  alignItems: "center",
+                  borderWidth: 1.5,
+                  borderColor: current
+                    ? C.success
+                    : reached
+                      ? C.border
+                      : C.borderSoft,
+                  opacity: reached ? 1 : 0.5,
+                }}
+              >
+                <Text style={{ fontSize: 32 }}>{emoji}</Text>
+                <Text
+                  style={{
+                    color: C.text,
+                    fontSize: 11,
+                    fontWeight: "700",
+                    marginTop: 6,
+                  }}
+                >
+                  {PLANT_STAGE_NAME[i]}
+                </Text>
+                <Text style={{ color: C.muted, fontSize: 9, marginTop: 2 }}>
+                  {PLANT_STAGE_THRESHOLDS[i]} XP
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
 // ─── ROOT ────────────────────────────────────────────────
 function NavRoot() {
-  const { unreadCount, loaded, profile } = useApp();
+  const { unreadCount, loaded, profile, mode } = useApp();
   const t = useT(profile.lang);
   const insets = useSafeAreaInsets();
   if (!loaded) {
@@ -18979,6 +20122,89 @@ function NavRoot() {
       </View>
     );
   }
+
+  if (mode === "select") {
+    return <ModeSelectScreen />;
+  }
+
+  const baseTabBarStyle = {
+    backgroundColor: C.surface,
+    borderTopColor: C.accent + "22",
+    borderTopWidth: 1,
+    height: 58 + (insets.bottom > 0 ? insets.bottom : 8),
+    paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+    paddingTop: 8,
+    ...(Platform.OS === "web"
+      ? ({
+          boxShadow:
+            "0 -8px 24px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
+        } as any)
+      : {}),
+  };
+
+  if (mode === "health") {
+    return (
+      <NavigationContainer>
+        <StatusBar style="light" />
+        <HealthTab.Navigator
+          screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: C.success,
+            tabBarInactiveTintColor: C.muted,
+            tabBarStyle: {
+              ...baseTabBarStyle,
+              borderTopColor: C.success + "33",
+            },
+            tabBarLabelStyle: {
+              fontSize: 10,
+              fontWeight: "800",
+              letterSpacing: 0.4,
+              marginTop: 1,
+            },
+            tabBarItemStyle: { paddingHorizontal: 0 },
+          }}
+        >
+          <HealthTab.Screen
+            name="Home"
+            component={HealthHomeScreen}
+            options={{
+              tabBarLabel: "Home",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="home" color={color} size={size - 2} />
+              ),
+              tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+              tabBarBadgeStyle: {
+                backgroundColor: C.danger,
+                color: C.white,
+                fontSize: 10,
+              },
+            }}
+          />
+          <HealthTab.Screen
+            name="Hydrate"
+            component={HydrateScreen}
+            options={{
+              tabBarLabel: "Hydrate",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="water" color={color} size={size - 2} />
+              ),
+            }}
+          />
+          <HealthTab.Screen
+            name="Plant"
+            component={PlantScreen}
+            options={{
+              tabBarLabel: "Plant",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="leaf" color={color} size={size - 2} />
+              ),
+            }}
+          />
+        </HealthTab.Navigator>
+      </NavigationContainer>
+    );
+  }
+
   return (
     <NavigationContainer>
       <StatusBar style="light" />
@@ -18987,20 +20213,7 @@ function NavRoot() {
           headerShown: false,
           tabBarActiveTintColor: C.accent,
           tabBarInactiveTintColor: C.muted,
-          tabBarStyle: {
-            backgroundColor: C.surface,
-            borderTopColor: C.accent + "22",
-            borderTopWidth: 1,
-            height: 58 + (insets.bottom > 0 ? insets.bottom : 8),
-            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-            paddingTop: 8,
-            ...(Platform.OS === "web"
-              ? ({
-                  boxShadow:
-                    "0 -8px 24px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
-                } as any)
-              : {}),
-          },
+          tabBarStyle: baseTabBarStyle,
           tabBarLabelStyle: {
             fontSize: 9,
             fontWeight: "800",
